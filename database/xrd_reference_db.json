@@ -1,0 +1,1120 @@
+{
+  "_meta": {
+    "note": "d-spacings (Angstrom) below are representative values calculated from widely published unit-cell parameters / powder patterns for these phases (Cu Ka1 = 1.540562 A used where a 2theta reference is quoted). They are NOT a substitute for a certified ICDD PDF-2/PDF-4 card -- treat matches as a screening aid and confirm anything consequential against the certified database or the Crystallography Open Database. Matching works at any wavelength because the toolkit compares d-spacings (wavelength-independent), not raw 2theta.",
+    "units": "d-spacing (Angstrom)",
+    "version": "1.0",
+    "wavelength_used_for_reference": "Cu Ka1 (1.540562 A)",
+    "references": [
+      {
+        "id": "cullity2001",
+        "citation": "Cullity, B.D.; Stock, S.R. - Elements of X-Ray Diffraction, 3rd ed., Prentice Hall, 2001."
+      },
+      {
+        "id": "icdd",
+        "citation": "ICDD Powder Diffraction File (PDF-2 / PDF-4), International Centre for Diffraction Data - the certified reference for definitive phase identification."
+      },
+      {
+        "id": "cod",
+        "citation": "Crystallography Open Database (COD), crystallography.net - open-access crystal structure data, for cross-checking unit-cell/d-spacing values."
+      }
+    ]
+  },
+  "phases": [
+    {
+      "name": "Quartz, alpha (SiO2)",
+      "category": "mineral",
+      "crystal_system": "trigonal",
+      "lattice_params": {
+        "a": 4.913,
+        "c": 5.405
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 4.257,
+          "hkl": "100",
+          "rel_intensity": 22
+        },
+        {
+          "d_A": 3.343,
+          "hkl": "101",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.458,
+          "hkl": "110",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 2.282,
+          "hkl": "102",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 2.237,
+          "hkl": "111",
+          "rel_intensity": 4
+        },
+        {
+          "d_A": 2.128,
+          "hkl": "200",
+          "rel_intensity": 5
+        },
+        {
+          "d_A": 1.98,
+          "hkl": "201",
+          "rel_intensity": 2
+        },
+        {
+          "d_A": 1.817,
+          "hkl": "112",
+          "rel_intensity": 13
+        },
+        {
+          "d_A": 1.672,
+          "hkl": "202",
+          "rel_intensity": 9
+        },
+        {
+          "d_A": 1.541,
+          "hkl": "211",
+          "rel_intensity": 4
+        },
+        {
+          "d_A": 1.453,
+          "hkl": "113",
+          "rel_intensity": 9
+        },
+        {
+          "d_A": 1.382,
+          "hkl": "300",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.288,
+          "hkl": "220",
+          "rel_intensity": 6
+        }
+      ]
+    },
+    {
+      "name": "Calcite (CaCO3)",
+      "category": "mineral",
+      "crystal_system": "trigonal",
+      "lattice_params": {
+        "a": 4.99,
+        "c": 17.06
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.86,
+          "hkl": "012",
+          "rel_intensity": 12
+        },
+        {
+          "d_A": 3.035,
+          "hkl": "104",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.845,
+          "hkl": "006",
+          "rel_intensity": 2
+        },
+        {
+          "d_A": 2.495,
+          "hkl": "110",
+          "rel_intensity": 14
+        },
+        {
+          "d_A": 2.285,
+          "hkl": "113",
+          "rel_intensity": 18
+        },
+        {
+          "d_A": 2.095,
+          "hkl": "202",
+          "rel_intensity": 17
+        },
+        {
+          "d_A": 1.927,
+          "hkl": "024",
+          "rel_intensity": 17
+        },
+        {
+          "d_A": 1.875,
+          "hkl": "018",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 1.626,
+          "hkl": "116",
+          "rel_intensity": 17
+        },
+        {
+          "d_A": 1.604,
+          "hkl": "211",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.525,
+          "hkl": "122",
+          "rel_intensity": 5
+        },
+        {
+          "d_A": 1.518,
+          "hkl": "300",
+          "rel_intensity": 5
+        }
+      ]
+    },
+    {
+      "name": "Dolomite (CaMg(CO3)2)",
+      "category": "mineral",
+      "crystal_system": "trigonal",
+      "lattice_params": {
+        "a": 4.81,
+        "c": 16.02
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.886,
+          "hkl": "104",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.192,
+          "hkl": "113",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 1.786,
+          "hkl": "202",
+          "rel_intensity": 25
+        },
+        {
+          "d_A": 1.786,
+          "hkl": "024",
+          "rel_intensity": 15
+        },
+        {
+          "d_A": 2.539,
+          "hkl": "110",
+          "rel_intensity": 5
+        },
+        {
+          "d_A": 3.7,
+          "hkl": "012",
+          "rel_intensity": 6
+        }
+      ]
+    },
+    {
+      "name": "Corundum, alpha-Al2O3 (sapphire)",
+      "category": "oxide",
+      "crystal_system": "trigonal",
+      "lattice_params": {
+        "a": 4.758,
+        "c": 12.99
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.479,
+          "hkl": "012",
+          "rel_intensity": 58
+        },
+        {
+          "d_A": 2.552,
+          "hkl": "104",
+          "rel_intensity": 97
+        },
+        {
+          "d_A": 2.379,
+          "hkl": "110",
+          "rel_intensity": 42
+        },
+        {
+          "d_A": 2.165,
+          "hkl": "113",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 2.085,
+          "hkl": "006",
+          "rel_intensity": 4
+        },
+        {
+          "d_A": 1.964,
+          "hkl": "024",
+          "rel_intensity": 91
+        },
+        {
+          "d_A": 1.74,
+          "hkl": "116",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.601,
+          "hkl": "211",
+          "rel_intensity": 4
+        },
+        {
+          "d_A": 1.546,
+          "hkl": "122",
+          "rel_intensity": 41
+        },
+        {
+          "d_A": 1.404,
+          "hkl": "300",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.374,
+          "hkl": "1,0,10",
+          "rel_intensity": 32
+        },
+        {
+          "d_A": 1.337,
+          "hkl": "119",
+          "rel_intensity": 13
+        }
+      ]
+    },
+    {
+      "name": "Rutile (TiO2)",
+      "category": "oxide",
+      "crystal_system": "tetragonal",
+      "lattice_params": {
+        "a": 4.594,
+        "c": 2.959
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.247,
+          "hkl": "110",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.487,
+          "hkl": "101",
+          "rel_intensity": 50
+        },
+        {
+          "d_A": 2.297,
+          "hkl": "200",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 2.188,
+          "hkl": "111",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.9737,
+          "hkl": "210",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 1.6874,
+          "hkl": "211",
+          "rel_intensity": 60
+        },
+        {
+          "d_A": 1.6237,
+          "hkl": "220",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.4535,
+          "hkl": "002",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 1.4237,
+          "hkl": "310",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 1.3598,
+          "hkl": "301",
+          "rel_intensity": 20
+        }
+      ]
+    },
+    {
+      "name": "Anatase (TiO2)",
+      "category": "oxide",
+      "crystal_system": "tetragonal",
+      "lattice_params": {
+        "a": 3.7845,
+        "c": 9.5143
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.52,
+          "hkl": "101",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.431,
+          "hkl": "004",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 2.378,
+          "hkl": "200",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.892,
+          "hkl": "105",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.699,
+          "hkl": "211",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.665,
+          "hkl": "204",
+          "rel_intensity": 14
+        },
+        {
+          "d_A": 1.492,
+          "hkl": "116",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.48,
+          "hkl": "220",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.364,
+          "hkl": "215",
+          "rel_intensity": 8
+        }
+      ]
+    },
+    {
+      "name": "Halite (NaCl, rock salt)",
+      "category": "salt",
+      "crystal_system": "cubic",
+      "lattice_params": {
+        "a": 5.6402
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.257,
+          "hkl": "111",
+          "rel_intensity": 13
+        },
+        {
+          "d_A": 2.821,
+          "hkl": "200",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.994,
+          "hkl": "220",
+          "rel_intensity": 55
+        },
+        {
+          "d_A": 1.701,
+          "hkl": "311",
+          "rel_intensity": 15
+        },
+        {
+          "d_A": 1.628,
+          "hkl": "222",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.41,
+          "hkl": "400",
+          "rel_intensity": 5
+        },
+        {
+          "d_A": 1.294,
+          "hkl": "331",
+          "rel_intensity": 11
+        },
+        {
+          "d_A": 1.261,
+          "hkl": "420",
+          "rel_intensity": 13
+        },
+        {
+          "d_A": 1.151,
+          "hkl": "422",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 1.085,
+          "hkl": "333",
+          "rel_intensity": 8
+        }
+      ]
+    },
+    {
+      "name": "Sylvite (KCl)",
+      "category": "salt",
+      "crystal_system": "cubic",
+      "lattice_params": {
+        "a": 6.293
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.633,
+          "hkl": "111",
+          "rel_intensity": 16
+        },
+        {
+          "d_A": 3.146,
+          "hkl": "200",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.225,
+          "hkl": "220",
+          "rel_intensity": 57
+        },
+        {
+          "d_A": 1.898,
+          "hkl": "311",
+          "rel_intensity": 17
+        },
+        {
+          "d_A": 1.816,
+          "hkl": "222",
+          "rel_intensity": 7
+        },
+        {
+          "d_A": 1.573,
+          "hkl": "400",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.444,
+          "hkl": "331",
+          "rel_intensity": 13
+        },
+        {
+          "d_A": 1.404,
+          "hkl": "420",
+          "rel_intensity": 14
+        }
+      ]
+    },
+    {
+      "name": "Gold (Au)",
+      "category": "metal",
+      "crystal_system": "cubic (FCC)",
+      "lattice_params": {
+        "a": 4.0786
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.355,
+          "hkl": "111",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.039,
+          "hkl": "200",
+          "rel_intensity": 52
+        },
+        {
+          "d_A": 1.442,
+          "hkl": "220",
+          "rel_intensity": 32
+        },
+        {
+          "d_A": 1.23,
+          "hkl": "311",
+          "rel_intensity": 36
+        },
+        {
+          "d_A": 1.178,
+          "hkl": "222",
+          "rel_intensity": 12
+        }
+      ]
+    },
+    {
+      "name": "Silver (Ag)",
+      "category": "metal",
+      "crystal_system": "cubic (FCC)",
+      "lattice_params": {
+        "a": 4.0857
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.359,
+          "hkl": "111",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.044,
+          "hkl": "200",
+          "rel_intensity": 40
+        },
+        {
+          "d_A": 1.445,
+          "hkl": "220",
+          "rel_intensity": 25
+        },
+        {
+          "d_A": 1.231,
+          "hkl": "311",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 1.179,
+          "hkl": "222",
+          "rel_intensity": 10
+        }
+      ]
+    },
+    {
+      "name": "Copper (Cu)",
+      "category": "metal",
+      "crystal_system": "cubic (FCC)",
+      "lattice_params": {
+        "a": 3.615
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.088,
+          "hkl": "111",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.808,
+          "hkl": "200",
+          "rel_intensity": 46
+        },
+        {
+          "d_A": 1.278,
+          "hkl": "220",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.09,
+          "hkl": "311",
+          "rel_intensity": 17
+        },
+        {
+          "d_A": 1.044,
+          "hkl": "222",
+          "rel_intensity": 5
+        }
+      ]
+    },
+    {
+      "name": "Iron, alpha (ferrite)",
+      "category": "metal",
+      "crystal_system": "cubic (BCC)",
+      "lattice_params": {
+        "a": 2.8665
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.0268,
+          "hkl": "110",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.4332,
+          "hkl": "200",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.1702,
+          "hkl": "211",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 1.0134,
+          "hkl": "220",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 0.9061,
+          "hkl": "310",
+          "rel_intensity": 12
+        }
+      ]
+    },
+    {
+      "name": "Aluminum (Al)",
+      "category": "metal",
+      "crystal_system": "cubic (FCC)",
+      "lattice_params": {
+        "a": 4.0495
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.338,
+          "hkl": "111",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.024,
+          "hkl": "200",
+          "rel_intensity": 47
+        },
+        {
+          "d_A": 1.431,
+          "hkl": "220",
+          "rel_intensity": 22
+        },
+        {
+          "d_A": 1.221,
+          "hkl": "311",
+          "rel_intensity": 24
+        },
+        {
+          "d_A": 1.169,
+          "hkl": "222",
+          "rel_intensity": 7
+        }
+      ]
+    },
+    {
+      "name": "Nickel (Ni)",
+      "category": "metal",
+      "crystal_system": "cubic (FCC)",
+      "lattice_params": {
+        "a": 3.5238
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.034,
+          "hkl": "111",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.762,
+          "hkl": "200",
+          "rel_intensity": 42
+        },
+        {
+          "d_A": 1.246,
+          "hkl": "220",
+          "rel_intensity": 21
+        },
+        {
+          "d_A": 1.062,
+          "hkl": "311",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.017,
+          "hkl": "222",
+          "rel_intensity": 6
+        }
+      ]
+    },
+    {
+      "name": "Silicon (Si)",
+      "category": "semiconductor",
+      "crystal_system": "cubic (diamond)",
+      "lattice_params": {
+        "a": 5.431
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.138,
+          "hkl": "111",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.92,
+          "hkl": "220",
+          "rel_intensity": 55
+        },
+        {
+          "d_A": 1.637,
+          "hkl": "311",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 1.357,
+          "hkl": "400",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.245,
+          "hkl": "331",
+          "rel_intensity": 11
+        },
+        {
+          "d_A": 1.108,
+          "hkl": "422",
+          "rel_intensity": 12
+        }
+      ]
+    },
+    {
+      "name": "Graphite (C, hexagonal)",
+      "category": "carbon",
+      "crystal_system": "hexagonal",
+      "lattice_params": {
+        "a": 2.461,
+        "c": 6.708
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.35,
+          "hkl": "002",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.13,
+          "hkl": "100",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 2.03,
+          "hkl": "101",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 1.68,
+          "hkl": "004",
+          "rel_intensity": 3
+        },
+        {
+          "d_A": 1.54,
+          "hkl": "110",
+          "rel_intensity": 4
+        },
+        {
+          "d_A": 1.23,
+          "hkl": "112",
+          "rel_intensity": 2
+        }
+      ]
+    },
+    {
+      "name": "Zincite (ZnO, wurtzite)",
+      "category": "oxide",
+      "crystal_system": "hexagonal",
+      "lattice_params": {
+        "a": 3.2495,
+        "c": 5.2069
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.816,
+          "hkl": "100",
+          "rel_intensity": 57
+        },
+        {
+          "d_A": 2.602,
+          "hkl": "002",
+          "rel_intensity": 44
+        },
+        {
+          "d_A": 2.476,
+          "hkl": "101",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.911,
+          "hkl": "102",
+          "rel_intensity": 23
+        },
+        {
+          "d_A": 1.625,
+          "hkl": "110",
+          "rel_intensity": 32
+        },
+        {
+          "d_A": 1.477,
+          "hkl": "103",
+          "rel_intensity": 29
+        },
+        {
+          "d_A": 1.406,
+          "hkl": "200",
+          "rel_intensity": 4
+        },
+        {
+          "d_A": 1.379,
+          "hkl": "112",
+          "rel_intensity": 23
+        },
+        {
+          "d_A": 1.358,
+          "hkl": "201",
+          "rel_intensity": 13
+        }
+      ]
+    },
+    {
+      "name": "Magnetite (Fe3O4, spinel)",
+      "category": "oxide",
+      "crystal_system": "cubic",
+      "lattice_params": {
+        "a": 8.396
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.967,
+          "hkl": "220",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 2.532,
+          "hkl": "311",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.099,
+          "hkl": "400",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.715,
+          "hkl": "422",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 1.616,
+          "hkl": "511",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 1.485,
+          "hkl": "440",
+          "rel_intensity": 40
+        }
+      ]
+    },
+    {
+      "name": "Hematite (alpha-Fe2O3)",
+      "category": "oxide",
+      "crystal_system": "trigonal",
+      "lattice_params": {
+        "a": 5.038,
+        "c": 13.772
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.684,
+          "hkl": "012",
+          "rel_intensity": 25
+        },
+        {
+          "d_A": 2.7,
+          "hkl": "104",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.519,
+          "hkl": "110",
+          "rel_intensity": 70
+        },
+        {
+          "d_A": 2.208,
+          "hkl": "113",
+          "rel_intensity": 25
+        },
+        {
+          "d_A": 1.838,
+          "hkl": "024",
+          "rel_intensity": 40
+        },
+        {
+          "d_A": 1.694,
+          "hkl": "116",
+          "rel_intensity": 60
+        },
+        {
+          "d_A": 1.484,
+          "hkl": "214",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 1.452,
+          "hkl": "300",
+          "rel_intensity": 35
+        }
+      ]
+    },
+    {
+      "name": "Fluorite (CaF2)",
+      "category": "mineral",
+      "crystal_system": "cubic",
+      "lattice_params": {
+        "a": 5.463
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.153,
+          "hkl": "111",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.932,
+          "hkl": "220",
+          "rel_intensity": 25
+        },
+        {
+          "d_A": 1.648,
+          "hkl": "311",
+          "rel_intensity": 18
+        },
+        {
+          "d_A": 1.366,
+          "hkl": "400",
+          "rel_intensity": 4
+        },
+        {
+          "d_A": 1.253,
+          "hkl": "331",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 1.117,
+          "hkl": "422",
+          "rel_intensity": 10
+        }
+      ]
+    },
+    {
+      "name": "Periclase (MgO)",
+      "category": "oxide",
+      "crystal_system": "cubic",
+      "lattice_params": {
+        "a": 4.212
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 2.431,
+          "hkl": "111",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 2.106,
+          "hkl": "200",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 1.489,
+          "hkl": "220",
+          "rel_intensity": 53
+        },
+        {
+          "d_A": 1.27,
+          "hkl": "311",
+          "rel_intensity": 13
+        },
+        {
+          "d_A": 1.216,
+          "hkl": "222",
+          "rel_intensity": 6
+        }
+      ]
+    },
+    {
+      "name": "Gypsum (CaSO4.2H2O)",
+      "category": "mineral",
+      "crystal_system": "monoclinic",
+      "lattice_params": {
+        "a": 5.679,
+        "b": 15.202,
+        "c": 6.522,
+        "beta": 118.43
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 7.63,
+          "hkl": "020",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 4.28,
+          "hkl": "021",
+          "rel_intensity": 27
+        },
+        {
+          "d_A": 3.79,
+          "hkl": "041",
+          "rel_intensity": 13
+        },
+        {
+          "d_A": 3.06,
+          "hkl": "150",
+          "rel_intensity": 45
+        },
+        {
+          "d_A": 2.87,
+          "hkl": "-113",
+          "rel_intensity": 15
+        }
+      ]
+    },
+    {
+      "name": "Cristobalite, alpha (SiO2)",
+      "category": "mineral",
+      "crystal_system": "tetragonal",
+      "lattice_params": {
+        "a": 4.978,
+        "c": 6.948
+      },
+      "source": "cullity2001, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 4.04,
+          "hkl": "101",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 3.14,
+          "hkl": "111",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 2.84,
+          "hkl": "102",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 2.49,
+          "hkl": "112",
+          "rel_intensity": 14
+        },
+        {
+          "d_A": 2.12,
+          "hkl": "211",
+          "rel_intensity": 4
+        }
+      ]
+    }
+  ]
+}

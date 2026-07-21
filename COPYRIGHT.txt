@@ -1,0 +1,11 @@
+FTIR & XRD Analysis Toolkit -- Professional Edition
+
+Copyright (C) 2026 Ezzeldien Yousef. All rights reserved.
+
+Created by: Ezzeldien Yousef
+Contact:    ezzyousef@aucegypt.edu
+
+Third-party reference data (see Help > Data Sources & References inside
+the app, or database/*.json) is compiled from published scientific
+literature and is used here as a screening aid, not a certified
+reference database.

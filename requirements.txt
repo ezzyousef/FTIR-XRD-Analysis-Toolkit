@@ -1,0 +1,10 @@
+numpy>=1.24
+scipy>=1.10
+matplotlib>=3.7
+pillow>=10
+ttkbootstrap>=1.10,<2.0
+mplcursors>=0.5
+tkinterdnd2>=0.3
+reportlab>=4.0
+pyinstaller>=6.3
+pytest>=7.0

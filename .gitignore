@@ -1,0 +1,26 @@
+# Build artifacts (regenerate with build_exe.bat / build_installer.ps1)
+build/
+dist/
+installer/output/
+*.spec.bak
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Claude Code project-local settings
+.claude/settings.local.json
