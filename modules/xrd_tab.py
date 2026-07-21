@@ -67,6 +67,8 @@ class XRDTab(AnalysisTabBase):
         tb.Label(prom_row, textvariable=self.prom_var, width=5).pack(side="left")
         tb.Button(card, text="Detect Peaks", bootstyle="primary", command=self.detect_peaks).pack(fill="x", pady=(8, 2))
         tb.Button(card, text="Smooth (Savitzky-Golay)", command=self.smooth_active).pack(fill="x", pady=2)
+        self.make_action_row(card, "Subtract Background (SNIP)", self.subtract_background_active,
+                              info_title="XRD Background Subtraction (SNIP)", info_text=fs.XRD_BACKGROUND_SUBTRACTION)
 
         card = tb.Labelframe(c, text="3. Calculations", padding=10, bootstyle="success")
         card.pack(fill="x", padx=6, pady=6)
@@ -81,6 +83,8 @@ class XRDTab(AnalysisTabBase):
         self.make_action_row(card, "Iterative Lattice Refinement (multi-peak, accurate)", self.open_lattice_refinement,
                               bootstyle="success", info_title="Iterative Lattice Refinement Method",
                               info_text=fs.ITERATIVE_LATTICE_REFINEMENT)
+        self.make_action_row(card, "2theta / d-spacing / Q Converter", self.open_unit_converter,
+                              info_title="XRD Unit Converter", info_text=fs.XRD_UNIT_CONVERTER)
 
         card = tb.Labelframe(c, text="4. Phase Identification", padding=10, bootstyle="warning")
         card.pack(fill="x", padx=6, pady=6)
@@ -351,6 +355,19 @@ class XRDTab(AnalysisTabBase):
         self.redraw()
         self.app.set_status_message(f"Smoothed {t.label} (window={wl}, order={po}). Re-run Detect Peaks to update peaks.")
 
+    def subtract_background_active(self):
+        t = self._require_active()
+        if t is None:
+            return
+        try:
+            background = xrd_analysis.snip_background(t.y_raw)
+            t.y = t.y_raw - background
+        except Exception as e:
+            Messagebox.show_error(str(e), "Background Subtraction Failed")
+            return
+        self.redraw()
+        self.app.set_status_message(f"Subtracted SNIP background from {t.label} (from raw data). Re-run Detect Peaks.")
+
     def run_all_calcs(self):
         t = self._require_active()
         if t is None:
@@ -511,6 +528,31 @@ class XRDTab(AnalysisTabBase):
         if t is None:
             return
         LatticeRefinementDialog(self.app.root, self)
+
+    def open_unit_converter(self):
+        wl = self._get_wavelength()
+        dlg = MultiFieldDialog(
+            self.app.root, "2theta / d-spacing / Q Converter",
+            [("value", "Value:", ""), ("unit", "Unit of value (2theta / d / q):", "2theta")],
+            help_text=f"Using current wavelength = {wl:.6f} A. Converts between 2theta (deg), "
+                      "d-spacing (Angstrom), and Q = 4*pi*sin(theta)/lambda (A^-1).")
+        if not dlg.result:
+            return
+        try:
+            value = parse_float(dlg.result["value"], "Value")
+            unit = dlg.result["unit"].strip().lower()
+            result = xrd_analysis.convert_xrd_units(value, unit, wl)
+        except Exception as e:
+            Messagebox.show_error(str(e), "Conversion Failed")
+            return
+        if result["two_theta_deg"] is None:
+            Messagebox.show_warning("Not reachable at this wavelength (would require sin(theta) > 1).",
+                                     "Unit Converter")
+            return
+        msg = (f"2theta = {result['two_theta_deg']:.4f} deg\n"
+               f"d-spacing = {result['d_spacing_a']:.5f} A\n"
+               f"Q = {result['q_inv_a']:.5f} A^-1")
+        Messagebox.show_info(msg, "Conversion Result")
 
     # ---------------------------------------------------------------- export
 

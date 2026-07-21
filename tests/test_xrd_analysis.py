@@ -271,3 +271,53 @@ def test_two_theta_from_d_returns_none_when_unreachable():
     wl = xrd_analysis.WAVELENGTHS["Cu Ka1"]
     # a d-spacing smaller than wavelength/2 is not reachable at this wavelength (sin(theta) > 1)
     assert xrd_analysis.two_theta_from_d(0.1, wl) is None
+
+
+def test_q_and_two_theta_round_trip():
+    wl = xrd_analysis.WAVELENGTHS["Cu Ka1"]
+    two_theta = 26.6
+    q = xrd_analysis.q_from_two_theta(two_theta, wl)
+    back = xrd_analysis.two_theta_from_q(q, wl)
+    assert back == pytest.approx(two_theta, abs=1e-6)
+
+
+def test_two_theta_from_q_returns_none_when_unreachable():
+    wl = xrd_analysis.WAVELENGTHS["Cu Ka1"]
+    huge_q = 100.0
+    assert xrd_analysis.two_theta_from_q(huge_q, wl) is None
+
+
+def test_convert_xrd_units_agrees_across_starting_unit():
+    wl = xrd_analysis.WAVELENGTHS["Cu Ka1"]
+    from_tt = xrd_analysis.convert_xrd_units(26.6, "2theta", wl)
+    from_d = xrd_analysis.convert_xrd_units(from_tt["d_spacing_a"], "d", wl)
+    from_q = xrd_analysis.convert_xrd_units(from_tt["q_inv_a"], "q", wl)
+    assert from_d["two_theta_deg"] == pytest.approx(26.6, abs=1e-4)
+    assert from_q["two_theta_deg"] == pytest.approx(26.6, abs=1e-4)
+    assert from_tt["d_spacing_a"] == pytest.approx(from_d["d_spacing_a"], abs=1e-4)
+
+
+def test_convert_xrd_units_rejects_unknown_unit():
+    wl = xrd_analysis.WAVELENGTHS["Cu Ka1"]
+    with pytest.raises(ValueError):
+        xrd_analysis.convert_xrd_units(1.0, "wavelength", wl)
+
+
+def test_snip_background_is_flat_zero_for_flat_input():
+    y = np.full(200, 10.0)
+    bg = xrd_analysis.snip_background(y, iterations=20)
+    assert bg == pytest.approx(10.0, abs=0.2)
+
+
+def test_snip_background_removes_narrow_peak_leaves_slow_background():
+    x = np.linspace(0, 100, 1000)
+    background_true = 5.0 + 0.02 * x
+    peak = 50.0 * np.exp(-0.5 * ((x - 50) / 0.5) ** 2)
+    y = background_true + peak
+    bg = xrd_analysis.snip_background(y, iterations=40)
+    corrected = y - bg
+    # the peak should survive corrected, with much smaller area under background
+    assert corrected.max() > 30.0
+    # away from the peak, corrected signal should be close to zero
+    far_mask = np.abs(x - 50) > 5
+    assert np.mean(np.abs(corrected[far_mask])) < 3.0

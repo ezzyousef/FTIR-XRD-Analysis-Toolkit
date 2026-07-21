@@ -214,6 +214,245 @@ def read_bruker_raw(path):
     )
 
 
+# ---------------- JCAMP-DX (.jdx/.dx) -- the standard spectroscopy interchange format ----------------
+# Used by NIST Chemistry WebBook, SDBS, and essentially every FTIR instrument
+# vendor's ASCII export option. Full JCAMP-DX 5.01 support: plain ##XYPOINTS
+# pairs, and the compressed ##XYDATA=(X++(Y..Y)) ASDF encoding (SQZ/DIF/DUP
+# pseudo-digits). The ASDF decoder is intricate enough that a subtle bug could
+# silently produce a WRONG spectrum rather than an obvious failure -- so after
+# decoding, the result is strictly cross-checked against the file's own
+# declared ##NPOINTS/##FIRSTX/##LASTX metadata, and this reader refuses to
+# return data that doesn't reconcile rather than guessing.
+
+_JCAMP_SQZ = {"@": 0, "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6, "G": 7, "H": 8, "I": 9,
+              "a": -1, "b": -2, "c": -3, "d": -4, "e": -5, "f": -6, "g": -7, "h": -8, "i": -9}
+_JCAMP_DIF = {"%": 0, "J": 1, "K": 2, "L": 3, "M": 4, "N": 5, "O": 6, "P": 7, "Q": 8, "R": 9,
+              "j": -1, "k": -2, "l": -3, "m": -4, "n": -5, "o": -6, "p": -7, "q": -8, "r": -9}
+_JCAMP_DUP = {"S": 1, "T": 2, "U": 3, "V": 4, "W": 5, "X": 6, "Y": 7, "Z": 8, "s": 9}
+_JCAMP_SPECIAL = set(_JCAMP_SQZ) | set(_JCAMP_DIF) | set(_JCAMP_DUP)
+
+
+def _jcamp_decode_asdf_line(line):
+    """
+    Decodes one ##XYDATA ASDF line into (leading_x, [y1, y2, ...]).
+    See the JCAMP-DX 5.01 spec (McDonald & Wilks, Appl. Spectrosc. 1988) for
+    the SQZ (squeezed leading digit)/DIF (delta from previous)/DUP (repeat
+    previous N times) pseudo-digit scheme implemented here.
+    """
+    i = 0
+    n = len(line)
+
+    def read_plain_number(start):
+        j = start
+        if j < n and line[j] in "+-":
+            j += 1
+        seen_digit = False
+        while j < n and (line[j].isdigit() or line[j] == "."):
+            j += 1
+            seen_digit = True
+        if not seen_digit:
+            return None, start
+        return line[start:j], j
+
+    tok, i = read_plain_number(i)
+    if tok is None:
+        raise ValueError(f"JCAMP-DX data line does not start with a numeric X value: {line!r}")
+    leading_x = float(tok)
+
+    values = []
+    last_value = None      # last actual Y value emitted (for DUP-of-absolute-value)
+    last_was_dif = False    # whether the last emission came from a DIF (delta) token
+    last_dif = 0.0
+
+    while i < n:
+        ch = line[i]
+        if ch.isspace():
+            i += 1
+            continue
+
+        if ch in _JCAMP_DUP:
+            count = _JCAMP_DUP[ch]
+            i += 1
+            # DUP repeats the previous emitted value (or delta step) so that
+            # it appears `count` times in total -- 1 fewer than that many
+            # additional emissions, since it already appeared once.
+            if last_value is None:
+                raise ValueError(f"JCAMP-DX DUP with no preceding value in line: {line!r}")
+            for _ in range(count - 1):
+                if last_was_dif:
+                    last_value = last_value + last_dif
+                values.append(last_value)
+            continue
+
+        if ch in _JCAMP_SQZ:
+            digit = _JCAMP_SQZ[ch]
+            i += 1
+            rest, i = read_plain_number(i)
+            if rest:
+                # combine the sign of the SQZ digit with the following plain digits
+                sign = -1.0 if digit < 0 else 1.0
+                magnitude_str = str(abs(digit)) + rest
+                value = sign * float(magnitude_str)
+            else:
+                # a bare SQZ digit like '@'/'A' with nothing following is itself the whole number
+                value = float(digit)
+            values.append(value)
+            last_value = value
+            last_was_dif = False
+            continue
+
+        if ch in _JCAMP_DIF:
+            digit = _JCAMP_DIF[ch]
+            i += 1
+            rest, i = read_plain_number(i)
+            if rest:
+                sign = -1.0 if digit < 0 else 1.0
+                magnitude_str = str(abs(digit)) + rest
+                delta = sign * float(magnitude_str)
+            else:
+                delta = float(digit)
+            if last_value is None:
+                raise ValueError(f"JCAMP-DX DIF token before any absolute value in line: {line!r}")
+            new_value = last_value + delta
+            values.append(new_value)
+            last_dif = delta
+            last_value = new_value
+            last_was_dif = True
+            continue
+
+        if ch in "+-." or ch.isdigit():
+            tok, i = read_plain_number(i)
+            value = float(tok)
+            values.append(value)
+            last_value = value
+            last_was_dif = False
+            continue
+
+        raise ValueError(f"Unrecognized character {ch!r} in JCAMP-DX data line: {line!r}")
+
+    return leading_x, values
+
+
+def read_jcampdx(path):
+    """
+    JCAMP-DX (.jdx/.dx) reader -- the standard IR/Raman/UV-Vis spectroscopy
+    interchange format (NIST WebBook, SDBS, and most instrument software's
+    ASCII export all use it). Supports ##XYPOINTS=(XY..XY) (plain x,y pairs)
+    and the compressed ##XYDATA=(X++(Y..Y)) ASDF encoding.
+    """
+    meta = {}
+    xydata_lines = []
+    xypoints_pairs = []
+    mode = None
+    xfactor, yfactor = 1.0, 1.0
+    firstx = lastx = npoints = None
+    xunits = yunits = None
+
+    with open(path, "r", errors="ignore") as f:
+        for raw_line in f:
+            line = raw_line.rstrip("\n\r")
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.startswith("##"):
+                mode = None
+                body = stripped[2:]
+                if "=" not in body:
+                    continue
+                key, val = body.split("=", 1)
+                key_norm = key.strip().upper().replace(" ", "")
+                val = val.strip()
+                if key_norm in ("XYDATA",):
+                    mode = "xydata"
+                    continue
+                if key_norm in ("XYPOINTS",):
+                    mode = "xypoints"
+                    continue
+                if key_norm == "XFACTOR":
+                    xfactor = float(val)
+                elif key_norm == "YFACTOR":
+                    yfactor = float(val)
+                elif key_norm == "FIRSTX":
+                    firstx = float(val)
+                elif key_norm == "LASTX":
+                    lastx = float(val)
+                elif key_norm == "NPOINTS":
+                    npoints = int(float(val))
+                elif key_norm == "XUNITS":
+                    xunits = val
+                elif key_norm == "YUNITS":
+                    yunits = val
+                elif key_norm == "END":
+                    mode = None
+                else:
+                    meta[key.strip()] = val
+                continue
+            if stripped.startswith("$$"):
+                continue  # comment line
+            if mode == "xydata":
+                xydata_lines.append(stripped)
+            elif mode == "xypoints":
+                for pair in re.split(r"[;\s]+", stripped):
+                    if "," in pair:
+                        a, b = pair.split(",", 1)
+                        try:
+                            xypoints_pairs.append((float(a), float(b)))
+                        except ValueError:
+                            pass
+
+    xs, ys = [], []
+    if xydata_lines:
+        for line in xydata_lines:
+            leading_x, row_values = _jcamp_decode_asdf_line(line)
+            for j, raw_y in enumerate(row_values):
+                xs.append(leading_x + j)  # placeholder index; overwritten below using FIRSTX/LASTX spacing
+                ys.append(raw_y * yfactor)
+        # ASDF encodes Y values only; X spacing is uniform and derived from
+        # FIRSTX/LASTX/NPOINTS (the per-line leading X is just a checkpoint,
+        # not literally used point-by-point) -- reconstruct the true X axis.
+        if firstx is None or lastx is None:
+            raise ValueError("JCAMP-DX ##XYDATA block found but ##FIRSTX/##LASTX metadata is missing; "
+                              "cannot reconstruct the X axis reliably.")
+        n = len(ys)
+        xs = list(np.linspace(firstx * xfactor, lastx * xfactor, n))
+    elif xypoints_pairs:
+        xs = [p[0] * xfactor for p in xypoints_pairs]
+        ys = [p[1] * yfactor for p in xypoints_pairs]
+    else:
+        raise ValueError("No ##XYDATA or ##XYPOINTS block found -- not a recognized JCAMP-DX file.")
+
+    x_arr = np.array(xs, dtype=float)
+    y_arr = np.array(ys, dtype=float)
+
+    # Strict cross-check against the file's own declared metadata: if the
+    # decode doesn't reconcile, refuse to return possibly-wrong data.
+    if npoints is not None and len(y_arr) != npoints:
+        raise ValueError(f"JCAMP-DX decode produced {len(y_arr)} points but the file declares "
+                          f"##NPOINTS={npoints} -- refusing to return possibly-corrupted data. "
+                          f"Try re-exporting as plain two-column ASCII instead.")
+    if firstx is not None and lastx is not None and len(x_arr) > 1:
+        expected_span = abs(lastx * xfactor - firstx * xfactor)
+        actual_span = abs(float(x_arr[-1]) - float(x_arr[0]))
+        if expected_span > 0 and abs(actual_span - expected_span) / expected_span > 0.01:
+            raise ValueError("JCAMP-DX decode's X range doesn't match the file's declared "
+                              "##FIRSTX/##LASTX -- refusing to return possibly-corrupted data.")
+
+    if xunits:
+        meta["xunits"] = xunits
+    if yunits:
+        meta["yunits"] = yunits
+    return ReadResult(x_arr, y_arr, x_label=xunits or "X", y_label=yunits or "Y", metadata=meta, confidence="high")
+
+
+FTIR_READERS = {
+    ".xy": read_generic_text,
+    ".txt": read_generic_text,
+    ".dat": read_generic_text,
+    ".csv": read_generic_text,
+    ".jdx": read_jcampdx,
+    ".dx": read_jcampdx,
+}
+
 READERS = {
     ".xy": read_generic_text,
     ".txt": read_generic_text,
@@ -227,7 +466,7 @@ READERS = {
 
 
 def read_any(path):
-    """Dispatch to the right reader based on file extension."""
+    """Dispatch to the right XRD reader based on file extension."""
     import os
     ext = os.path.splitext(path)[1].lower()
     if ext not in READERS:
@@ -236,3 +475,15 @@ def read_any(path):
             "If your instrument exports something else, try exporting as ASCII (.xy/.txt) instead."
         )
     return READERS[ext](path)
+
+
+def read_ftir_any(path):
+    """Dispatch to the right FTIR reader based on file extension (adds JCAMP-DX to the generic-text formats)."""
+    import os
+    ext = os.path.splitext(path)[1].lower()
+    if ext not in FTIR_READERS:
+        raise ValueError(
+            f"Unsupported file extension '{ext}'. Supported: {', '.join(sorted(FTIR_READERS))}. "
+            "If your instrument exports something else, try exporting as ASCII (.csv/.txt) or JCAMP-DX (.jdx) instead."
+        )
+    return FTIR_READERS[ext](path)

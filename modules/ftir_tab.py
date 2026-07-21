@@ -43,7 +43,7 @@ class FTIRTab(AnalysisTabBase):
 
         card = tb.Labelframe(c, text="1. Load Spectrum", padding=10, bootstyle="info")
         card.pack(fill="x", padx=6, pady=6)
-        tb.Button(card, text="Load Spectrum (.csv/.txt/.dat/.xy)", bootstyle="info",
+        tb.Button(card, text="Load Spectrum (.csv/.txt/.dat/.xy/.jdx)", bootstyle="info",
                   command=self._load_spectrum).pack(fill="x")
         tb.Label(card, text="Tip: you can also drag & drop a file onto the plot.",
                  bootstyle="secondary", wraplength=280, font=("", 8)).pack(anchor="w", pady=(4, 0))
@@ -63,7 +63,19 @@ class FTIRTab(AnalysisTabBase):
         card.pack(fill="x", padx=6, pady=6)
         tb.Button(card, text="Smooth (Savitzky-Golay)", command=self.smooth_active).pack(fill="x", pady=2)
         tb.Button(card, text="Baseline Correct (linear)", command=self.baseline_correct_active).pack(fill="x", pady=2)
-        tb.Button(card, text="Normalize (max = 1.0)", command=self.normalize_active).pack(fill="x", pady=2)
+        self.make_action_row(card, "ATR Correction", self.atr_correct_active,
+                              info_title="ATR Correction", info_text=fs.ATR_CORRECTION)
+        self.make_action_row(card, "1st / 2nd Derivative", self.derivative_active,
+                              info_title="Derivative Spectroscopy", info_text=fs.DERIVATIVE_SPECTROSCOPY)
+        norm_row = tb.Frame(card)
+        norm_row.pack(fill="x")
+        tb.Label(norm_row, text="Normalize:").pack(side="left")
+        self.norm_method_var = tb.StringVar(value="max")
+        tb.Combobox(norm_row, textvariable=self.norm_method_var, state="readonly", width=10,
+                    values=["max", "minmax", "area", "vector"]).pack(side="left", padx=(4, 4))
+        tb.Button(norm_row, text="ⓘ", width=3, bootstyle="secondary-outline",
+                  command=lambda: self.show_formula("Normalization Methods", fs.NORMALIZATION_METHODS)).pack(side="left")
+        tb.Button(card, text="Apply Normalization", command=self.normalize_active).pack(fill="x", pady=2)
         tb.Button(card, text="Revert to Raw Data", bootstyle="warning-outline", command=self.revert_active).pack(fill="x", pady=2)
 
         total_materials = sum(len(self.database.get(cat, [])) for cat in ftir_analysis.MATERIAL_CATEGORIES)
@@ -185,11 +197,11 @@ class FTIRTab(AnalysisTabBase):
     # ---------------------------------------------------------------- loading
 
     def _load_spectrum(self):
-        self.load_file_dialog([("Spectrum files", "*.csv *.txt *.dat *.xy"), ("All files", "*.*")],
-                               file_readers.read_generic_text)
+        self.load_file_dialog([("Spectrum files", "*.csv *.txt *.dat *.xy *.jdx *.dx"), ("All files", "*.*")],
+                               file_readers.read_ftir_any)
 
     def handle_dropped_file(self, path):
-        self.load_file_path(path, file_readers.read_generic_text)
+        self.load_file_path(path, file_readers.read_ftir_any)
 
     # ---------------------------------------------------------------- results refresh
 
@@ -333,9 +345,60 @@ class FTIRTab(AnalysisTabBase):
         t = self._require_active()
         if t is None:
             return
-        t.y = ftir_analysis.normalize_spectrum(t.y, method="max")
+        method = self.norm_method_var.get()
+        try:
+            t.y = ftir_analysis.normalize_spectrum(t.y, method=method, x=t.x)
+        except Exception as e:
+            Messagebox.show_error(str(e), "Normalization Failed")
+            return
         self.redraw()
-        self.app.set_status_message(f"Normalized {t.label} to max = 1.0.")
+        self.app.set_status_message(f"Normalized {t.label} ({method}).")
+
+    def atr_correct_active(self):
+        t = self._require_active()
+        if t is None:
+            return
+        dlg = MultiFieldDialog(
+            self.app.root, "ATR Correction",
+            [("crystal", "ATR crystal (diamond/znse/germanium/silicon/krs-5):", "diamond"),
+             ("angle", "Angle of incidence (deg):", "45"),
+             ("n_sample", "Sample refractive index:", "1.5")],
+            help_text="Corrects for wavenumber-dependent ATR penetration depth so relative "
+                       "band intensities compare more fairly with a transmission spectrum.")
+        if not dlg.result:
+            return
+        try:
+            crystal = dlg.result["crystal"]
+            angle = float(dlg.result["angle"])
+            n_sample = float(dlg.result["n_sample"])
+            t.y = ftir_analysis.atr_correction(t.x, t.y, crystal=crystal, angle_deg=angle, n_sample=n_sample)
+        except Exception as e:
+            Messagebox.show_error(str(e), "ATR Correction Failed")
+            return
+        self.redraw()
+        self.app.set_status_message(f"Applied ATR correction to {t.label} ({crystal}, {angle} deg). Re-run Detect Peaks.")
+
+    def derivative_active(self):
+        t = self._require_active()
+        if t is None:
+            return
+        dlg = MultiFieldDialog(
+            self.app.root, "Derivative Spectrum",
+            [("order", "Derivative order (1 or 2):", "1"),
+             ("wl", "Savitzky-Golay window length (odd, points):", "15"),
+             ("po", "Polynomial order:", "3")])
+        if not dlg.result:
+            return
+        try:
+            order = int(float(dlg.result["order"]))
+            wl = int(float(dlg.result["wl"]))
+            po = int(float(dlg.result["po"]))
+            t.y = ftir_analysis.derivative_spectrum(t.x, t.y, order=order, window_length=wl, polyorder=po)
+        except Exception as e:
+            Messagebox.show_error(str(e), "Derivative Failed")
+            return
+        self.redraw()
+        self.app.set_status_message(f"Computed {order}{'st' if order == 1 else 'nd'} derivative of {t.label}. Re-run Detect Peaks.")
 
     def revert_active(self):
         t = self._require_active()

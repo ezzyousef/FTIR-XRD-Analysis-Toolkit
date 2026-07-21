@@ -270,7 +270,7 @@ class MainWindow:
 
         import file_readers
         self.ftir_tab = FTIRTab(self.notebook, self)
-        self.ftir_tab.default_reader = file_readers.read_generic_text
+        self.ftir_tab.default_reader = file_readers.read_ftir_any
         self.notebook.add(self.ftir_tab, text="  FTIR Analysis  ")
 
         self.xrd_tab = XRDTab(self.notebook, self)

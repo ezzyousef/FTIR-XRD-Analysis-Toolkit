@@ -124,6 +124,68 @@ def test_normalize_spectrum_max():
     assert n.max() == pytest.approx(1.0)
 
 
+def test_normalize_spectrum_area():
+    x = np.linspace(0, 10, 11)
+    y = np.ones(11)
+    n = ftir_analysis.normalize_spectrum(y, method="area", x=x)
+    from scipy.integrate import trapezoid
+    assert trapezoid(np.abs(n), x) == pytest.approx(1.0)
+    with pytest.raises(ValueError):
+        ftir_analysis.normalize_spectrum(y, method="area")  # no x given
+
+
+def test_normalize_spectrum_vector():
+    y = np.array([3.0, 4.0])  # 3-4-5 triangle -> norm 5
+    n = ftir_analysis.normalize_spectrum(y, method="vector")
+    assert np.sqrt(np.sum(n ** 2)) == pytest.approx(1.0)
+    assert list(n) == pytest.approx([0.6, 0.8])
+
+
+def test_atr_correction_boosts_high_wavenumber_relative_to_low():
+    # Two identical-height synthetic bands at high and low wavenumber; raw
+    # ATR sampling under-represents the high-wavenumber one, so after
+    # correction its relative height vs. the low-wavenumber band should grow.
+    x = np.linspace(4000, 400, 2000)
+    def gauss(c, h, w):
+        return h * np.exp(-0.5 * ((x - c) / w) ** 2)
+    y = gauss(2900, 1.0, 20) + gauss(700, 1.0, 20)
+    corrected = ftir_analysis.atr_correction(x, y, crystal="diamond", angle_deg=45, n_sample=1.5)
+    high_before, low_before = y[np.argmin(np.abs(x - 2900))], y[np.argmin(np.abs(x - 700))]
+    high_after, low_after = corrected[np.argmin(np.abs(x - 2900))], corrected[np.argmin(np.abs(x - 700))]
+    assert (high_after / low_after) > (high_before / low_before)
+
+
+def test_atr_correction_rejects_impossible_geometry():
+    x = np.linspace(4000, 400, 50)
+    y = np.ones(50)
+    with pytest.raises(ValueError):
+        # sample index >= crystal index at this angle -> no total internal reflection
+        ftir_analysis.atr_correction(x, y, crystal="diamond", angle_deg=45, n_sample=3.0)
+
+
+def test_derivative_spectrum_first_order_of_line_is_constant():
+    x = np.linspace(0, 100, 200)
+    y = 2.0 * x + 5.0
+    d1 = ftir_analysis.derivative_spectrum(x, y, order=1, window_length=15, polyorder=3)
+    interior = d1[20:-20]
+    assert interior == pytest.approx(2.0, abs=0.05)
+
+
+def test_derivative_spectrum_second_order_of_parabola_is_constant():
+    x = np.linspace(0, 100, 400)
+    y = 3.0 * x ** 2
+    d2 = ftir_analysis.derivative_spectrum(x, y, order=2, window_length=25, polyorder=4)
+    interior = d2[40:-40]
+    assert interior == pytest.approx(6.0, abs=0.1)
+
+
+def test_derivative_spectrum_rejects_bad_order():
+    x = np.linspace(0, 10, 20)
+    y = np.sin(x)
+    with pytest.raises(ValueError):
+        ftir_analysis.derivative_spectrum(x, y, order=3)
+
+
 def test_match_peaks_to_database_identifies_pet(db):
     # peaks placed at (nearly all of) PET's reference band centers -- a
     # "complete" synthetic PET spectrum, since the reference entry itself

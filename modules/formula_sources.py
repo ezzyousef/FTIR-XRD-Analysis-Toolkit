@@ -147,6 +147,70 @@ PEAK_FITTING = (
     "& Stock, 2001)."
 )
 
+ATR_CORRECTION = (
+    "Penetration depth: dp(ν) = λ / [2π·n₁·√(sin²θ - (n₂/n₁)²)]  ∝  1/ν\n\n"
+    "In ATR sampling the effective pathlength (penetration depth) shrinks "
+    "as wavenumber increases, so raw ATR spectra under-represent "
+    "high-wavenumber bands (C-H/O-H stretches) relative to the fingerprint "
+    "region compared to a transmission spectrum. This correction multiplies "
+    "absorbance by wavenumber (relative to a reference wavenumber) to "
+    "remove that bias -- the same 'advanced ATR correction' offered by "
+    "OMNIC/OPUS.\n\n"
+    "Does NOT correct for anomalous dispersion (refractive-index changes "
+    "near strong bands), which needs a full Kramers-Kronig transform.\n\n"
+    "Source: Harrick, Internal Reflection Spectroscopy, 1967; Socrates, "
+    "Infrared and Raman Characteristic Group Frequencies, 3rd ed., Wiley, "
+    "2001, Appendix (ATR crystal refractive indices)."
+)
+
+DERIVATIVE_SPECTROSCOPY = (
+    "1st/2nd derivative computed by Savitzky-Golay differentiation (local "
+    "polynomial fit, differentiated analytically) rather than naive finite "
+    "differencing, to avoid amplifying noise.\n\n"
+    "2nd-derivative peaks point downward at the same position as the "
+    "original band center and are narrower -- useful for resolving "
+    "overlapping/shouldered bands and removing sloping baselines.\n\n"
+    "Source: Savitzky & Golay, Anal. Chem. 36 (1964) 1627; standard "
+    "derivative-spectroscopy feature of OMNIC/OPUS."
+)
+
+NORMALIZATION_METHODS = (
+    "Max: divide by the maximum |intensity| (peak -> 1.0).\n"
+    "Min-Max: rescale the full range to [0, 1].\n"
+    "Area: divide by the total integrated |absorbance| area (useful when "
+    "comparing spectra recorded at different concentrations/pathlengths).\n"
+    "Vector (L2): divide by the Euclidean norm of the whole spectrum -- the "
+    "standard chemometrics preprocessing step before PCA/PLS or spectral "
+    "library search.\n\n"
+    "Source: Bro & Smilde, 'Centering and scaling in component analysis', "
+    "J. Chemometrics 17 (2003); standard preprocessing options in commercial "
+    "FTIR software."
+)
+
+XRD_BACKGROUND_SUBTRACTION = (
+    "SNIP (Statistics-sensitive Non-linear Iterative Peak-clipping): the "
+    "pattern is transformed with the LLS (log-log-sqrt) operator, which "
+    "compresses peak amplitudes far more than the background, then clipped "
+    "against the local 2-point average for increasing window widths. Narrow "
+    "peaks get clipped down to background level; the slowly-varying "
+    "background survives. The result is inverse-transformed and subtracted.\n\n"
+    "Works directly on the raw pattern -- no need to manually pick "
+    "'background-only' 2θ regions.\n\n"
+    "Source: Ryan et al., Nucl. Instrum. Methods B 34 (1988) 396; Morháč "
+    "et al., Nucl. Instrum. Methods A 401 (1997) 113. Used by PANalytical "
+    "HighScore and Bruker DIFFRAC.EVA."
+)
+
+XRD_UNIT_CONVERTER = (
+    "2θ ↔ d-spacing via Bragg's Law: d = nλ/(2·sinθ)\n"
+    "2θ ↔ Q (scattering vector) via: Q = 4π·sinθ/λ\n\n"
+    "Q is the wavelength-independent axis used by PDF/total-scattering "
+    "software, letting patterns collected at different X-ray wavelengths be "
+    "compared directly.\n\n"
+    "Source: Cullity & Stock, Elements of X-Ray Diffraction, 3rd ed., "
+    "Prentice Hall, 2001; Warren, X-Ray Diffraction, Dover, 1990."
+)
+
 
 def show_formula_dialog(parent, title, text):
     from ttkbootstrap.dialogs import Messagebox

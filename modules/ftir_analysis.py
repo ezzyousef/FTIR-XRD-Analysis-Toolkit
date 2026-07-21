@@ -274,11 +274,107 @@ def beer_lambert_concentration(absorbance, molar_absorptivity, path_length_cm):
     return absorbance / (molar_absorptivity * path_length_cm)
 
 
-def normalize_spectrum(y, method="max"):
-    """method: 'max' (0-1 scaled to max) or 'minmax' (0-1 scaled to range)."""
+def normalize_spectrum(y, method="max", x=None):
+    """
+    method: 'max' (scale so peak = 1.0), 'minmax' (scale range to [0,1]),
+    'area' (scale so the total absorption area = 1, requires x -- useful for
+    comparing spectra recorded at different concentrations/pathlengths), or
+    'vector' (scale so the Euclidean/L2 norm = 1, the standard chemometrics
+    preprocessing step used before PCA/PLS/library-matching in most
+    spectroscopy software).
+    """
     y = np.asarray(y, dtype=float)
     if method == "max":
         return y / np.max(np.abs(y))
     elif method == "minmax":
         return (y - y.min()) / (y.max() - y.min())
-    raise ValueError("method must be 'max' or 'minmax'")
+    elif method == "area":
+        if x is None:
+            raise ValueError("Area normalization requires x-axis values.")
+        from scipy.integrate import trapezoid
+
+        area = abs(trapezoid(np.abs(y), np.asarray(x, dtype=float)))
+        if area == 0:
+            raise ValueError("Cannot area-normalize a zero spectrum.")
+        return y / area
+    elif method == "vector":
+        norm = np.sqrt(np.sum(y ** 2))
+        if norm == 0:
+            raise ValueError("Cannot vector-normalize a zero spectrum.")
+        return y / norm
+    raise ValueError("method must be 'max', 'minmax', 'area', or 'vector'")
+
+
+# Approximate refractive index at mid-IR wavelengths for common ATR crystal
+# materials (Socrates 2001 Table A.1; manufacturer datasheets).
+ATR_CRYSTAL_REFRACTIVE_INDEX = {
+    "diamond": 2.4,
+    "zinc selenide (znse)": 2.4,
+    "znse": 2.4,
+    "germanium": 4.0,
+    "ge": 4.0,
+    "silicon": 3.4,
+    "si": 3.4,
+    "krs-5 (thallium bromoiodide)": 2.37,
+    "krs-5": 2.37,
+}
+
+
+def atr_correction(x, y, crystal="diamond", angle_deg=45.0, n_sample=1.5, reference_wavenumber=1000.0):
+    """
+    Standard "advanced ATR correction" (as offered by OMNIC/OPUS): rescales
+    absorbance to compensate for the fact that in ATR sampling the IR
+    penetration depth -- and therefore the effective pathlength/apparent
+    absorbance -- is proportional to wavelength (1/wavenumber), unlike
+    transmission spectra where pathlength is fixed. Raw ATR spectra therefore
+    under-represent high-wavenumber bands (e.g. C-H/O-H stretches) relative to
+    the fingerprint region; this correction multiplies by wavenumber (relative
+    to reference_wavenumber, chosen only to keep the output on a familiar
+    intensity scale) to remove that bias, making relative band intensities
+    comparable to a transmission spectrum of the same material.
+
+    This is the standard first-order correction and does NOT correct for
+    anomalous dispersion (refractive-index changes near strong absorption
+    bands), which requires a full Kramers-Kronig transform.
+    """
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    n1 = ATR_CRYSTAL_REFRACTIVE_INDEX.get(str(crystal).strip().lower(), 2.4)
+    theta = np.radians(angle_deg)
+    sin2theta = np.sin(theta) ** 2
+    ratio2 = (n_sample / n1) ** 2
+    if sin2theta <= ratio2:
+        raise ValueError(
+            "Total internal reflection is not satisfied for these ATR parameters "
+            "(sin(angle) must exceed n_sample / n_crystal). Check the crystal, "
+            "angle of incidence, and sample refractive index."
+        )
+    correction = np.abs(x) / float(reference_wavenumber)
+    return y * correction
+
+
+def derivative_spectrum(x, y, order=1, window_length=15, polyorder=3):
+    """
+    1st or 2nd derivative via Savitzky-Golay differentiation (Savitzky & Golay,
+    Anal. Chem. 1964) -- the standard derivative-spectroscopy method offered by
+    OMNIC/OPUS. Derivatives resolve overlapping bands (2nd derivative peaks are
+    narrower and point-down at the original peak center) and remove sloping/
+    curved baselines without amplifying high-frequency noise as much as naive
+    finite differencing, because the differentiation is done on the local
+    polynomial fit rather than on raw adjacent points.
+    """
+    from scipy.signal import savgol_filter
+
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    if order not in (1, 2):
+        raise ValueError("order must be 1 or 2.")
+    window_length = int(window_length)
+    if window_length % 2 == 0:
+        window_length += 1
+    if window_length <= polyorder:
+        raise ValueError("window_length must be greater than polyorder.")
+    if len(x) < 2:
+        raise ValueError("Need at least 2 points to compute a derivative.")
+    dx = float(np.mean(np.abs(np.diff(x))))
+    return savgol_filter(y, window_length=window_length, polyorder=polyorder, deriv=order, delta=dx)

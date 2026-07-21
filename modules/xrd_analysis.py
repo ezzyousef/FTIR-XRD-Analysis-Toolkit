@@ -97,6 +97,50 @@ def two_theta_from_d(d_spacing_a, wavelength_a, n=1):
     return float(2 * np.degrees(np.arcsin(ratio)))
 
 
+def q_from_two_theta(two_theta_deg, wavelength_a):
+    """
+    Scattering-vector magnitude Q = 4*pi*sin(theta)/lambda (A^-1), the
+    diffraction-angle-independent axis used by PDF/total-scattering software
+    and to compare data collected at different wavelengths on a common scale.
+    """
+    two_theta_deg = np.asarray(two_theta_deg, dtype=float)
+    theta_rad = np.radians(two_theta_deg / 2.0)
+    q = 4 * np.pi * np.sin(theta_rad) / wavelength_a
+    return float(q) if q.ndim == 0 else q
+
+
+def two_theta_from_q(q, wavelength_a, n=1):
+    """Inverse of q_from_two_theta. Returns None if unreachable at this wavelength."""
+    ratio = (q * wavelength_a) / (4 * np.pi)
+    if not (0 < ratio <= 1):
+        return None
+    return float(2 * np.degrees(np.arcsin(ratio)))
+
+
+def convert_xrd_units(value, from_unit, wavelength_a, n=1):
+    """
+    Convert a single diffraction-axis value between '2theta' (degrees),
+    'd' (d-spacing, Angstrom), and 'q' (scattering vector, A^-1). Returns a
+    dict with all three, or None for entries unreachable at this wavelength.
+    """
+    from_unit = from_unit.lower()
+    if from_unit == "2theta":
+        two_theta = float(value)
+        d = float(bragg_d_spacing(two_theta, wavelength_a, n=n)) if two_theta > 0 else None
+        q = q_from_two_theta(two_theta, wavelength_a)
+    elif from_unit == "d":
+        d = float(value)
+        two_theta = two_theta_from_d(d, wavelength_a, n=n)
+        q = q_from_two_theta(two_theta, wavelength_a) if two_theta is not None else None
+    elif from_unit == "q":
+        q = float(value)
+        two_theta = two_theta_from_q(q, wavelength_a, n=n)
+        d = float(bragg_d_spacing(two_theta, wavelength_a, n=n)) if two_theta is not None else None
+    else:
+        raise ValueError("from_unit must be '2theta', 'd', or 'q'.")
+    return {"two_theta_deg": two_theta, "d_spacing_a": d, "q_inv_a": q}
+
+
 def scherrer_crystallite_size(fwhm_deg, two_theta_deg, wavelength_a, K=0.9):
     """
     Scherrer equation: tau = K*lambda / (beta*cos(theta))
@@ -198,6 +242,40 @@ def cubic_lattice_parameter(d_spacing_a, h, k, l):
 def smooth_pattern(intensity, window_length=11, polyorder=3):
     """Savitzky-Golay smoothing wrapper (see signal_utils.smooth_savgol)."""
     return smooth_savgol(intensity, window_length=window_length, polyorder=polyorder)
+
+
+def snip_background(intensity, iterations=40):
+    """
+    SNIP (Statistics-sensitive Non-linear Iterative Peak-clipping) background
+    estimation (Ryan et al., Nucl. Instrum. Methods B 34, 1988; Morhac et al.,
+    Nucl. Instrum. Methods A 401, 1997). This is the standard automatic
+    background-estimation algorithm used by commercial XRD software (e.g.
+    PANalytical HighScore, Bruker DIFFRAC.EVA) -- it needs no user-selected
+    "background-only" regions, working directly on the raw pattern.
+
+    Method: the pattern is transformed with the LLS (log-log-sqrt) operator,
+    which compresses peak amplitudes far more than the background level, then
+    repeatedly clipped -- at each point, replaced by the local two-point
+    average (window m) if that average is smaller -- for increasing window
+    widths m = 1..iterations. Because peaks are narrow, they get clipped down
+    to the background; because the background varies slowly, it survives.
+    The result is inverse-transformed back to intensity units.
+
+    Returns the estimated background curve (same length as intensity); the
+    caller subtracts it: `intensity_corrected = intensity - background`.
+    """
+    y = np.clip(np.asarray(intensity, dtype=float), 0, None)
+    v = np.log(np.log(np.sqrt(y + 1.0) + 1.0) + 1.0)
+    n = len(v)
+    for m in range(1, int(iterations) + 1):
+        if 2 * m >= n:
+            break
+        avg = 0.5 * (v[: n - 2 * m] + v[2 * m:])
+        segment = v[m:n - m]
+        v = v.copy()
+        v[m:n - m] = np.minimum(segment, avg)
+    background = (np.exp(np.exp(v) - 1.0) - 1.0) ** 2 - 1.0
+    return np.clip(background, 0, None)
 
 
 # ---------------- Iterative multi-peak unit-cell refinement ----------------
