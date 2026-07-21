@@ -68,6 +68,34 @@ def test_detect_peaks_transmittance_mode_inverts():
     assert peaks[0]["x"] == pytest.approx(1715, abs=10)
 
 
+def test_detect_peaks_second_derivative_resolves_shoulder():
+    # Two overlapping bands close enough that the combined envelope shows
+    # only ONE local maximum -- ordinary detect_peaks() can only ever find
+    # one peak here, but the shoulder is a real, distinct band that a
+    # second-derivative analysis should resolve into two.
+    x = np.linspace(1500, 1800, 3000)
+    y = _gaussian(x, 1650, 1.0, 15) + _gaussian(x, 1680, 0.6, 15)
+    plain_peaks = ftir_analysis.detect_peaks(x, y, prominence_frac=0.02, mode="absorbance")
+    assert len(plain_peaks) == 1  # confirms this really is a merged-looking envelope
+
+    resolved = ftir_analysis.detect_peaks_second_derivative(x, y, prominence_frac=0.01, mode="absorbance")
+    xs = sorted(p["x"] for p in resolved)
+    assert len(xs) >= 2
+    assert any(abs(v - 1650) < 10 for v in xs)
+    assert any(abs(v - 1680) < 10 for v in xs)
+
+
+def test_detect_peaks_second_derivative_transmittance_mode():
+    x = np.linspace(4000, 400, 1500)
+    y = 100 - _gaussian(x, 1715, 40, 8)
+    peaks = ftir_analysis.detect_peaks_second_derivative(x, y, prominence_frac=0.02, mode="transmittance")
+    assert len(peaks) >= 1
+    assert any(abs(p["x"] - 1715) < 10 for p in peaks)
+    # reported y should be the ORIGINAL (dip) intensity, not the transformed one
+    matched = min(peaks, key=lambda p: abs(p["x"] - 1715))
+    assert matched["y"] < 90  # near the bottom of the %T dip, not near 100
+
+
 def test_transmittance_absorbance_round_trip():
     for t_pct in (10, 50, 90, 99):
         a = ftir_analysis.transmittance_to_absorbance(t_pct)

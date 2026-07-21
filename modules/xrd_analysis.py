@@ -168,8 +168,19 @@ def williamson_hall(two_theta_list, fwhm_list, wavelength_a, K=0.9):
     broadening: beta*cos(theta) = K*lambda/D + 4*epsilon*sin(theta)
     Returns dict with crystallite size D (nm), microstrain (dimensionless), and
     the linear fit used, from a straight-line fit of
-    y = beta*cos(theta) vs x = 4*sin(theta).
+    y = beta*cos(theta) vs x = 4*sin(theta) -- since x already has the factor
+    of 4 folded in, the fitted slope IS the microstrain directly (epsilon),
+    not epsilon divided by another 4.
     Requires at least 3 peaks for a meaningful fit.
+
+    A negative fitted microstrain is mathematically possible (it is just an
+    unconstrained least-squares slope) but has no direct physical meaning --
+    true strain broadening can only add width to a peak, never subtract it.
+    In practice a negative or near-zero slope means the data doesn't show a
+    resolvable strain contribution (it's within noise / uncorrected
+    instrumental broadening), not a real "negative strain". The returned
+    "strain_physical" flag is False whenever microstrain < 0, so callers can
+    surface that caveat instead of reporting the bare number at face value.
     """
     two_theta = np.radians(np.asarray(two_theta_list, dtype=float))
     fwhm = np.radians(np.asarray(fwhm_list, dtype=float))
@@ -183,12 +194,13 @@ def williamson_hall(two_theta_list, fwhm_list, wavelength_a, K=0.9):
         raise ValueError("Williamson-Hall analysis needs at least 3 peaks for a reliable fit.")
 
     slope, intercept = np.polyfit(x, y, 1)
-    strain = slope / 4.0
+    strain = slope
     if intercept <= 0:
         D_nm = None  # non-physical intercept; size term not resolvable from this data
     else:
         D_nm = (K * wavelength_nm) / intercept
     return {"crystallite_size_nm": D_nm, "microstrain": float(strain),
+            "strain_physical": bool(strain >= 0),
             "slope": float(slope), "intercept": float(intercept)}
 
 

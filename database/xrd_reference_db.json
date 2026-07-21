@@ -16,6 +16,18 @@
       {
         "id": "cod",
         "citation": "Crystallography Open Database (COD), crystallography.net - open-access crystal structure data, for cross-checking unit-cell/d-spacing values."
+      },
+      {
+        "id": "mullica1984",
+        "citation": "Mullica, D.F.; Sappenfield, E.L.; Boatner, L.A. – Structure and crystallographic data for rare-earth orthovanadates, Inorg. Chim. Acta 95 (1984) 231."
+      },
+      {
+        "id": "baglio1968",
+        "citation": "Baglio, J.A.; Gashurov, G. – Refinement of the crystal structure of zircon-type YVO4, Acta Crystallogr. B 24 (1968) 292."
+      },
+      {
+        "id": "wyckoff1963",
+        "citation": "Wyckoff, R.W.G. – Crystal Structures, 2nd ed., Vol. 1, Interscience/Wiley, 1963 (fluorite-type CeO2)."
       }
     ]
   },
@@ -1113,6 +1125,181 @@
           "d_A": 2.12,
           "hkl": "211",
           "rel_intensity": 4
+        }
+      ]
+    },
+    {
+      "name": "Cerium(III) Orthovanadate (CeVO4)",
+      "category": "oxide",
+      "crystal_system": "tetragonal",
+      "lattice_params": {
+        "a": 7.4009,
+        "c": 6.4966
+      },
+      "source": "mullica1984, icdd, cod -- rel_intensity values are approximate (adapted from the widely-reproduced zircon-type pattern), not a precision-verified ICDD card",
+      "peaks": [
+        {
+          "d_A": 4.8824,
+          "hkl": "101",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 3.7005,
+          "hkl": "200",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.9491,
+          "hkl": "211",
+          "rel_intensity": 15
+        },
+        {
+          "d_A": 2.7599,
+          "hkl": "112",
+          "rel_intensity": 65
+        },
+        {
+          "d_A": 2.6166,
+          "hkl": "220",
+          "rel_intensity": 12
+        },
+        {
+          "d_A": 2.4412,
+          "hkl": "202",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 2.3063,
+          "hkl": "301",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 2.0784,
+          "hkl": "103",
+          "rel_intensity": 5
+        },
+        {
+          "d_A": 1.9573,
+          "hkl": "321",
+          "rel_intensity": 5
+        },
+        {
+          "d_A": 1.8988,
+          "hkl": "312",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 1.8502,
+          "hkl": "400",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.4872,
+          "hkl": "204",
+          "rel_intensity": 4
+        }
+      ]
+    },
+    {
+      "name": "Yttrium Orthovanadate (YVO4)",
+      "category": "oxide",
+      "crystal_system": "tetragonal",
+      "lattice_params": {
+        "a": 7.1183,
+        "c": 6.2893
+      },
+      "source": "baglio1968, icdd, cod -- rel_intensity values are approximate (adapted from the widely-reproduced zircon-type pattern, isostructural with CeVO4), not a precision-verified ICDD card",
+      "peaks": [
+        {
+          "d_A": 4.7132,
+          "hkl": "101",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 3.5591,
+          "hkl": "200",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.8403,
+          "hkl": "211",
+          "rel_intensity": 15
+        },
+        {
+          "d_A": 2.6669,
+          "hkl": "112",
+          "rel_intensity": 65
+        },
+        {
+          "d_A": 2.5167,
+          "hkl": "220",
+          "rel_intensity": 12
+        },
+        {
+          "d_A": 2.3566,
+          "hkl": "202",
+          "rel_intensity": 10
+        },
+        {
+          "d_A": 2.22,
+          "hkl": "301",
+          "rel_intensity": 20
+        },
+        {
+          "d_A": 1.8304,
+          "hkl": "312",
+          "rel_intensity": 8
+        }
+      ]
+    },
+    {
+      "name": "Cerium(IV) Oxide, Cerianite (CeO2)",
+      "category": "oxide",
+      "crystal_system": "cubic",
+      "lattice_params": {
+        "a": 5.411
+      },
+      "source": "wyckoff1963, icdd, cod",
+      "peaks": [
+        {
+          "d_A": 3.124,
+          "hkl": "111",
+          "rel_intensity": 100
+        },
+        {
+          "d_A": 2.7055,
+          "hkl": "200",
+          "rel_intensity": 30
+        },
+        {
+          "d_A": 1.9131,
+          "hkl": "220",
+          "rel_intensity": 52
+        },
+        {
+          "d_A": 1.6315,
+          "hkl": "311",
+          "rel_intensity": 42
+        },
+        {
+          "d_A": 1.562,
+          "hkl": "222",
+          "rel_intensity": 8
+        },
+        {
+          "d_A": 1.3527,
+          "hkl": "400",
+          "rel_intensity": 6
+        },
+        {
+          "d_A": 1.2414,
+          "hkl": "331",
+          "rel_intensity": 14
+        },
+        {
+          "d_A": 1.2099,
+          "hkl": "420",
+          "rel_intensity": 14
         }
       ]
     }

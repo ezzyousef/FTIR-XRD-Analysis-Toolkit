@@ -125,6 +125,60 @@ def detect_peaks(x, y, prominence_frac=0.02, min_distance_pts=3, mode="absorbanc
     return peaks
 
 
+def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02,
+                                    smooth_window=15, smooth_polyorder=3, min_distance_pts=3):
+    """
+    Second-derivative-assisted peak detection: resolves overlapping/shouldered
+    bands that blend into a single broad hump in the raw spectrum and are
+    missed by ordinary local-maximum peak picking on y itself. Each real
+    absorption band -- even a shoulder riding on a stronger neighbor --
+    produces its own local minimum in the (smoothed) second derivative,
+    because d^2/dx^2 of a peak-shaped feature is most negative at its center,
+    regardless of whether it's tall enough to show as its own local maximum
+    in the raw envelope. Detecting maxima of -d^2y/dx^2 therefore resolves
+    bands that plain peak-picking on y merges into one.
+
+    This is the standard "peak resolution enhancement" technique used in
+    FTIR/protein-secondary-structure analysis for exactly this failure mode
+    (a database reference band exists at a real wavenumber, but ordinary
+    peak-picking only ever finds one broad peak covering several reference
+    ranges at once). It is intentionally a separate, opt-in detection mode
+    rather than a replacement for detect_peaks(): being far more sensitive to
+    noise (differentiation amplifies noise even after smoothing), it can
+    produce spurious extra peaks on a noisy spectrum, so it should be used
+    when you have reason to expect overlapping bands, not as a blanket
+    default.
+
+    Source: Susi & Byler, Appl. Spectrosc. 37 (1983) 130 -- second-derivative
+    resolution enhancement for overlapping IR/protein amide bands.
+    """
+    from scipy.signal import find_peaks, peak_widths
+
+    y_work = np.asarray(y, dtype=float)
+    if mode == "transmittance":
+        y_work = y_work.max() - y_work
+
+    d2 = derivative_spectrum(x, y_work, order=2, window_length=smooth_window, polyorder=smooth_polyorder)
+    neg_d2 = -d2  # bands in the original spectrum -> minima of d2 -> maxima of -d2
+
+    d2_range = neg_d2.max() - neg_d2.min()
+    prominence = max(prominence_frac * d2_range, 1e-12)
+    idx, props = find_peaks(neg_d2, prominence=prominence, distance=min_distance_pts)
+    widths_result = peak_widths(neg_d2, idx, rel_height=0.5) if len(idx) else (np.array([]),)
+
+    peaks = []
+    for i, pk in enumerate(idx):
+        peaks.append({
+            "index": int(pk),
+            "x": float(x[pk]),
+            "y": float(y[pk]),  # report the ORIGINAL spectrum's intensity for display/overlay
+            "prominence": float(props["prominences"][i]),
+            "fwhm_pts": float(widths_result[0][i]) if len(widths_result[0]) else 0.0,
+        })
+    peaks.sort(key=lambda p: p["x"])
+    return peaks
+
+
 def match_peaks_to_database(peaks, database, tolerance=10.0, categories=None):
     """
     Match detected peaks against the reference database within +/- tolerance (cm-1)

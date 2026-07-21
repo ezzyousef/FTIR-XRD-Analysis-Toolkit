@@ -147,6 +147,21 @@ PEAK_FITTING = (
     "& Stock, 2001)."
 )
 
+SECOND_DERIVATIVE_PEAK_DETECTION = (
+    "Peaks in the original spectrum correspond to local minima of the "
+    "(smoothed) second derivative -- because d^2/dx^2 of a peak-shaped band "
+    "is most negative at its own center, even a shoulder riding on a "
+    "stronger neighboring band gets its own minimum. Detecting maxima of "
+    "-d^2y/dx^2 therefore resolves overlapping/shouldered bands that plain "
+    "peak-picking on the raw spectrum merges into one broad peak.\n\n"
+    "More sensitive to noise than ordinary peak-picking (differentiation "
+    "amplifies noise even after smoothing) -- use it when you have reason "
+    "to expect overlapping bands, not as a blanket default.\n\n"
+    "Source: Susi & Byler, Appl. Spectrosc. 37 (1983) 130 -- second-"
+    "derivative resolution enhancement, standard in protein/polymer FTIR "
+    "band analysis."
+)
+
 ATR_CORRECTION = (
     "Penetration depth: dp(ν) = λ / [2π·n₁·√(sin²θ - (n₂/n₁)²)]  ∝  1/ν\n\n"
     "In ATR sampling the effective pathlength (penetration depth) shrinks "

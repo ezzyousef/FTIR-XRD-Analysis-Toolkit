@@ -319,12 +319,20 @@ class XRDTab(AnalysisTabBase):
                                         "'Williamson-Hall (size + strain)'.")
         else:
             size_txt = f"{wh['crystallite_size_nm']:.2f} nm" if wh["crystallite_size_nm"] else "not resolvable (non-physical intercept)"
+            strain_note = (
+                "\n\nNote: this fit came out NEGATIVE. Real strain broadening can only add "
+                "width to a peak, never subtract it, so a negative microstrain has no direct "
+                "physical meaning -- it means the data doesn't show a strain contribution "
+                "resolvable above noise (and/or uncorrected instrumental broadening), not a "
+                "real 'negative strain'. Treat this result as strain ~ 0."
+                if not wh.get("strain_physical", True) else ""
+            )
             self.wh_text.insert("1.0", f"Williamson-Hall analysis ({wh['n_peaks']} peaks):\n\n"
                                         f"  Crystallite size: {size_txt}\n"
                                         f"  Microstrain: {wh['microstrain']:.5f}\n"
                                         f"  Linear fit: slope={wh['slope']:.5f}, intercept={wh['intercept']:.5f}\n\n"
                                         f"Note: separates size vs. strain broadening across peaks; still not "
-                                        f"corrected for instrumental broadening.")
+                                        f"corrected for instrumental broadening.{strain_note}")
         self.wh_text.configure(state="disabled")
 
     # ---------------------------------------------------------------- actions

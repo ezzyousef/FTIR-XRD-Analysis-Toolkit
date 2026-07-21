@@ -28,6 +28,7 @@ class FTIRTab(AnalysisTabBase):
         self.database = app.ftir_db
         self.mode_var = tb.StringVar(value="absorbance")
         self.prom_var = tb.DoubleVar(value=2.0)
+        self.shoulder_var = tb.BooleanVar(value=False)
         self.tolerance_var = tb.DoubleVar(value=app.cfg.get("ftir_tolerance_cm1", 10.0))
         self.fit_shape_var = tb.StringVar(value="gaussian")
         self.fit_window_var = tb.DoubleVar(value=25.0)
@@ -59,6 +60,13 @@ class FTIRTab(AnalysisTabBase):
         prom_row.pack(fill="x")
         tb.Scale(prom_row, from_=0.2, to=20, variable=self.prom_var, bootstyle="info").pack(side="left", fill="x", expand=True)
         tb.Label(prom_row, textvariable=self.prom_var, width=5).pack(side="left")
+        shoulder_row = tb.Frame(card)
+        shoulder_row.pack(fill="x", pady=(6, 0))
+        tb.Checkbutton(shoulder_row, text="Resolve overlapping/shoulder bands (2nd derivative)",
+                        variable=self.shoulder_var, bootstyle="round-toggle").pack(side="left")
+        tb.Button(shoulder_row, text="ⓘ", width=3, bootstyle="secondary-outline",
+                  command=lambda: self.show_formula("Second-Derivative Peak Resolution",
+                                                     fs.SECOND_DERIVATIVE_PEAK_DETECTION)).pack(side="left", padx=(4, 0))
         tb.Button(card, text="Detect Peaks", bootstyle="primary", command=self.detect_peaks).pack(fill="x", pady=(8, 0))
 
         card = tb.Labelframe(c, text="3. Processing", padding=10, bootstyle="secondary")
@@ -285,7 +293,10 @@ class FTIRTab(AnalysisTabBase):
         if t is None:
             return
         prom_frac = self.prom_var.get() / 100.0
-        t.peaks = ftir_analysis.detect_peaks(t.x, t.y, prominence_frac=prom_frac, mode=self.mode_var.get())
+        if self.shoulder_var.get():
+            t.peaks = ftir_analysis.detect_peaks_second_derivative(t.x, t.y, prominence_frac=prom_frac, mode=self.mode_var.get())
+        else:
+            t.peaks = ftir_analysis.detect_peaks(t.x, t.y, prominence_frac=prom_frac, mode=self.mode_var.get())
         t.fits = []
         self.redraw()
         self.on_active_trace_changed()

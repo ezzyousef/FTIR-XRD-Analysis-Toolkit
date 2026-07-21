@@ -68,6 +68,42 @@ def test_williamson_hall_requires_three_peaks():
         xrd_analysis.williamson_hall([20.0, 30.0], [0.2, 0.2], 1.5406)
 
 
+def test_williamson_hall_recovers_known_nonzero_strain():
+    # Regression test: the fitted slope IS the microstrain directly, because
+    # x = 4*sin(theta) already has the factor of 4 folded in -- a previous
+    # version divided the slope by 4 a second time, silently under-reporting
+    # every nonzero microstrain result by 4x (the zero-strain test above
+    # can't catch this, since 0/4 == 0).
+    wl = 1.5406
+    two_theta = np.array([20.0, 30.0, 40.0, 50.0, 60.0, 70.0])
+    theta = np.radians(two_theta / 2.0)
+    K, D_nm, true_strain = 0.9, 20.0, 0.002
+    wl_nm = wl * 0.1
+    x = 4 * np.sin(theta)
+    beta_rad = (K * wl_nm / D_nm + true_strain * x) / np.cos(theta)
+    fwhm_deg = np.degrees(beta_rad)
+    res = xrd_analysis.williamson_hall(two_theta, fwhm_deg, wl, K=K)
+    assert res["microstrain"] == pytest.approx(true_strain, rel=1e-6)
+    assert res["crystallite_size_nm"] == pytest.approx(D_nm, rel=1e-4)
+    assert res["strain_physical"] is True
+
+
+def test_williamson_hall_flags_negative_strain_as_nonphysical():
+    # Data with essentially no strain broadening and a bit of scatter can
+    # produce a slightly negative fitted slope -- mathematically valid for an
+    # unconstrained least-squares fit, but not a real "negative strain".
+    wl = 1.5406
+    two_theta = np.array([20.0, 30.0, 40.0, 50.0, 60.0])
+    theta = np.radians(two_theta / 2.0)
+    K, D_nm = 0.9, 20.0
+    beta_rad = (K * wl * 0.1) / (D_nm * np.cos(theta))
+    fwhm_deg = np.degrees(beta_rad)
+    fwhm_deg[2] *= 0.85  # perturb one point so the fit slope goes slightly negative
+    res = xrd_analysis.williamson_hall(two_theta, fwhm_deg, wl, K=K)
+    assert res["microstrain"] < 0
+    assert res["strain_physical"] is False
+
+
 def test_percent_crystallinity_all_crystalline():
     x = np.linspace(10, 30, 500)
     y = np.exp(-0.5 * ((x - 20) / 1.0) ** 2)  # sharp crystalline peak, no halo
