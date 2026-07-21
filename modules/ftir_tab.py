@@ -32,6 +32,8 @@ class FTIRTab(AnalysisTabBase):
         self.fit_shape_var = tb.StringVar(value="gaussian")
         self.fit_window_var = tb.DoubleVar(value=25.0)
         self.category_var = tb.StringVar(value=ftir_analysis.ALL_CATEGORIES_LABEL)
+        self._current_match = None
+        self._current_match_entry = None
 
         self._build_controls()
         self._build_results_tabs()
@@ -118,6 +120,8 @@ class FTIRTab(AnalysisTabBase):
         card.pack(fill="x", padx=6, pady=(6, 16))
         tb.Button(card, text="Export Peak List (CSV)", command=self.export_peaks_csv).pack(fill="x", pady=2)
         tb.Button(card, text="Export PDF Report", bootstyle="danger", command=self.export_pdf_report).pack(fill="x", pady=2)
+        tb.Button(card, text="Export Data for OriginLab (CSV)...", command=self.export_originlab_dialog).pack(fill="x", pady=2)
+        tb.Button(card, text="Export Graph (SVG/EPS/PDF/PNG)...", command=self.export_graph_dialog).pack(fill="x", pady=2)
         tb.Button(card, text="Save Session...", command=self.save_session).pack(fill="x", pady=2)
         tb.Button(card, text="Load Session...", command=self.load_session).pack(fill="x", pady=2)
 
@@ -138,6 +142,8 @@ class FTIRTab(AnalysisTabBase):
                  bootstyle="secondary", font=("", 8)).pack(side="left")
         tb.Button(matches_toolbar, text="Clear Overlay", bootstyle="secondary-outline",
                   command=self.clear_reference_overlay).pack(side="right")
+        tb.Button(matches_toolbar, text="Export Reference Peaks (CSV)...", bootstyle="secondary-outline",
+                  command=self.export_reference_peaks_csv).pack(side="right", padx=(0, 4))
         self.matches_table = DataTable(matches_frame,
                                         [("name", "Material"), ("category", "Category"), ("score", "Score"),
                                          ("count", "Matched/Total"), ("source", "Source")],
@@ -228,6 +234,8 @@ class FTIRTab(AnalysisTabBase):
 
     def _show_match_detail(self, match):
         entry = ftir_analysis.find_entry(self.database, match["name"])
+        self._current_match = match
+        self._current_match_entry = entry
 
         self.match_detail.configure(state="normal")
         self.match_detail.delete("1.0", "end")
@@ -482,7 +490,7 @@ class FTIRTab(AnalysisTabBase):
         try:
             target = parse_float(dlg.result["pos"], "Position")
             nearest = min(t.peaks, key=lambda p: abs(p["x"] - target))
-            fwhm = ftir_analysis.fwhm_from_peak(t.x, t.y, nearest["index"])
+            fwhm = ftir_analysis.fwhm_from_peak(t.x, t.y, nearest["index"], mode=self.mode_var.get())
             Messagebox.show_info(f"Nearest peak at {nearest['x']:.1f} cm-1: FWHM = {fwhm:.2f} cm-1", "FWHM")
         except Exception as ex:
             Messagebox.show_error(str(ex), "Error")
@@ -502,6 +510,30 @@ class FTIRTab(AnalysisTabBase):
             Messagebox.show_error(str(ex), "Error")
 
     # ---------------------------------------------------------------- export
+
+    def export_reference_peaks_csv(self):
+        if self._current_match_entry is None:
+            Messagebox.show_warning("Click a row in the Database Matches table first.", "No Material Selected")
+            return
+        entry = self._current_match_entry
+        match = self._current_match
+        matched_by_range = {tuple(mm["reference"]["range"]): mm for mm in match["matches"]}
+        path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV", "*.csv")],
+                                             initialfile=f"{entry['name']}_reference_peaks.csv")
+        if not path:
+            return
+        with open(path, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["material", "range_low_cm-1", "range_high_cm-1", "assignment", "intensity",
+                        "matched_in_your_spectrum", "observed_cm-1", "delta_cm-1", "source"])
+            for ref in entry["peaks"]:
+                mm = matched_by_range.get(tuple(ref["range"]))
+                w.writerow([entry["name"], ref["range"][0], ref["range"][1], ref["assignment"], ref.get("intensity", ""),
+                            "yes" if mm else "no",
+                            f"{mm['observed']['x']:.2f}" if mm else "",
+                            f"{mm['delta_cm1']:+.2f}" if mm else "",
+                            entry.get("source", "")])
+        Messagebox.show_info(f"Saved {len(entry['peaks'])} reference peak(s) for {entry['name']} to {path}", "Exported")
 
     def export_peaks_csv(self):
         t = self._require_active()

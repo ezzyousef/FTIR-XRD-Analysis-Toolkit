@@ -111,6 +111,20 @@ def test_fwhm_from_peak_matches_known_gaussian():
     assert fwhm == pytest.approx(expected_fwhm, rel=0.02)
 
 
+def test_fwhm_from_peak_transmittance_mode_dip():
+    # A %T-style spectrum: a downward dip (absorption band) sitting on a
+    # flat 100%T baseline. Without inverting first, scipy.signal.peak_widths
+    # measures the width of a valley as though it were a summit and returns
+    # garbage -- this is the bug reported as "FWHM is not working".
+    x = np.linspace(-50, 50, 4000)
+    width = 4.0
+    y = 100.0 - _gaussian(x, 0, 60.0, width)  # dip down from 100 %T
+    idx = int(np.argmin(y))
+    fwhm = ftir_analysis.fwhm_from_peak(x, y, idx, mode="transmittance")
+    expected_fwhm = 2 * np.sqrt(2 * np.log(2)) * width
+    assert fwhm == pytest.approx(expected_fwhm, rel=0.02)
+
+
 def test_beer_lambert_concentration():
     c = ftir_analysis.beer_lambert_concentration(absorbance=1.0, molar_absorptivity=1000, path_length_cm=1.0)
     assert c == pytest.approx(0.001)

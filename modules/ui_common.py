@@ -597,6 +597,78 @@ class AnalysisTabBase(tb.Frame):
                 return t
         return None
 
+    # ---- OriginLab-compatible export ----
+
+    def export_originlab_dialog(self):
+        """
+        Save every open trace as X/Y column pairs with 'Long Name' and 'Units'
+        header rows -- the classic 'Origin ASCII' layout that OriginLab's
+        Import Wizard (and plain drag-and-drop) recognizes automatically,
+        turning each column pair straight into an XY worksheet/graph.
+        """
+        if not self.traces:
+            Messagebox.show_warning("Load a spectrum/pattern first.", "No Data")
+            return
+        path = filedialog.asksaveasfilename(defaultextension=".csv",
+                                             filetypes=[("CSV (Origin ASCII)", "*.csv"), ("All files", "*.*")])
+        if not path:
+            return
+        try:
+            self.export_originlab_csv(path)
+        except Exception as e:
+            Messagebox.show_error(str(e), "Export Failed")
+            return
+        Messagebox.show_info(f"Saved {len(self.traces)} trace(s) to {path}.\n\n"
+                              "In OriginLab: File > Import > Import Wizard (or just drag the "
+                              "file onto an empty worksheet) -- row 1 becomes column Long Names, "
+                              "row 2 becomes Units.", "Exported for OriginLab")
+
+    def export_originlab_csv(self, path):
+        import csv
+        import re
+
+        def plain(label):
+            # strip matplotlib mathtext markup (e.g. "cm$^{-1}$" -> "cm-1")
+            # so the units row is plain text Origin's import wizard can read.
+            return re.sub(r"[${}^\\]", "", label)
+
+        max_len = max(len(t.x) for t in self.traces)
+        header1, header2 = [], []
+        for t in self.traces:
+            header1 += [f"{t.label} X", f"{t.label} Y"]
+            header2 += [plain(self.x_label), plain(self.y_label)]
+        with open(path, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(header1)
+            w.writerow(header2)
+            for i in range(max_len):
+                row = []
+                for t in self.traces:
+                    if i < len(t.x):
+                        row += [t.x[i], t.y[i]]
+                    else:
+                        row += ["", ""]
+                w.writerow(row)
+
+    def export_graph_dialog(self):
+        """
+        Export the current plot as an image. SVG/EPS/PDF are vector formats
+        OriginLab can import as an editable graph page; PNG is a flat raster
+        snapshot (matches the one embedded in the PDF report).
+        """
+        path = filedialog.asksaveasfilename(
+            defaultextension=".svg",
+            filetypes=[("SVG (vector)", "*.svg"), ("EPS (vector)", "*.eps"), ("PDF (vector)", "*.pdf"),
+                       ("PNG (raster, 300 dpi)", "*.png"), ("All files", "*.*")])
+        if not path:
+            return
+        try:
+            self.fig.savefig(path, dpi=300, bbox_inches="tight")
+        except Exception as e:
+            Messagebox.show_error(str(e), "Export Failed")
+            return
+        Messagebox.show_info(f"Saved plot to {path}.", "Exported")
+
     def _on_traces_changed(self):
         self.trace_panel.refresh(self.traces, self.active_id)
         self.redraw()

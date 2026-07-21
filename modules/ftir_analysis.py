@@ -253,11 +253,22 @@ def peak_area(x, y, x_start, x_end):
     return float(integrate.trapezoid(ys[order], xs[order]))
 
 
-def fwhm_from_peak(x, y, peak_index, rel_height=0.5):
-    """Full width at half max (in x-units) for a given peak index."""
+def fwhm_from_peak(x, y, peak_index, rel_height=0.5, mode="absorbance"):
+    """
+    Full width at half max (in x-units) for a given peak index.
+    mode: "absorbance" (peaks point up, the default scipy.signal.peak_widths
+    assumption) or "transmittance" (peaks point down as dips -- must be
+    inverted first, exactly as detect_peaks() does, otherwise peak_widths
+    measures the width of a valley as though it were a summit and returns
+    meaningless results).
+    """
     from scipy.signal import peak_widths
 
-    widths_result = peak_widths(y, [peak_index], rel_height=rel_height)
+    y_work = np.asarray(y, dtype=float)
+    if mode == "transmittance":
+        y_work = y_work.max() - y_work
+
+    widths_result = peak_widths(y_work, [peak_index], rel_height=rel_height)
     width_pts = widths_result[0][0]
     # convert points to x-units using local spacing
     if peak_index + 1 < len(x):

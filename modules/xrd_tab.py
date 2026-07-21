@@ -36,6 +36,9 @@ class XRDTab(AnalysisTabBase):
         self.fit_shape_var = tb.StringVar(value="gaussian")
         self.fit_window_var = tb.DoubleVar(value=0.5)
         self.category_var = tb.StringVar(value=xrd_analysis.ALL_CATEGORIES_LABEL)
+        self._current_match = None
+        self._current_match_phase = None
+        self._current_match_ref_peaks = None
 
         self._build_controls()
         self._build_results_tabs()
@@ -117,6 +120,8 @@ class XRDTab(AnalysisTabBase):
         card.pack(fill="x", padx=6, pady=(6, 16))
         tb.Button(card, text="Export Peak List (CSV)", command=self.export_peaks_csv).pack(fill="x", pady=2)
         tb.Button(card, text="Export PDF Report", bootstyle="danger", command=self.export_pdf_report).pack(fill="x", pady=2)
+        tb.Button(card, text="Export Data for OriginLab (CSV)...", command=self.export_originlab_dialog).pack(fill="x", pady=2)
+        tb.Button(card, text="Export Graph (SVG/EPS/PDF/PNG)...", command=self.export_graph_dialog).pack(fill="x", pady=2)
         tb.Button(card, text="Save Session...", command=self.save_session).pack(fill="x", pady=2)
         tb.Button(card, text="Load Session...", command=self.load_session).pack(fill="x", pady=2)
 
@@ -139,6 +144,8 @@ class XRDTab(AnalysisTabBase):
                  bootstyle="secondary", font=("", 8)).pack(side="left")
         tb.Button(matches_toolbar, text="Clear Overlay", bootstyle="secondary-outline",
                   command=self.clear_reference_overlay).pack(side="right")
+        tb.Button(matches_toolbar, text="Export Reference Peaks (CSV)...", bootstyle="secondary-outline",
+                  command=self.export_reference_peaks_csv).pack(side="right", padx=(0, 4))
         self.matches_table = DataTable(matches_frame,
                                         [("name", "Phase"), ("category", "Category"), ("system", "System"),
                                          ("score", "Score"), ("count", "Matched/Total"), ("source", "Source")],
@@ -257,6 +264,12 @@ class XRDTab(AnalysisTabBase):
     def _show_match_detail(self, match):
         merged = xrd_analysis.merged_database(self.database)
         phase = xrd_analysis.find_phase(merged, match["name"])
+        self._current_match = match
+        self._current_match_phase = phase
+        self._current_match_ref_peaks = (
+            sorted(phase["peaks"], key=lambda r: -r.get("rel_intensity", 0))[:match["total_reference_peaks"]]
+            if phase else None
+        )
 
         self.match_detail.configure(state="normal")
         self.match_detail.delete("1.0", "end")
@@ -555,6 +568,34 @@ class XRDTab(AnalysisTabBase):
         Messagebox.show_info(msg, "Conversion Result")
 
     # ---------------------------------------------------------------- export
+
+    def export_reference_peaks_csv(self):
+        if self._current_match_phase is None:
+            Messagebox.show_warning("Click a row in the Phase Matches table first.", "No Phase Selected")
+            return
+        phase = self._current_match_phase
+        match = self._current_match
+        ref_peaks = self._current_match_ref_peaks
+        matched_by_d = {round(mm["reference"]["d_A"], 6): mm for mm in match["matches"]}
+        wl = self._get_wavelength()
+        path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV", "*.csv")],
+                                             initialfile=f"{phase['name']}_reference_peaks.csv")
+        if not path:
+            return
+        with open(path, "w", newline="") as f:
+            w = csv.writer(f)
+            w.writerow(["phase", "d_spacing_A", "two_theta_deg", "hkl", "rel_intensity",
+                        "matched_in_your_pattern", "observed_d_A", "delta_d_A", "source"])
+            for ref in ref_peaks:
+                mm = matched_by_d.get(round(ref["d_A"], 6))
+                tt = xrd_analysis.two_theta_from_d(ref["d_A"], wl)
+                w.writerow([phase["name"], f"{ref['d_A']:.5f}", f"{tt:.4f}" if tt is not None else "",
+                            ref.get("hkl", ""), ref.get("rel_intensity", ""),
+                            "yes" if mm else "no",
+                            f"{mm['observed_d_A']:.5f}" if mm else "",
+                            f"{mm['delta_d_A']:+.5f}" if mm else "",
+                            phase.get("source", "")])
+        Messagebox.show_info(f"Saved {len(ref_peaks)} reference peak(s) for {phase['name']} to {path}", "Exported")
 
     def export_peaks_csv(self):
         t = self._require_active()
