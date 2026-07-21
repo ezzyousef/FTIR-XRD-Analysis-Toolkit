@@ -132,7 +132,7 @@ class FTIRTab(AnalysisTabBase):
                                         height=7, widths={"name": 220, "category": 80, "score": 60, "count": 90, "source": 200})
         self.matches_table.pack(fill="both", expand=True)
         self.matches_table.on_select = self._show_match_detail
-        self.match_detail = tb.Text(matches_frame, height=5, wrap="word")
+        self.match_detail = tb.Text(matches_frame, height=9, wrap="word")
         self.match_detail.pack(fill="both", expand=False, pady=(6, 0))
         self.match_detail.configure(state="disabled")
 
@@ -215,13 +215,31 @@ class FTIRTab(AnalysisTabBase):
                                                       f"{f['height']:.4f}", f"{f['area']:.3f}", f"{f['r_squared']:.4f}"))
 
     def _show_match_detail(self, match):
+        entry = ftir_analysis.find_entry(self.database, match["name"])
+
         self.match_detail.configure(state="normal")
         self.match_detail.delete("1.0", "end")
         lines = [f"{match['name']} [{match['category']}]  Source: {match.get('source','')}"]
-        for mm in match["matches"]:
-            ref = mm["reference"]
-            lines.append(f"  observed {mm['observed']['x']:.1f} cm-1  ~  ref {ref['range'][0]}-{ref['range'][1]} cm-1 "
-                          f"({ref['assignment']}), delta={mm['delta_cm1']:+.1f} cm-1")
+        if entry:
+            # List EVERY reference peak of the material (not just the subset
+            # that happened to fall within tolerance) so the text panel gives
+            # the same complete picture as the orange overlay on the plot --
+            # marking each one MATCHED or not found in your spectrum.
+            lines.append(f"Reference peaks ({match['matched_count']}/{len(entry['peaks'])} matched):")
+            matched_by_range = {tuple(mm["reference"]["range"]): mm for mm in match["matches"]}
+            for ref in entry["peaks"]:
+                mm = matched_by_range.get(tuple(ref["range"]))
+                range_txt = f"{ref['range'][0]}-{ref['range'][1]} cm-1" if not (ref["range"][0] == 0 and ref["range"][1] == 0) else "(IR-inactive)"
+                if mm:
+                    lines.append(f"  [MATCHED]   ref {range_txt} ({ref['assignment']})  "
+                                  f"~ observed {mm['observed']['x']:.1f} cm-1, delta={mm['delta_cm1']:+.1f} cm-1")
+                else:
+                    lines.append(f"  [not found] ref {range_txt} ({ref['assignment']})")
+        else:
+            for mm in match["matches"]:
+                ref = mm["reference"]
+                lines.append(f"  observed {mm['observed']['x']:.1f} cm-1  ~  ref {ref['range'][0]}-{ref['range'][1]} cm-1 "
+                              f"({ref['assignment']}), delta={mm['delta_cm1']:+.1f} cm-1")
         self.match_detail.insert("1.0", "\n".join(lines))
         self.match_detail.configure(state="disabled")
 
@@ -229,7 +247,6 @@ class FTIRTab(AnalysisTabBase):
         # that happened to fall within tolerance) on the plot, so the user
         # can visually compare every expected band against their spectrum --
         # including the ones that DIDN'T show up as a real peak.
-        entry = ftir_analysis.find_entry(self.database, match["name"])
         if entry:
             self.set_reference_overlay({"label": match["name"], "peaks": entry["peaks"]})
         else:

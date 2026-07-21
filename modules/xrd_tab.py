@@ -141,7 +141,7 @@ class XRDTab(AnalysisTabBase):
                                         height=7, widths={"name": 190, "category": 80, "system": 90, "score": 60, "count": 90, "source": 160})
         self.matches_table.pack(fill="both", expand=True)
         self.matches_table.on_select = self._show_match_detail
-        self.match_detail = tb.Text(matches_frame, height=5, wrap="word")
+        self.match_detail = tb.Text(matches_frame, height=9, wrap="word")
         self.match_detail.pack(fill="both", expand=False, pady=(6, 0))
         self.match_detail.configure(state="disabled")
 
@@ -251,13 +251,37 @@ class XRDTab(AnalysisTabBase):
         return (f"{p['two_theta']:.3f}", f"{p['intensity']:.1f}", f"{p['fwhm_deg']:.3f}", d, size)
 
     def _show_match_detail(self, match):
+        merged = xrd_analysis.merged_database(self.database)
+        phase = xrd_analysis.find_phase(merged, match["name"])
+
         self.match_detail.configure(state="normal")
         self.match_detail.delete("1.0", "end")
         lines = [f"{match['name']} [{match.get('crystal_system','')}]  Source: {match.get('source','')}"]
-        for mm in match["matches"]:
-            ref = mm["reference"]
-            lines.append(f"  observed d={mm['observed_d_A']:.4f} A  ~  ref d={ref['d_A']:.4f} A "
-                         f"(hkl {ref.get('hkl','')}, I={ref.get('rel_intensity','')}), delta={mm['delta_d_A']:+.4f} A")
+        if phase:
+            # List every reference line actually CONSIDERED for this match
+            # (match_xrd_phases only scores the top_n strongest lines, which
+            # is what "total_reference_peaks" counts) so the text panel gives
+            # the same complete picture as the orange overlay -- marking each
+            # one MATCHED or not found in your pattern.
+            n_considered = match["total_reference_peaks"]
+            ref_peaks = sorted(phase["peaks"], key=lambda r: -r.get("rel_intensity", 0))[:n_considered]
+            lines.append(f"Reference lines ({match['matched_count']}/{len(ref_peaks)} matched, "
+                         f"strongest {n_considered} lines considered):")
+            matched_by_d = {round(mm["reference"]["d_A"], 6): mm for mm in match["matches"]}
+            for ref in ref_peaks:
+                mm = matched_by_d.get(round(ref["d_A"], 6))
+                if mm:
+                    lines.append(f"  [MATCHED]   ref d={ref['d_A']:.4f} A (hkl {ref.get('hkl','')}, "
+                                 f"I={ref.get('rel_intensity','')})  ~ observed d={mm['observed_d_A']:.4f} A, "
+                                 f"delta={mm['delta_d_A']:+.4f} A")
+                else:
+                    lines.append(f"  [not found] ref d={ref['d_A']:.4f} A (hkl {ref.get('hkl','')}, "
+                                 f"I={ref.get('rel_intensity','')})")
+        else:
+            for mm in match["matches"]:
+                ref = mm["reference"]
+                lines.append(f"  observed d={mm['observed_d_A']:.4f} A  ~  ref d={ref['d_A']:.4f} A "
+                             f"(hkl {ref.get('hkl','')}, I={ref.get('rel_intensity','')}), delta={mm['delta_d_A']:+.4f} A")
         self.match_detail.insert("1.0", "\n".join(lines))
         self.match_detail.configure(state="disabled")
 
@@ -265,8 +289,6 @@ class XRDTab(AnalysisTabBase):
         # that happened to fall within tolerance) on the pattern, so the
         # user can visually compare every expected reflection against their
         # data -- including the ones that DIDN'T show up as a real peak.
-        merged = xrd_analysis.merged_database(self.database)
-        phase = xrd_analysis.find_phase(merged, match["name"])
         if phase:
             self.set_reference_overlay({"label": match["name"], "peaks": phase["peaks"]})
         else:
