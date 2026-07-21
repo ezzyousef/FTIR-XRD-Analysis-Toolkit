@@ -43,7 +43,7 @@ class FTIRTab(AnalysisTabBase):
 
         card = tb.Labelframe(c, text="1. Load Spectrum", padding=10, bootstyle="info")
         card.pack(fill="x", padx=6, pady=6)
-        tb.Button(card, text="Load Spectrum (.csv/.txt/.dat/.xy/.jdx)", bootstyle="info",
+        tb.Button(card, text="Load Spectrum (.csv/.txt/.dat/.xy/.dpt/.jdx)", bootstyle="info",
                   command=self._load_spectrum).pack(fill="x")
         tb.Label(card, text="Tip: you can also drag & drop a file onto the plot.",
                  bootstyle="secondary", wraplength=280, font=("", 8)).pack(anchor="w", pady=(4, 0))
@@ -197,7 +197,7 @@ class FTIRTab(AnalysisTabBase):
     # ---------------------------------------------------------------- loading
 
     def _load_spectrum(self):
-        self.load_file_dialog([("Spectrum files", "*.csv *.txt *.dat *.xy *.jdx *.dx"), ("All files", "*.*")],
+        self.load_file_dialog([("Spectrum files", "*.csv *.txt *.dat *.xy *.dpt *.jdx *.dx"), ("All files", "*.*")],
                                file_readers.read_ftir_any)
 
     def handle_dropped_file(self, path):

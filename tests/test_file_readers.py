@@ -108,3 +108,13 @@ def test_read_ftir_any_dispatches_jdx_and_generic(tmp_path):
 
     with pytest.raises(ValueError):
         fr.read_ftir_any(str(tmp_path / "spec.unknownext"))
+
+
+def test_read_ftir_any_dispatches_dpt(tmp_path):
+    # Bruker OPUS ASCII export format: comma-separated wavenumber,absorbance, no header.
+    dpt_path = tmp_path / "spec.dpt"
+    dpt_path.write_text("4000.0,0.010\n3999.5,0.011\n3999.0,0.012\n3998.5,0.013\n3998.0,0.014\n", encoding="utf-8")
+    result = fr.read_ftir_any(str(dpt_path))
+    assert len(result.x) == 5
+    assert result.x[0] == pytest.approx(4000.0)
+    assert result.y[-1] == pytest.approx(0.014)

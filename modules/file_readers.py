@@ -449,6 +449,7 @@ FTIR_READERS = {
     ".txt": read_generic_text,
     ".dat": read_generic_text,
     ".csv": read_generic_text,
+    ".dpt": read_generic_text,
     ".jdx": read_jcampdx,
     ".dx": read_jcampdx,
 }
