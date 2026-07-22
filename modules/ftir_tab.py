@@ -247,7 +247,12 @@ class FTIRTab(AnalysisTabBase):
 
         self.match_detail.configure(state="normal")
         self.match_detail.delete("1.0", "end")
-        lines = [f"{match['name']} [{match['category']}]  Source: {match.get('source','')}"]
+        full_source = match.get("source", "") or "(no source on file)"
+        # Short form (first citation only) repeated on every peak line below,
+        # so each individual reference peak visibly carries its own citation
+        # instead of relying on the reader to scroll back up to this header.
+        source_short = full_source.split(";")[0].strip()
+        lines = [f"{match['name']} [{match['category']}]  Source: {full_source}"]
         if entry:
             # List EVERY reference peak of the material (not just the subset
             # that happened to fall within tolerance) so the text panel gives
@@ -260,14 +265,16 @@ class FTIRTab(AnalysisTabBase):
                 range_txt = f"{ref['range'][0]}-{ref['range'][1]} cm-1" if not (ref["range"][0] == 0 and ref["range"][1] == 0) else "(IR-inactive)"
                 if mm:
                     lines.append(f"  [MATCHED]   ref {range_txt} ({ref['assignment']})  "
-                                  f"~ observed {mm['observed']['x']:.1f} cm-1, delta={mm['delta_cm1']:+.1f} cm-1")
+                                  f"~ observed {mm['observed']['x']:.1f} cm-1, delta={mm['delta_cm1']:+.1f} cm-1  [ref: {source_short}]")
                 else:
-                    lines.append(f"  [not found] ref {range_txt} ({ref['assignment']})")
+                    lines.append(f"  [not found] ref {range_txt} ({ref['assignment']})  [ref: {source_short}]")
         else:
             for mm in match["matches"]:
                 ref = mm["reference"]
                 lines.append(f"  observed {mm['observed']['x']:.1f} cm-1  ~  ref {ref['range'][0]}-{ref['range'][1]} cm-1 "
-                              f"({ref['assignment']}), delta={mm['delta_cm1']:+.1f} cm-1")
+                              f"({ref['assignment']}), delta={mm['delta_cm1']:+.1f} cm-1  [ref: {source_short}]")
+        lines.append("")
+        lines.append("Full citation(s): see Help > Data Sources & References for the complete bibliography entries.")
         self.match_detail.insert("1.0", "\n".join(lines))
         self.match_detail.configure(state="disabled")
 

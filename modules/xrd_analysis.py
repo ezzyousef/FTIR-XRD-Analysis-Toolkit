@@ -501,10 +501,27 @@ def get_references(database):
     return database.get("_meta", {}).get("references", [])
 
 
-def search_xrd_database(database, query=""):
-    """Search phase entries by name substring (case-insensitive). For the Database Viewer UI."""
+def search_xrd_database(database, query="", elements=None):
+    """
+    Search phase entries by name substring (case-insensitive) and, optionally,
+    by a required set of chemical elements -- for the Database Viewer's
+    periodic-table picker: "show me only phases that contain ALL of these
+    elements" (e.g. picking Ce + V to jump straight to CeVO4 in a database of
+    dozens of names, without knowing/typing the exact formula or name).
+    elements: iterable of element symbols (e.g. ["Ce", "V"]); phases missing
+    an "elements" annotation are excluded once a filter is active, since their
+    element content isn't known to the search.
+    """
     query = (query or "").strip().lower()
-    return [p for p in database.get("phases", []) if not query or query in p["name"].lower()]
+    required = {e.strip().capitalize() for e in (elements or []) if e.strip()}
+    results = []
+    for p in database.get("phases", []):
+        if query and query not in p["name"].lower():
+            continue
+        if required and not required.issubset(set(p.get("elements", []))):
+            continue
+        results.append(p)
+    return results
 
 
 def find_phase(database, name):

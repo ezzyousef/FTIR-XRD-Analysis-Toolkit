@@ -295,6 +295,29 @@ def test_find_phase_returns_full_peak_list_for_overlay(db):
     assert xrd_analysis.find_phase(db, "Not A Real Phase") is None
 
 
+def test_search_xrd_database_by_name_query(db):
+    results = xrd_analysis.search_xrd_database(db, query="quartz")
+    assert any("Quartz" in p["name"] for p in results)
+    assert all("quartz" in p["name"].lower() for p in results)
+
+
+def test_search_xrd_database_by_elements_requires_all(db):
+    # CeVO4 contains Ce, V, O -- searching for just Ce+V should find it (and
+    # not match phases that only contain one of those elements).
+    results = xrd_analysis.search_xrd_database(db, elements=["Ce", "V"])
+    names = {p["name"] for p in results}
+    assert "Cerium(III) Orthovanadate (CeVO4)" in names
+    assert "Cerium(IV) Oxide, Cerianite (CeO2)" not in names  # has Ce but no V
+    assert "Yttrium Orthovanadate (YVO4)" not in names  # has V but no Ce
+
+
+def test_search_xrd_database_elements_and_query_combine(db):
+    results = xrd_analysis.search_xrd_database(db, query="oxide", elements=["Ce"])
+    for p in results:
+        assert "Ce" in p.get("elements", [])
+        assert "oxide" in p["name"].lower()
+
+
 def test_two_theta_from_d_round_trips_with_bragg_d_spacing():
     wl = xrd_analysis.WAVELENGTHS["Cu Ka1"]
     two_theta = 26.6

@@ -107,6 +107,10 @@
           "hkl": "220",
           "rel_intensity": 6
         }
+      ],
+      "elements": [
+        "Si",
+        "O"
       ]
     },
     {
@@ -179,6 +183,11 @@
           "hkl": "300",
           "rel_intensity": 5
         }
+      ],
+      "elements": [
+        "Ca",
+        "C",
+        "O"
       ]
     },
     {
@@ -221,6 +230,12 @@
           "hkl": "012",
           "rel_intensity": 6
         }
+      ],
+      "elements": [
+        "Ca",
+        "Mg",
+        "C",
+        "O"
       ]
     },
     {
@@ -293,6 +308,10 @@
           "hkl": "119",
           "rel_intensity": 13
         }
+      ],
+      "elements": [
+        "Al",
+        "O"
       ]
     },
     {
@@ -355,6 +374,10 @@
           "hkl": "301",
           "rel_intensity": 20
         }
+      ],
+      "elements": [
+        "Ti",
+        "O"
       ]
     },
     {
@@ -412,6 +435,10 @@
           "hkl": "215",
           "rel_intensity": 8
         }
+      ],
+      "elements": [
+        "Ti",
+        "O"
       ]
     },
     {
@@ -473,6 +500,10 @@
           "hkl": "333",
           "rel_intensity": 8
         }
+      ],
+      "elements": [
+        "Na",
+        "Cl"
       ]
     },
     {
@@ -524,6 +555,10 @@
           "hkl": "420",
           "rel_intensity": 14
         }
+      ],
+      "elements": [
+        "K",
+        "Cl"
       ]
     },
     {
@@ -560,6 +595,9 @@
           "hkl": "222",
           "rel_intensity": 12
         }
+      ],
+      "elements": [
+        "Au"
       ]
     },
     {
@@ -596,6 +634,9 @@
           "hkl": "222",
           "rel_intensity": 10
         }
+      ],
+      "elements": [
+        "Ag"
       ]
     },
     {
@@ -632,6 +673,9 @@
           "hkl": "222",
           "rel_intensity": 5
         }
+      ],
+      "elements": [
+        "Cu"
       ]
     },
     {
@@ -668,6 +712,9 @@
           "hkl": "310",
           "rel_intensity": 12
         }
+      ],
+      "elements": [
+        "Fe"
       ]
     },
     {
@@ -704,6 +751,9 @@
           "hkl": "222",
           "rel_intensity": 7
         }
+      ],
+      "elements": [
+        "Al"
       ]
     },
     {
@@ -740,6 +790,9 @@
           "hkl": "222",
           "rel_intensity": 6
         }
+      ],
+      "elements": [
+        "Ni"
       ]
     },
     {
@@ -781,6 +834,9 @@
           "hkl": "422",
           "rel_intensity": 12
         }
+      ],
+      "elements": [
+        "Si"
       ]
     },
     {
@@ -823,6 +879,9 @@
           "hkl": "112",
           "rel_intensity": 2
         }
+      ],
+      "elements": [
+        "C"
       ]
     },
     {
@@ -880,6 +939,10 @@
           "hkl": "201",
           "rel_intensity": 13
         }
+      ],
+      "elements": [
+        "Zn",
+        "O"
       ]
     },
     {
@@ -921,6 +984,10 @@
           "hkl": "440",
           "rel_intensity": 40
         }
+      ],
+      "elements": [
+        "Fe",
+        "O"
       ]
     },
     {
@@ -973,6 +1040,10 @@
           "hkl": "300",
           "rel_intensity": 35
         }
+      ],
+      "elements": [
+        "Fe",
+        "O"
       ]
     },
     {
@@ -1014,6 +1085,10 @@
           "hkl": "422",
           "rel_intensity": 10
         }
+      ],
+      "elements": [
+        "Ca",
+        "F"
       ]
     },
     {
@@ -1050,6 +1125,10 @@
           "hkl": "222",
           "rel_intensity": 6
         }
+      ],
+      "elements": [
+        "Mg",
+        "O"
       ]
     },
     {
@@ -1089,6 +1168,12 @@
           "hkl": "-113",
           "rel_intensity": 15
         }
+      ],
+      "elements": [
+        "Ca",
+        "S",
+        "O",
+        "H"
       ]
     },
     {
@@ -1126,6 +1211,10 @@
           "hkl": "211",
           "rel_intensity": 4
         }
+      ],
+      "elements": [
+        "Si",
+        "O"
       ]
     },
     {
@@ -1198,6 +1287,11 @@
           "hkl": "204",
           "rel_intensity": 4
         }
+      ],
+      "elements": [
+        "Ce",
+        "V",
+        "O"
       ]
     },
     {
@@ -1250,6 +1344,11 @@
           "hkl": "312",
           "rel_intensity": 8
         }
+      ],
+      "elements": [
+        "Y",
+        "V",
+        "O"
       ]
     },
     {
@@ -1301,6 +1400,10 @@
           "hkl": "420",
           "rel_intensity": 14
         }
+      ],
+      "elements": [
+        "Ce",
+        "O"
       ]
     }
   ]

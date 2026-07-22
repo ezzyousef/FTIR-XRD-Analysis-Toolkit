@@ -273,7 +273,9 @@ class XRDTab(AnalysisTabBase):
 
         self.match_detail.configure(state="normal")
         self.match_detail.delete("1.0", "end")
-        lines = [f"{match['name']} [{match.get('crystal_system','')}]  Source: {match.get('source','')}"]
+        full_source = match.get("source", "") or "(no source on file)"
+        source_short = full_source.split(",")[0].strip()
+        lines = [f"{match['name']} [{match.get('crystal_system','')}]  Source: {full_source}"]
         if phase:
             # List every reference line actually CONSIDERED for this match
             # (match_xrd_phases only scores the top_n strongest lines, which
@@ -290,15 +292,17 @@ class XRDTab(AnalysisTabBase):
                 if mm:
                     lines.append(f"  [MATCHED]   ref d={ref['d_A']:.4f} A (hkl {ref.get('hkl','')}, "
                                  f"I={ref.get('rel_intensity','')})  ~ observed d={mm['observed_d_A']:.4f} A, "
-                                 f"delta={mm['delta_d_A']:+.4f} A")
+                                 f"delta={mm['delta_d_A']:+.4f} A  [ref: {source_short}]")
                 else:
                     lines.append(f"  [not found] ref d={ref['d_A']:.4f} A (hkl {ref.get('hkl','')}, "
-                                 f"I={ref.get('rel_intensity','')})")
+                                 f"I={ref.get('rel_intensity','')})  [ref: {source_short}]")
         else:
             for mm in match["matches"]:
                 ref = mm["reference"]
                 lines.append(f"  observed d={mm['observed_d_A']:.4f} A  ~  ref d={ref['d_A']:.4f} A "
-                             f"(hkl {ref.get('hkl','')}, I={ref.get('rel_intensity','')}), delta={mm['delta_d_A']:+.4f} A")
+                             f"(hkl {ref.get('hkl','')}, I={ref.get('rel_intensity','')}), delta={mm['delta_d_A']:+.4f} A  [ref: {source_short}]")
+        lines.append("")
+        lines.append("Full citation(s): see Help > Data Sources & References for the complete bibliography entries.")
         self.match_detail.insert("1.0", "\n".join(lines))
         self.match_detail.configure(state="disabled")
 
@@ -825,8 +829,24 @@ class LatticeRefinementDialog(tb.Toplevel):
             Messagebox.show_warning("Run 'Match to Phase Database' on this trace first (Section 4), "
                                      "then reopen this dialog.", "No Phase Match")
             return
-        top_match = t.matches[0]
+        # Use whichever phase the user actually clicked in the Phase Matches
+        # table (tracked as _current_match), NOT always the top-ranked result
+        # -- the top match is often not the phase you actually want to index
+        # against. Only fall back to the top result if nothing has been
+        # clicked yet, and say so explicitly.
+        selected = self.xrd_tab._current_match
+        if selected is not None and selected in t.matches:
+            chosen_match = selected
+            fallback_used = False
+        else:
+            chosen_match = t.matches[0]
+            fallback_used = True
         wl = self.xrd_tab._get_wavelength()
+
+        chosen_system = chosen_match.get("crystal_system")
+        if chosen_system in xrd_analysis.LATTICE_SYSTEMS:
+            self.system_var.set(chosen_system)
+
         filled = 0
         for row in self.row_widgets:
             try:
@@ -834,7 +854,7 @@ class LatticeRefinementDialog(tb.Toplevel):
             except ValueError:
                 continue
             d_obs = xrd_analysis.bragg_d_spacing(tt, wl)
-            candidates = top_match["matches"]
+            candidates = chosen_match["matches"]
             if not candidates:
                 continue
             best = min(candidates, key=lambda m: abs(m["reference"]["d_A"] - d_obs))
@@ -850,7 +870,10 @@ class LatticeRefinementDialog(tb.Toplevel):
             row["k"].set(str(hkl[1]))
             row["l"].set(str(hkl[2]))
             filled += 1
-        Messagebox.show_info(f"Filled hkl for {filled} row(s) from '{top_match['name']}'. "
+        note = (" (no row was selected in the Phase Matches table, so this used the "
+                "top-ranked result -- click a specific row there first if you want a "
+                "different phase)" if fallback_used else " (the phase you selected in the Phase Matches table)")
+        Messagebox.show_info(f"Filled hkl for {filled} row(s) from '{chosen_match['name']}'{note}. "
                               f"Double-check these before refining -- auto-fill matches by nearest "
                               f"d-spacing and can be wrong for closely-spaced or weak reflections.",
                               "Auto-fill Complete")

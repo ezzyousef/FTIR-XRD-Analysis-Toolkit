@@ -223,6 +223,99 @@ def save_figure_snapshot(fig, path):
     return path
 
 
+# ========================= Periodic Table Element Picker =========================
+
+# (symbol, row, col) for the standard 18-column periodic table layout, with
+# lanthanides/actinides pulled out to their own two rows below the main body
+# (rows 8/9, columns 3-17) -- exactly like the wall-chart layout, and like the
+# "chemical filter" element picker in commercial XRD search/match software.
+_PERIODIC_TABLE_LAYOUT = [
+    ("H", 1, 1), ("He", 1, 18),
+    ("Li", 2, 1), ("Be", 2, 2), ("B", 2, 13), ("C", 2, 14), ("N", 2, 15), ("O", 2, 16), ("F", 2, 17), ("Ne", 2, 18),
+    ("Na", 3, 1), ("Mg", 3, 2), ("Al", 3, 13), ("Si", 3, 14), ("P", 3, 15), ("S", 3, 16), ("Cl", 3, 17), ("Ar", 3, 18),
+    ("K", 4, 1), ("Ca", 4, 2), ("Sc", 4, 3), ("Ti", 4, 4), ("V", 4, 5), ("Cr", 4, 6), ("Mn", 4, 7), ("Fe", 4, 8),
+    ("Co", 4, 9), ("Ni", 4, 10), ("Cu", 4, 11), ("Zn", 4, 12), ("Ga", 4, 13), ("Ge", 4, 14), ("As", 4, 15),
+    ("Se", 4, 16), ("Br", 4, 17), ("Kr", 4, 18),
+    ("Rb", 5, 1), ("Sr", 5, 2), ("Y", 5, 3), ("Zr", 5, 4), ("Nb", 5, 5), ("Mo", 5, 6), ("Tc", 5, 7), ("Ru", 5, 8),
+    ("Rh", 5, 9), ("Pd", 5, 10), ("Ag", 5, 11), ("Cd", 5, 12), ("In", 5, 13), ("Sn", 5, 14), ("Sb", 5, 15),
+    ("Te", 5, 16), ("I", 5, 17), ("Xe", 5, 18),
+    ("Cs", 6, 1), ("Ba", 6, 2), ("Hf", 6, 4), ("Ta", 6, 5), ("W", 6, 6), ("Re", 6, 7), ("Os", 6, 8), ("Ir", 6, 9),
+    ("Pt", 6, 10), ("Au", 6, 11), ("Hg", 6, 12), ("Tl", 6, 13), ("Pb", 6, 14), ("Bi", 6, 15), ("Po", 6, 16),
+    ("At", 6, 17), ("Rn", 6, 18),
+    ("Fr", 7, 1), ("Ra", 7, 2), ("Rf", 7, 4), ("Db", 7, 5), ("Sg", 7, 6), ("Bh", 7, 7), ("Hs", 7, 8), ("Mt", 7, 9),
+    ("Ds", 7, 10), ("Rg", 7, 11), ("Cn", 7, 12), ("Nh", 7, 13), ("Fl", 7, 14), ("Mc", 7, 15), ("Lv", 7, 16),
+    ("Ts", 7, 17), ("Og", 7, 18),
+    ("La", 9, 3), ("Ce", 9, 4), ("Pr", 9, 5), ("Nd", 9, 6), ("Pm", 9, 7), ("Sm", 9, 8), ("Eu", 9, 9), ("Gd", 9, 10),
+    ("Tb", 9, 11), ("Dy", 9, 12), ("Ho", 9, 13), ("Er", 9, 14), ("Tm", 9, 15), ("Yb", 9, 16), ("Lu", 9, 17),
+    ("Ac", 10, 3), ("Th", 10, 4), ("Pa", 10, 5), ("U", 10, 6), ("Np", 10, 7), ("Pu", 10, 8), ("Am", 10, 9),
+    ("Cm", 10, 10), ("Bk", 10, 11), ("Cf", 10, 12), ("Es", 10, 13), ("Fm", 10, 14), ("Md", 10, 15), ("No", 10, 16),
+    ("Lr", 10, 17),
+]
+
+
+class PeriodicTableDialog(tb.Toplevel):
+    """
+    A clickable periodic table for picking which elements your sample
+    contains, then filtering the reference database down to phases that
+    contain all of them -- much faster than scrolling/typing names when you
+    don't know the exact compound name or formula, only its composition.
+
+    Construct, let the user toggle elements and click Apply/Clear, then read
+    `.result`: a list of element symbols if Apply was clicked, an empty list
+    if Clear was clicked, or None if the dialog was closed/cancelled without
+    changing anything.
+    """
+    def __init__(self, parent, initial_selection=None):
+        super().__init__(parent)
+        self.title("Select Elements")
+        self.resizable(False, False)
+        self.result = None
+        self.selected = set(initial_selection or [])
+        self._buttons = {}
+
+        tb.Label(self, text="Click elements present in your sample, then Apply Filter.\n"
+                             "Only phases containing ALL selected elements will be shown.",
+                 bootstyle="secondary", padding=(10, 10, 10, 0)).pack(anchor="w")
+
+        grid = tb.Frame(self, padding=10)
+        grid.pack()
+        for symbol, row, col in _PERIODIC_TABLE_LAYOUT:
+            btn = tb.Button(grid, text=symbol, width=4,
+                             bootstyle="success" if symbol in self.selected else "secondary-outline",
+                             command=lambda s=symbol: self._toggle(s))
+            btn.grid(row=row, column=col, padx=1, pady=1)
+            self._buttons[symbol] = btn
+
+        btn_row = tb.Frame(self, padding=10)
+        btn_row.pack(fill="x")
+        self.selection_label = tb.Label(btn_row, text=self._selection_text(), bootstyle="info")
+        self.selection_label.pack(side="left")
+        tb.Button(btn_row, text="Clear", bootstyle="danger-outline",
+                  command=self._clear).pack(side="right", padx=4)
+        tb.Button(btn_row, text="Apply Filter", bootstyle="success",
+                  command=self._apply).pack(side="right", padx=4)
+
+    def _selection_text(self):
+        return f"Selected: {', '.join(sorted(self.selected)) or '(none)'}"
+
+    def _toggle(self, symbol):
+        if symbol in self.selected:
+            self.selected.remove(symbol)
+            self._buttons[symbol].configure(bootstyle="secondary-outline")
+        else:
+            self.selected.add(symbol)
+            self._buttons[symbol].configure(bootstyle="success")
+        self.selection_label.configure(text=self._selection_text())
+
+    def _clear(self):
+        self.result = []
+        self.destroy()
+
+    def _apply(self):
+        self.result = sorted(self.selected)
+        self.destroy()
+
+
 # ============================= Database Viewer =============================
 
 class DatabaseViewerDialog(tb.Toplevel):
@@ -294,6 +387,8 @@ class DatabaseViewerDialog(tb.Toplevel):
         self.ftir_detail.set_rows(entry["peaks"], lambda p: (f"{p['range'][0]}-{p['range'][1]}", p["assignment"], p.get("intensity", "")))
 
     def _build_xrd_tab(self):
+        self.xrd_element_filter = []
+
         top = tb.Frame(self.xrd_frame)
         top.pack(fill="x")
         tb.Label(top, text="Search:").pack(side="left")
@@ -302,8 +397,16 @@ class DatabaseViewerDialog(tb.Toplevel):
         ent.pack(side="left", padx=6)
         ent.bind("<KeyRelease>", lambda e: self._refresh_xrd())
 
+        tb.Button(top, text="Select Elements (Periodic Table)...", bootstyle="primary",
+                  command=self._open_element_picker).pack(side="left", padx=6)
+
         tb.Button(top, text="Import Phases from CSV...", bootstyle="info", command=self._import_csv).pack(side="right", padx=4)
         tb.Button(top, text="Remove Selected User Phase", bootstyle="danger-outline", command=self._remove_user_phase).pack(side="right", padx=4)
+
+        filter_row = tb.Frame(self.xrd_frame)
+        filter_row.pack(fill="x")
+        self.xrd_element_filter_label = tb.Label(filter_row, text="", bootstyle="info")
+        self.xrd_element_filter_label.pack(side="left")
 
         body = tb.Frame(self.xrd_frame)
         body.pack(fill="both", expand=True, pady=(8, 0))
@@ -322,11 +425,23 @@ class DatabaseViewerDialog(tb.Toplevel):
 
         self._refresh_xrd()
 
+    def _open_element_picker(self):
+        dlg = PeriodicTableDialog(self, initial_selection=self.xrd_element_filter)
+        self.wait_window(dlg)
+        if dlg.result is not None:
+            self.xrd_element_filter = dlg.result
+            self._refresh_xrd()
+
     def _refresh_xrd(self):
         db = self.xrd_db_provider()
-        entries = self.xrd_module.search_xrd_database(db, self.xrd_query.get())
+        entries = self.xrd_module.search_xrd_database(db, self.xrd_query.get(), elements=self.xrd_element_filter)
         self.xrd_list.set_rows(entries, lambda p: (p["name"], p.get("category", ""), p.get("crystal_system", ""), len(p["peaks"]), p.get("source", "")))
         self.xrd_detail.clear()
+        if self.xrd_element_filter:
+            self.xrd_element_filter_label.configure(
+                text=f"Element filter: {', '.join(self.xrd_element_filter)} ({len(entries)} matching phase(s))")
+        else:
+            self.xrd_element_filter_label.configure(text="")
 
     def _show_xrd_detail(self, phase):
         rows = sorted(phase["peaks"], key=lambda r: -r.get("rel_intensity", 0))
