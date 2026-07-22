@@ -101,7 +101,7 @@ class XRDTab(AnalysisTabBase):
         self.make_action_row(card, "Match to Phase Database", self.match_phases, bootstyle="warning",
                               info_title="XRD Phase Matching Method", info_text=fs.XRD_PHASE_MATCHING, pady=(8, 2))
         tb.Button(card, text="Open Database Viewer / Import CSV...", command=self.open_database_viewer).pack(fill="x", pady=2)
-        tb.Button(card, text="Import from HighScore Database (.hsrdb)...", bootstyle="info-outline",
+        tb.Button(card, text="Search COD Database / Import Phases...", bootstyle="info-outline",
                   command=self.open_hsrdb_import).pack(fill="x", pady=2)
 
         card = tb.Labelframe(c, text="5. Peak Fitting", padding=10, bootstyle="info")
@@ -264,8 +264,13 @@ class XRDTab(AnalysisTabBase):
         return (f"{p['two_theta']:.3f}", f"{p['intensity']:.1f}", f"{p['fwhm_deg']:.3f}", d, size)
 
     def _show_match_detail(self, match):
-        merged = xrd_analysis.merged_database(self.database)
-        phase = xrd_analysis.find_phase(merged, match["name"])
+        if match.get("cod_phase_id") is not None and self.app.cod_db_path:
+            import cod_database
+            con = cod_database.open_db(self.app.cod_db_path)
+            phase = cod_database.get_phase(con, match["cod_phase_id"], top_n=match["total_reference_peaks"])
+        else:
+            merged = xrd_analysis.merged_database(self.database)
+            phase = xrd_analysis.find_phase(merged, match["name"])
         self._current_match = match
         self._current_match_phase = phase
         self._current_match_ref_peaks = (
@@ -534,15 +539,38 @@ class XRDTab(AnalysisTabBase):
         selected_label = self.category_var.get()
         categories = None if selected_label == xrd_analysis.ALL_CATEGORIES_LABEL else [label_to_key[selected_label]]
 
+        cod_db_path = self.app.cod_db_path
+
         def compute():
-            return xrd_analysis.match_xrd_phases(peaks_snapshot, wl, merged, d_tolerance_pct=tol, categories=categories)
+            results = xrd_analysis.match_xrd_phases(peaks_snapshot, wl, merged, d_tolerance_pct=tol, categories=categories)
+            if cod_db_path:
+                import cod_database
+                observed = []
+                for p in peaks_snapshot:
+                    try:
+                        d = xrd_analysis.bragg_d_spacing(p["two_theta"], wl)
+                        observed.append({"d_A": float(d), "y": p.get("intensity", 0)})
+                    except Exception:
+                        continue
+                con = cod_database.open_db(cod_db_path)
+                # the bundled COD database's auto-classified categories
+                # (element/organic/oxide_or_mineral/halide_salt/inorganic)
+                # are a different, coarser vocabulary than the curated
+                # database's PHASE_CATEGORY_LABELS, so the category filter
+                # above only narrows the small curated+user database --
+                # the bundled COD search always covers every category.
+                cod_results = cod_database.match_by_peaks(con, observed, d_tolerance_pct=tol, max_results=50)
+                results = results + cod_results
+                results.sort(key=lambda r: (r["matched_count"], r["score"]), reverse=True)
+            return results
 
         def on_done(matches):
             t.matches = matches
             self.on_active_trace_changed()
             self.results_notebook.select(1)
             scope = "all categories" if categories is None else selected_label
-            self.app.set_status_message(f"{len(t.matches)} candidate phase(s) found in {scope} (tolerance {tol}%).")
+            cod_note = " (including bundled COD database)" if cod_db_path else ""
+            self.app.set_status_message(f"{len(t.matches)} candidate phase(s) found in {scope}{cod_note} (tolerance {tol}%).")
 
         self.run_background(compute, on_done, busy_text="Matching against XRD phase database...")
 

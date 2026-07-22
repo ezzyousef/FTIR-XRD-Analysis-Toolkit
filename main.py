@@ -189,6 +189,13 @@ class MainWindow:
 
         self.ftir_db = ftir_analysis.load_database(resource_path(os.path.join("database", "ftir_reference_db.json")))
         self.xrd_db = xrd_analysis.load_xrd_database(resource_path(os.path.join("database", "xrd_reference_db.json")))
+        # Bundled COD (Crystallography Open Database) phase database, built
+        # from a HighScore .hsrdb file by scripts/build_cod_database.py --
+        # ~511,000 phases, ~1.6GB, shipped only in the installer (never
+        # committed to git, see .gitignore), so it may not exist in a dev
+        # checkout that hasn't run the build script.
+        cod_path = resource_path(os.path.join("database", "cod_reference.sqlite"))
+        self.cod_db_path = cod_path if os.path.exists(cod_path) else None
 
         self.theme_var = tb.StringVar(value=theme)
         self.status_msg_var = tb.StringVar(value="Ready.")

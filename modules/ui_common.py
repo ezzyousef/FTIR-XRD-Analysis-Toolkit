@@ -320,15 +320,22 @@ class PeriodicTableDialog(tb.Toplevel):
 
 class HsrdbImportDialog(tb.Toplevel):
     """
-    Search a PANalytical/Malvern HighScore reference database (.hsrdb) file
-    directly and import selected phases into your local user-phase library.
+    Search a reference database -- either this app's own bundled COD
+    (Crystallography Open Database) database (~511,000 phases, opened
+    automatically if present) or an external PANalytical/Malvern HighScore
+    .hsrdb file you point it at -- and import selected phases into your
+    local user-phase library.
 
-    The .hsrdb file is opened read-only, wherever you keep it, and is never
-    bundled, embedded, or committed by this app -- only the specific entries
-    you explicitly import get added to your local user-phases store (see
+    Both backends (modules/cod_database.py and modules/hsrdb_reader.py)
+    expose the same function names/summary-dict shape, so this dialog
+    doesn't need to know or care which one it's talking to. An external file
+    is opened read-only wherever you keep it and is never bundled, embedded,
+    or committed by this app -- only the specific entries you explicitly
+    import get added to your local user-phases store (see
     xrd_analysis.add_user_phases), each one carrying its own Crystallography
-    Open Database (COD) citation. See modules/hsrdb_reader.py for exactly
-    what was verified about the file format and where the data comes from.
+    Open Database (COD) citation. See modules/hsrdb_reader.py and
+    modules/cod_database.py for exactly what was verified about the file
+    formats and where the data comes from.
     """
     def __init__(self, parent, app, xrd_module, on_imported=None):
         super().__init__(parent)
@@ -336,16 +343,19 @@ class HsrdbImportDialog(tb.Toplevel):
         self.xrd_module = xrd_module
         self.on_imported = on_imported
         self.con = None
-        self.hsrdb_reader = None
+        self.backend = None
         self.element_filter = []
         self._results = []
 
-        self.title("Import from HighScore Reference Database (.hsrdb)")
+        self.title("Search Reference Database (bundled COD / HighScore .hsrdb)")
         self.geometry("920x600")
         self._build_ui()
 
+        bundled_path = getattr(self.app, "cod_db_path", None)
         last_path = self.app.cfg.get("hsrdb_path", "")
-        if last_path and os.path.exists(last_path):
+        if bundled_path and os.path.exists(bundled_path):
+            self._open_file(bundled_path)
+        elif last_path and os.path.exists(last_path):
             self._open_file(last_path)
 
     def _build_ui(self):
@@ -391,18 +401,30 @@ class HsrdbImportDialog(tb.Toplevel):
 
     def _open_file(self, path):
         import hsrdb_reader
-        try:
-            con = hsrdb_reader.open_hsrdb(path)
-            n = hsrdb_reader.count_entries(con)
-        except ValueError as e:
-            Messagebox.show_error(str(e), "Open Failed")
+        import cod_database
+        con = None
+        backend = None
+        errors = []
+        for candidate in (hsrdb_reader, cod_database):
+            try:
+                con = candidate.open_hsrdb(path)
+                backend = candidate
+                break
+            except ValueError as e:
+                errors.append(str(e))
+        if con is None:
+            Messagebox.show_error("\n\n".join(errors), "Open Failed")
             return
+        n = backend.count_entries(con)
         self.con = con
-        self.hsrdb_reader = hsrdb_reader
-        self.path_label.configure(text=f"{path}   ({n:,} entries)")
-        self.app.cfg["hsrdb_path"] = path
-        from app_config import save_config
-        save_config(self.app.cfg)
+        self.backend = backend
+        is_bundled = getattr(self.app, "cod_db_path", None) and os.path.abspath(path) == os.path.abspath(self.app.cod_db_path)
+        label = "Bundled COD database" if is_bundled else path
+        self.path_label.configure(text=f"{label}   ({n:,} entries)")
+        if not is_bundled:
+            self.app.cfg["hsrdb_path"] = path
+            from app_config import save_config
+            save_config(self.app.cfg)
         self.status_label.configure(text=f"Opened -- {n:,} entries available. Search by name/formula or elements.")
 
     def _open_element_picker(self):
@@ -424,7 +446,7 @@ class HsrdbImportDialog(tb.Toplevel):
         self.status_label.configure(text="Searching...")
         self.update_idletasks()
         try:
-            results = self.hsrdb_reader.search_hsrdb(self.con, query=query, elements=self.element_filter, limit=300)
+            results = self.backend.search_hsrdb(self.con, query=query, elements=self.element_filter, limit=300)
         except Exception as e:
             Messagebox.show_error(str(e), "Search Failed")
             return
@@ -446,7 +468,7 @@ class HsrdbImportDialog(tb.Toplevel):
             idx = int(iid)
             r = self.results_table._rows_data[idx]
             try:
-                phase = self.hsrdb_reader.get_phase_detail(self.con, r["id"], top_n=20)
+                phase = self.backend.get_phase_detail(self.con, r["id"], top_n=20)
                 imported.append(phase)
             except Exception as e:
                 errors.append(f"{r.get('reference_code', '?')}: {e}")

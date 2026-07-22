@@ -4,6 +4,12 @@ dist/
 installer/output/
 *.spec.bak
 
+# Bundled COD reference database (~1GB+, regenerate with
+# scripts/build_cod_database.py from a HighScore .hsrdb file) -- too large
+# for git (GitHub blocks single files over 100MB); shipped in the installer
+# only, via app.spec's datas list. Never commit this file.
+database/cod_reference.sqlite
+
 # Python
 __pycache__/
 *.pyc

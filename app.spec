@@ -10,15 +10,25 @@
 # (via the Inno Setup installer copying the whole folder) instead of once per
 # launch -- see installer/FTIR_XRD_Toolkit.iss.
 
+import os
+
+_datas = [
+    ('database/ftir_reference_db.json', 'database'),
+    ('database/xrd_reference_db.json', 'database'),
+    ('assets', 'assets'),
+]
+# Bundled COD reference database (~1GB+, built from a HighScore .hsrdb file
+# via scripts/build_cod_database.py) -- not committed to git (see
+# .gitignore), so only include it if it's actually present on this build
+# machine. Ship it in the installer, never in the git repo.
+if os.path.exists('database/cod_reference.sqlite'):
+    _datas.append(('database/cod_reference.sqlite', 'database'))
+
 a = Analysis(
     ['main.py'],
     pathex=['modules'],
     binaries=[],
-    datas=[
-        ('database/ftir_reference_db.json', 'database'),
-        ('database/xrd_reference_db.json', 'database'),
-        ('assets', 'assets'),
-    ],
+    datas=_datas,
     hiddenimports=[
         'file_readers', 'ftir_analysis', 'xrd_analysis', 'signal_utils',
         'peak_fitting', 'report_export', 'session_io', 'app_config',
