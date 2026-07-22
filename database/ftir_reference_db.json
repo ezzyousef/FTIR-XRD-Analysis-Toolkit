@@ -2,7 +2,7 @@
   "_meta": {
     "note": "Peak positions are typical literature ranges (cm-1) compiled from standard FTIR spectroscopy correlation-table references (polymer/materials/biomolecule spectroscopy literature). These are reference/approximate ranges, not certified measurements of a specific sample batch. For publication-grade identification, always cross-check against NIST Chemistry WebBook, SDBS, or a certified reference spectrum. Every entry below carries a 'source' field naming the reference literature its ranges are drawn from -- use it to trace and verify any match.",
     "units": "wavenumber (cm-1)",
-    "version": "4.0",
+    "version": "4.1",
     "categories": [
       "polymers",
       "hydrogels",
@@ -13850,6 +13850,294 @@
       "name": "Metal-O stretch (generic transition-metal oxide lattice)",
       "range": [
         400,
+        700
+      ],
+      "intensity": "strong, broad",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "N=C=S stretch (isothiocyanate)",
+      "range": [
+        2000,
+        2150
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "C≡N+ stretch (diazonium salt)",
+      "range": [
+        2260,
+        2300
+      ],
+      "intensity": "medium",
+      "source": "socrates2001, pavia2015"
+    },
+    {
+      "name": "C=O stretch (urea)",
+      "range": [
+        1660,
+        1680
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "C=O stretch (carbamate/urethane)",
+      "range": [
+        1690,
+        1740
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "C=O stretch (imide, asymmetric)",
+      "range": [
+        1700,
+        1750
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, silverstein2014"
+    },
+    {
+      "name": "C=O stretch (imide, symmetric)",
+      "range": [
+        1770,
+        1800
+      ],
+      "intensity": "medium",
+      "source": "socrates2001, pavia2015, silverstein2014"
+    },
+    {
+      "name": "C=O stretch (gamma-lactone, 5-membered ring)",
+      "range": [
+        1760,
+        1780
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, silverstein2014"
+    },
+    {
+      "name": "C=O stretch (delta-lactone, 6-membered ring)",
+      "range": [
+        1735,
+        1750
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, silverstein2014"
+    },
+    {
+      "name": "C=O stretch (beta-lactam, 4-membered ring)",
+      "range": [
+        1730,
+        1780
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, silverstein2014"
+    },
+    {
+      "name": "C=O stretch (vinyl/aryl ester, conjugated)",
+      "range": [
+        1750,
+        1770
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "C=S stretch (thiocarbonyl: thioamide/thiourea/xanthate)",
+      "range": [
+        1000,
+        1200
+      ],
+      "intensity": "medium",
+      "source": "socrates2001, nakamoto2009"
+    },
+    {
+      "name": "N-H bend (secondary amine, weak)",
+      "range": [
+        1550,
+        1650
+      ],
+      "intensity": "weak",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "N-H wag (primary/secondary amine, out-of-plane)",
+      "range": [
+        650,
+        900
+      ],
+      "intensity": "medium, broad",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "N=O stretch (nitroso, monomer)",
+      "range": [
+        1500,
+        1600
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015"
+    },
+    {
+      "name": "N=O stretch (nitroso, dimer)",
+      "range": [
+        1175,
+        1290
+      ],
+      "intensity": "medium",
+      "source": "socrates2001, pavia2015"
+    },
+    {
+      "name": "N-H bend (ammonium ion, NH4+)",
+      "range": [
+        1400,
+        1430
+      ],
+      "intensity": "strong, sharp",
+      "source": "socrates2001, nakamoto2009"
+    },
+    {
+      "name": "S(=O)2 asymmetric stretch (sulfone)",
+      "range": [
+        1300,
+        1350
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "S(=O)2 symmetric stretch (sulfone)",
+      "range": [
+        1120,
+        1160
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "SO2 asymmetric stretch (sulfonamide)",
+      "range": [
+        1330,
+        1370
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015"
+    },
+    {
+      "name": "SO2 symmetric stretch (sulfonamide)",
+      "range": [
+        1140,
+        1180
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015"
+    },
+    {
+      "name": "C-O-C stretch (aryl ether)",
+      "range": [
+        1200,
+        1275
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "C-O-C stretch (acetal/ketal)",
+      "range": [
+        1050,
+        1150
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015"
+    },
+    {
+      "name": "P-O-C stretch (phosphate ester)",
+      "range": [
+        950,
+        1050
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, nakamoto2009"
+    },
+    {
+      "name": "B-H stretch (borane/borohydride)",
+      "range": [
+        2200,
+        2650
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, nakamoto2009"
+    },
+    {
+      "name": "B-H bend (borane)",
+      "range": [
+        1000,
+        1200
+      ],
+      "intensity": "medium",
+      "source": "socrates2001, nakamoto2009"
+    },
+    {
+      "name": "=C-H bend (cis-disubstituted alkene)",
+      "range": [
+        675,
+        730
+      ],
+      "intensity": "medium",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "=C-H bend (trans-disubstituted alkene)",
+      "range": [
+        960,
+        980
+      ],
+      "intensity": "strong",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "=C-H bend (trisubstituted alkene)",
+      "range": [
+        790,
+        840
+      ],
+      "intensity": "medium",
+      "source": "socrates2001, pavia2015, coates2000"
+    },
+    {
+      "name": "gem-Dimethyl doublet (isopropyl C-H bend)",
+      "range": [
+        1365,
+        1385
+      ],
+      "intensity": "medium, doublet",
+      "source": "socrates2001, pavia2015, silverstein2014"
+    },
+    {
+      "name": "gem-Dimethyl doublet (tert-butyl C-H bend)",
+      "range": [
+        1385,
+        1400
+      ],
+      "intensity": "medium, doublet",
+      "source": "socrates2001, pavia2015, silverstein2014"
+    },
+    {
+      "name": "O-O stretch (peroxide)",
+      "range": [
+        800,
+        900
+      ],
+      "intensity": "weak",
+      "source": "socrates2001, pavia2015"
+    },
+    {
+      "name": "≡C-H bend (terminal alkyne)",
+      "range": [
+        600,
         700
       ],
       "intensity": "strong, broad",

@@ -296,6 +296,42 @@ def test_match_functional_groups_hits_carbonyl(db):
     assert all(h.get("source") for h in hits)
 
 
+def test_functional_groups_database_is_comprehensive(db):
+    # regression floor -- catches an accidental truncation of the functional
+    # groups list, not a target to hit exactly
+    assert len(db["functional_groups"]) >= 95
+
+    names = {fg["name"] for fg in db["functional_groups"]}
+    # spot-check a representative sample of the expanded coverage: carbonyl
+    # ring-size/substitution variants, sulfur/nitrogen oxidation states,
+    # boron hydrides, and alkene-substitution C-H bends
+    expected_present = [
+        "C=O stretch (urea)",
+        "C=O stretch (carbamate/urethane)",
+        "C=O stretch (imide, asymmetric)",
+        "C=O stretch (gamma-lactone, 5-membered ring)",
+        "C=O stretch (beta-lactam, 4-membered ring)",
+        "S(=O)2 asymmetric stretch (sulfone)",
+        "SO2 asymmetric stretch (sulfonamide)",
+        "N=O stretch (nitroso, monomer)",
+        "B-H stretch (borane/borohydride)",
+        "=C-H bend (trans-disubstituted alkene)",
+        "N=C=S stretch (isothiocyanate)",
+    ]
+    for name in expected_present:
+        assert name in names, f"expected functional group {name!r} to be present"
+
+
+def test_new_functional_groups_are_matchable(db):
+    # a peak at 1745 cm-1 should register as a plausible carbamate/urethane
+    # carbonyl (1690-1740) or gamma-lactone (1760-1780) candidate depending
+    # on tolerance -- confirms the new entries actually participate in matching,
+    # not just sit inertly in the JSON
+    peaks = [{"index": 0, "x": 1735.0, "y": 1.0, "prominence": 0.5}]
+    hits = ftir_analysis.match_functional_groups(peaks, db, tolerance=5.0)
+    assert any("carbamate" in h["group"].lower() or "lactone" in h["group"].lower() for h in hits)
+
+
 def test_smooth_spectrum_reduces_noise_variance():
     rng = np.random.default_rng(0)
     x = np.linspace(0, 100, 500)

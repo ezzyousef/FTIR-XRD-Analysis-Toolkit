@@ -383,8 +383,13 @@ class HsrdbImportDialog(tb.Toplevel):
             body, [("name", "Name"), ("code", "Reference Code"), ("system", "System"), ("formula", "Formula")],
             height=16, widths={"name": 240, "code": 130, "system": 90, "formula": 300})
         self.results_table.pack(fill="both", expand=True)
-        tb.Label(body, text="Ctrl/Shift-click to select multiple rows to import at once.",
-                 bootstyle="secondary", font=("", 8)).pack(anchor="w", pady=(4, 0))
+        select_row = tb.Frame(body)
+        select_row.pack(fill="x", pady=(4, 0))
+        tb.Label(select_row, text="Ctrl/Shift-click to select multiple rows (many materials have several "
+                                   "phases/polymorphs -- select all the ones you want, then import together).",
+                 bootstyle="secondary", font=("", 8)).pack(side="left")
+        tb.Button(select_row, text="Select All Results", bootstyle="secondary-outline",
+                  command=self._select_all_results).pack(side="right")
 
         bottom = tb.Frame(self, padding=10)
         bottom.pack(fill="x")
@@ -456,6 +461,13 @@ class HsrdbImportDialog(tb.Toplevel):
             r.get("reference_code", ""), r.get("crystal_system", ""), r["formula"]))
         cap_note = " (capped at 300 -- narrow your search for a complete list)" if len(results) == 300 else ""
         self.status_label.configure(text=f"{len(results)} result(s){cap_note}.")
+
+    def _select_all_results(self):
+        children = self.results_table.tree.get_children()
+        if not children:
+            Messagebox.show_warning("Search for something first.", "No Results")
+            return
+        self.results_table.tree.selection_set(children)
 
     def _import_selected(self):
         sel = self.results_table.tree.selection()
