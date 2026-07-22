@@ -14,6 +14,7 @@ DEFAULTS = {
     "recent_files": [],
     "d_tolerance_pct": 1.5,
     "ftir_tolerance_cm1": 10.0,
+    "hsrdb_path": "",
 }
 
 MAX_RECENT = 10

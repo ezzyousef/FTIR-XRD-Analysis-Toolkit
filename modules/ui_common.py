@@ -316,6 +316,150 @@ class PeriodicTableDialog(tb.Toplevel):
         self.destroy()
 
 
+# ==================== HighScore Reference Database (.hsrdb) Import ====================
+
+class HsrdbImportDialog(tb.Toplevel):
+    """
+    Search a PANalytical/Malvern HighScore reference database (.hsrdb) file
+    directly and import selected phases into your local user-phase library.
+
+    The .hsrdb file is opened read-only, wherever you keep it, and is never
+    bundled, embedded, or committed by this app -- only the specific entries
+    you explicitly import get added to your local user-phases store (see
+    xrd_analysis.add_user_phases), each one carrying its own Crystallography
+    Open Database (COD) citation. See modules/hsrdb_reader.py for exactly
+    what was verified about the file format and where the data comes from.
+    """
+    def __init__(self, parent, app, xrd_module, on_imported=None):
+        super().__init__(parent)
+        self.app = app
+        self.xrd_module = xrd_module
+        self.on_imported = on_imported
+        self.con = None
+        self.hsrdb_reader = None
+        self.element_filter = []
+        self._results = []
+
+        self.title("Import from HighScore Reference Database (.hsrdb)")
+        self.geometry("920x600")
+        self._build_ui()
+
+        last_path = self.app.cfg.get("hsrdb_path", "")
+        if last_path and os.path.exists(last_path):
+            self._open_file(last_path)
+
+    def _build_ui(self):
+        top = tb.Frame(self, padding=10)
+        top.pack(fill="x")
+        self.path_label = tb.Label(top, text="No file open.", bootstyle="secondary")
+        self.path_label.pack(side="left", fill="x", expand=True)
+        tb.Button(top, text="Open .hsrdb File...", bootstyle="info", command=self._choose_file).pack(side="right")
+
+        search_row = tb.Frame(self, padding=(10, 0))
+        search_row.pack(fill="x")
+        tb.Label(search_row, text="Search name/formula:").pack(side="left")
+        self.query_var = tb.StringVar()
+        ent = tb.Entry(search_row, textvariable=self.query_var, width=26)
+        ent.pack(side="left", padx=6)
+        ent.bind("<Return>", lambda e: self._search())
+        tb.Button(search_row, text="Select Elements...", command=self._open_element_picker).pack(side="left", padx=6)
+        self.element_label = tb.Label(search_row, text="", bootstyle="info")
+        self.element_label.pack(side="left", padx=(0, 6))
+        tb.Button(search_row, text="Search", bootstyle="primary", command=self._search).pack(side="left")
+
+        body = tb.Frame(self, padding=10)
+        body.pack(fill="both", expand=True)
+        self.results_table = DataTable(
+            body, [("name", "Name"), ("code", "Reference Code"), ("system", "System"), ("formula", "Formula")],
+            height=16, widths={"name": 240, "code": 130, "system": 90, "formula": 300})
+        self.results_table.pack(fill="both", expand=True)
+        tb.Label(body, text="Ctrl/Shift-click to select multiple rows to import at once.",
+                 bootstyle="secondary", font=("", 8)).pack(anchor="w", pady=(4, 0))
+
+        bottom = tb.Frame(self, padding=10)
+        bottom.pack(fill="x")
+        self.status_label = tb.Label(bottom, text="Open a .hsrdb file to begin.", bootstyle="secondary")
+        self.status_label.pack(side="left")
+        tb.Button(bottom, text="Import Selected to My Phases", bootstyle="success",
+                  command=self._import_selected).pack(side="right")
+
+    def _choose_file(self):
+        path = filedialog.askopenfilename(filetypes=[("HighScore Reference Database", "*.hsrdb"), ("All files", "*.*")])
+        if not path:
+            return
+        self._open_file(path)
+
+    def _open_file(self, path):
+        import hsrdb_reader
+        try:
+            con = hsrdb_reader.open_hsrdb(path)
+            n = hsrdb_reader.count_entries(con)
+        except ValueError as e:
+            Messagebox.show_error(str(e), "Open Failed")
+            return
+        self.con = con
+        self.hsrdb_reader = hsrdb_reader
+        self.path_label.configure(text=f"{path}   ({n:,} entries)")
+        self.app.cfg["hsrdb_path"] = path
+        from app_config import save_config
+        save_config(self.app.cfg)
+        self.status_label.configure(text=f"Opened -- {n:,} entries available. Search by name/formula or elements.")
+
+    def _open_element_picker(self):
+        dlg = PeriodicTableDialog(self, initial_selection=self.element_filter)
+        self.wait_window(dlg)
+        if dlg.result is not None:
+            self.element_filter = dlg.result
+            self.element_label.configure(text=f"Elements: {', '.join(self.element_filter) or '(none)'}")
+
+    def _search(self):
+        if self.con is None:
+            Messagebox.show_warning("Open a .hsrdb file first.", "No File Open")
+            return
+        query = self.query_var.get()
+        if not query and not self.element_filter:
+            Messagebox.show_warning("Enter a search term or select elements first -- searching with no "
+                                     "filter at all would try to list all 500,000+ entries.", "Search Too Broad")
+            return
+        self.status_label.configure(text="Searching...")
+        self.update_idletasks()
+        try:
+            results = self.hsrdb_reader.search_hsrdb(self.con, query=query, elements=self.element_filter, limit=300)
+        except Exception as e:
+            Messagebox.show_error(str(e), "Search Failed")
+            return
+        self._results = results
+        self.results_table.set_rows(results, lambda r: (
+            r["compound_name"] or r["mineral_name"] or r["common_name"] or "(unnamed)",
+            r.get("reference_code", ""), r.get("crystal_system", ""), r["formula"]))
+        cap_note = " (capped at 300 -- narrow your search for a complete list)" if len(results) == 300 else ""
+        self.status_label.configure(text=f"{len(results)} result(s){cap_note}.")
+
+    def _import_selected(self):
+        sel = self.results_table.tree.selection()
+        if not sel or self.con is None:
+            Messagebox.show_warning("Search and select at least one row first.", "Nothing Selected")
+            return
+        imported = []
+        errors = []
+        for iid in sel:
+            idx = int(iid)
+            r = self.results_table._rows_data[idx]
+            try:
+                phase = self.hsrdb_reader.get_phase_detail(self.con, r["id"], top_n=20)
+                imported.append(phase)
+            except Exception as e:
+                errors.append(f"{r.get('reference_code', '?')}: {e}")
+        if imported:
+            self.xrd_module.add_user_phases(imported)
+            if self.on_imported:
+                self.on_imported()
+        msg = f"Imported {len(imported)} phase(s) to My Phases (local, persisted, cited to COD)."
+        if errors:
+            msg += "\n\nFailed:\n" + "\n".join(errors)
+        Messagebox.show_info(msg, "Import Complete" if not errors else "Import Partially Complete")
+
+
 # ============================= Database Viewer =============================
 
 class DatabaseViewerDialog(tb.Toplevel):

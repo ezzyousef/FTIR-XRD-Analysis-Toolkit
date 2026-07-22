@@ -20,7 +20,7 @@ import peak_fitting
 import report_export
 import session_io
 import formula_sources as fs
-from ui_common import AnalysisTabBase, DataTable, MultiFieldDialog, parse_float, save_figure_snapshot, DatabaseViewerDialog
+from ui_common import AnalysisTabBase, DataTable, MultiFieldDialog, parse_float, save_figure_snapshot, DatabaseViewerDialog, HsrdbImportDialog
 import ftir_analysis
 from trace_model import Trace
 
@@ -101,6 +101,8 @@ class XRDTab(AnalysisTabBase):
         self.make_action_row(card, "Match to Phase Database", self.match_phases, bootstyle="warning",
                               info_title="XRD Phase Matching Method", info_text=fs.XRD_PHASE_MATCHING, pady=(8, 2))
         tb.Button(card, text="Open Database Viewer / Import CSV...", command=self.open_database_viewer).pack(fill="x", pady=2)
+        tb.Button(card, text="Import from HighScore Database (.hsrdb)...", bootstyle="info-outline",
+                  command=self.open_hsrdb_import).pack(fill="x", pady=2)
 
         card = tb.Labelframe(c, text="5. Peak Fitting", padding=10, bootstyle="info")
         card.pack(fill="x", padx=6, pady=6)
@@ -547,6 +549,11 @@ class XRDTab(AnalysisTabBase):
     def open_database_viewer(self):
         DatabaseViewerDialog(self.app.root, self.app.ftir_db, ftir_analysis,
                               lambda: xrd_analysis.merged_database(self.database), xrd_analysis)
+
+    def open_hsrdb_import(self):
+        HsrdbImportDialog(self.app.root, self.app, xrd_analysis,
+                           on_imported=lambda: self.app.set_status_message(
+                               "Imported phase(s) from HighScore database into My Phases (local, COD-cited)."))
 
     def open_lattice_refinement(self):
         t = self._require_active()
