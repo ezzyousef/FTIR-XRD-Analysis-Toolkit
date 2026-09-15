@@ -67,8 +67,62 @@ def scrollable(widget: QWidget) -> QScrollArea:
     area.setWidgetResizable(True)
     area.setWidget(widget)
     area.setFrameShape(QFrame.NoFrame)
-    area.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    # As needed, never off: with the bar off, content wider than a small window was silently
+    # cut off at the right edge instead of being reachable.
+    area.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
     return area
+
+
+class ResponsiveRow(QWidget):
+    """Widgets side by side when the row is at least `breakpoint` pixels wide, stacked
+    top to bottom when it is not — so a page of cards fits a small window without clipping
+    or sideways scrolling.
+
+    Its minimum width is that of the widest child (the stacked layout), not the sum of all
+    of them; otherwise a scroll area could never give it a width narrow enough to stack.
+    """
+
+    def __init__(self, breakpoint: int, spacing: int = 12, parent: QWidget | None = None):
+        super().__init__(parent)
+        self._breakpoint = breakpoint
+        self.row = QHBoxLayout(self)
+        self.row.setContentsMargins(0, 0, 0, 0)
+        self.row.setSpacing(spacing)
+        self.row.setSizeConstraint(QHBoxLayout.SizeConstraint.SetNoConstraint)
+
+    def addWidget(self, widget: QWidget, stretch: int = 0) -> None:  # noqa: N802 - Qt naming
+        self.row.addWidget(widget, stretch)
+
+    @property
+    def is_stacked(self) -> bool:
+        return self.row.direction() == QHBoxLayout.Direction.TopToBottom
+
+    def _children(self) -> list[QWidget]:
+        items = (self.row.itemAt(i) for i in range(self.row.count()))
+        return [item.widget() for item in items if item is not None and item.widget() is not None
+                and not item.widget().isHidden()]
+
+    def minimumSizeHint(self) -> QSize:  # noqa: N802 - Qt naming
+        kids = self._children()
+        if not kids:
+            return super().minimumSizeHint()
+        widest = max(max(k.minimumSizeHint().width(), k.minimumWidth()) for k in kids)
+        if self.is_stacked:
+            height = sum(k.minimumSizeHint().height() for k in kids) + self.row.spacing() * (len(kids) - 1)
+        else:
+            height = max(k.minimumSizeHint().height() for k in kids)
+        return QSize(widest, height)
+
+    def sizeHint(self) -> QSize:  # noqa: N802 - Qt naming
+        return self.row.sizeHint()
+
+    def resizeEvent(self, event) -> None:  # noqa: N802 - Qt naming
+        super().resizeEvent(event)
+        want = (QHBoxLayout.Direction.TopToBottom if event.size().width() < self._breakpoint
+                else QHBoxLayout.Direction.LeftToRight)
+        if self.row.direction() != want:
+            self.row.setDirection(want)
+            self.updateGeometry()
 
 
 # ---------------------------------------------------------------------------
@@ -378,9 +432,22 @@ class PlotCanvas(QWidget):
         else:
             self.toolbar = None
         layout.addWidget(self.canvas, 1)
+        # Below this a plot is unreadable; a page should scroll or give way instead.
+        self.canvas.setMinimumHeight(240)
+        self.canvas.mpl_connect("resize_event", self._relayout)
         self._spec: FigureSpec | None = None
         self._theme = "light"
         self._metrics = None
+
+    def _relayout(self, _event=None) -> None:
+        """Fit the layout to the canvas's new size. The layout is computed when a figure is
+        drawn; after the canvas is resized, tick labels at the edges were cut off."""
+        if self._spec is None or not self._figure.axes:
+            return
+        try:
+            self._figure.tight_layout(pad=0.9, rect=(0, 0.035 if self._spec.note else 0, 1, 1))
+        except Exception:                                   # noqa: BLE001 - layout is best effort
+            pass
 
     @property
     def figure(self):

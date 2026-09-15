@@ -91,6 +91,9 @@ class _PageSlot(QWidget):
         self._layout = QVBoxLayout(self)
         self._layout.setContentsMargins(0, 0, 0, 0)
         self._build_pending = False
+        self._outer: QVBoxLayout | None = None
+        self._sub: QLabel | None = None
+        self._density = (False, False)
 
     @property
     def is_built(self) -> bool:
@@ -123,6 +126,7 @@ class _PageSlot(QWidget):
             outer = QVBoxLayout(frame)
             outer.setContentsMargins(26, 20, 26, 16)
             outer.setSpacing(12)
+            self._outer = outer
             if self._heading:
                 title = QLabel(self._heading)
                 title.setObjectName("PageTitle")
@@ -132,15 +136,26 @@ class _PageSlot(QWidget):
                 sub.setObjectName("PageSubtitle")
                 sub.setWordWrap(True)
                 outer.addWidget(sub)
+                self._sub = sub
             outer.addWidget(page, 1)
             self._layout.addWidget(frame)
         else:
             self._layout.addWidget(page)
         self.page = page
+        self.set_density(*self._density)
         hook = getattr(page, "on_theme_changed", None)
         shell = self.window()
         if callable(hook) and isinstance(shell, AppShell):
             hook(shell.theme)
+
+    def set_density(self, narrow: bool, short: bool) -> None:
+        """Tighter margins on a narrow or short window; no subtitle on a short one."""
+        self._density = (narrow, short)
+        if self._outer is not None:
+            self._outer.setContentsMargins(*((16, 10, 16, 8) if (narrow or short) else (26, 20, 26, 16)))
+            self._outer.setSpacing(8 if short else 12)
+        if self._sub is not None:
+            self._sub.setVisible(not short)
 
 
 @dataclass
@@ -201,6 +216,9 @@ class AppShell(QMainWindow):
         self._nav_group = QButtonGroup(self)
         self._nav_group.setExclusive(True)
         self._nav_buttons: dict[str, QPushButton] = {}
+        self._section_labels: list[QLabel] = []
+        self._narrow = False
+        self._short = False
         if history is not None:
             history.changed.connect(self._update_history_buttons)
             history.restored.connect(lambda verb, label: self.notify(f"{verb}: {label}", "info"))
@@ -255,6 +273,8 @@ class AppShell(QMainWindow):
             self.restoreGeometry(geometry)
         else:
             self.resize(1440, 900)
+        # After the size is known (a hidden window gets no resize event until it is shown).
+        self._update_density(force=True)
 
     def _menu(self, name: str):
         if name not in self._menus:
@@ -267,6 +287,7 @@ class AppShell(QMainWindow):
         brand.setWordWrap(True)
         version = QLabel(f"v{self.info.version}")
         version.setObjectName("NavVersion")
+        self._brand, self._version_label = brand, version
         self._rail_layout.addWidget(brand)
         self._rail_layout.addWidget(version)
         self._rail_layout.addSpacing(8)
@@ -274,6 +295,7 @@ class AppShell(QMainWindow):
         if self.history is not None:
             history_row = QHBoxLayout()
             history_row.setSpacing(6)
+            self._history_row = history_row
             self.btn_undo = QPushButton("↶  Undo")
             self.btn_redo = QPushButton("↷  Redo")
             for btn, fn in ((self.btn_undo, self.undo), (self.btn_redo, self.redo)):
@@ -292,6 +314,7 @@ class AppShell(QMainWindow):
                 label = QLabel(entry.section.upper())
                 label.setObjectName("NavSection")
                 self._rail_layout.addWidget(label)
+                self._section_labels.append(label)
                 last_section = entry.section
             # "&" would otherwise become a keyboard mnemonic ("Sources & references" showed
             # as "Sources _references").
@@ -299,6 +322,7 @@ class AppShell(QMainWindow):
             btn.setObjectName("NavButton")
             btn.setCheckable(True)
             btn.setCursor(Qt.PointingHandCursor)
+            btn.setToolTip(entry.title)
             btn.clicked.connect(lambda _c=False, k=key: self.go_to(k))
             self._nav_group.addButton(btn)
             self._nav_buttons[key] = btn
@@ -306,7 +330,48 @@ class AppShell(QMainWindow):
         self._rail_layout.addStretch(1)
         hint = QLabel("Ctrl+K  ·  commands")
         hint.setObjectName("NavVersion")
+        self._hint = hint
         self._rail_layout.addWidget(hint)
+
+    # ------------------------------------------------------------------ density
+    def _update_density(self, force: bool = False) -> None:
+        """On a small window (a 13-inch laptop, or any screen scaled to 125-150 %) the rail
+        shrinks to its icons and page headers tighten, so the pages keep their room.
+
+        The thresholds have a little hysteresis so a window resized across them does not
+        flicker between the two layouts.
+        """
+        if not self._finalized:
+            return
+        narrow = self.width() < (1380 if self._narrow else 1340)
+        short = self.height() < (840 if self._short else 800)
+        if not force and (narrow, short) == (self._narrow, self._short):
+            return
+        self._narrow, self._short = narrow, short
+        self._rail.setFixedWidth(68 if narrow else 224)
+        self._rail_layout.setContentsMargins(*((8, 12, 8, 10) if narrow else (12, 16, 12, 14)))
+        for widget in (self._brand, self._version_label, self._hint, *self._section_labels):
+            widget.setVisible(not narrow)
+        for key, btn in self._nav_buttons.items():
+            entry = self._pages[key]
+            if narrow:
+                btn.setText(entry.glyph.replace("&", "&&"))
+                btn.setStyleSheet("text-align: center; padding: 9px 0px; font-size: 16px;")
+            else:
+                btn.setText(f"  {entry.glyph}   {entry.title.replace('&', '&&')}")
+                btn.setStyleSheet("")
+        if self.history is not None:
+            self._history_row.setDirection(QHBoxLayout.Direction.TopToBottom if narrow
+                                           else QHBoxLayout.Direction.LeftToRight)
+            for btn, glyph, word in ((self.btn_undo, "↶", "Undo"), (self.btn_redo, "↷", "Redo")):
+                btn.setText(glyph if narrow else f"{glyph}  {word}")
+                btn.setStyleSheet("text-align: center; padding: 7px 0px; font-size: 16px;" if narrow else "")
+        for entry in self._pages.values():
+            entry.slot.set_density(narrow, short)
+
+    @property
+    def is_compact(self) -> bool:
+        return self._narrow
 
     def _build_status_bar(self) -> QWidget:
         bar = QFrame()
@@ -511,6 +576,7 @@ class AppShell(QMainWindow):
     # ------------------------------------------------------------------ lifecycle
     def resizeEvent(self, event) -> None:  # noqa: N802 - Qt naming
         super().resizeEvent(event)
+        self._update_density()
         if hasattr(self, "toasts"):
             self.toasts._reposition()
 

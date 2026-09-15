@@ -335,7 +335,7 @@ class AnalysisTabBase(QWidget):
         self.controls_layout.setSpacing(12)
         self.controls_layout.addStretch(1)
         left = scrollable(controls_host)
-        left.setMinimumWidth(330)
+        left.setMinimumWidth(310)
         splitter.addWidget(left)
 
         right = QSplitter(Qt.Vertical)
@@ -351,13 +351,19 @@ class AnalysisTabBase(QWidget):
         plot_card.body.addWidget(self.export_bar)
         right.addWidget(plot_card)
         self.results_tabs = QTabWidget()
+        self.results_tabs.setMinimumHeight(170)
+        # Scroll arrows when the tab titles do not fit, instead of widening the whole window.
+        self.results_tabs.setUsesScrollButtons(True)
+        self.results_tabs.tabBar().setExpanding(False)
         right.addWidget(self.results_tabs)
         right.setStretchFactor(0, 3)
         right.setStretchFactor(1, 2)
+        right.setChildrenCollapsible(False)             # neither the plot nor the results may vanish
+        right.setSizes([640, 260])
         splitter.addWidget(right)
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
-        splitter.setSizes([370, 1000])
+        splitter.setSizes([400, 1000])      # the controls' natural width plus their scrollbar
 
         card = self.add_card("Loaded traces")
         load = QPushButton(self.LOAD_TEXT)
