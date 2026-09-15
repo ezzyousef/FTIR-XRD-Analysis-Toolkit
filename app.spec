@@ -1,47 +1,37 @@
 # -*- mode: python ; coding: utf-8 -*-
-# PyInstaller spec for the FTIR & XRD Analysis Toolkit.
-# Build with:  pyinstaller app.spec   (run on Windows to get a Windows build)
+# PyInstaller spec for the FTIR & XRD Analysis Toolkit (PySide6 + labkit).
+# Build with .\build.ps1, or:  python -m PyInstaller app.spec --noconfirm
 #
-# Deliberately onedir, not onefile: onefile re-extracts its entire bundled
-# runtime to a fresh %TEMP% folder on EVERY launch, which is a well-documented
-# cause of flaky/slow startup (antivirus real-time scanning the newly-written
-# payload each time, often combined with UPX-compressed unsigned executables
-# specifically tripping AV heuristics). onedir extracts once, at install time
-# (via the Inno Setup installer copying the whole folder) instead of once per
-# launch -- see installer/FTIR_XRD_Toolkit.iss.
+# Deliberately onedir, not onefile: onefile re-extracts its whole runtime to a fresh %TEMP%
+# folder on every launch -- a well-documented cause of slow, flaky startup as antivirus
+# rescans it. onedir extracts once, at install time (installer/FTIR_XRD_Toolkit.iss).
+from PyInstaller.utils.hooks import collect_submodules
 
-import os
-
-_datas = [
-    ('database/ftir_reference_db.json', 'database'),
-    ('assets', 'assets'),
-]
+hiddenimports = [
+    'app_info', 'app_window', 'exports', 'file_readers', 'ftir_analysis', 'xrd_analysis',
+    'signal_utils', 'peak_fitting', 'report_export', 'session_io', 'app_config', 'ui_common',
+    'trace_model', 'workers', 'formula_sources', 'ftir_tab', 'xrd_tab', 'selftest',
+    'scipy.signal', 'scipy.integrate', 'scipy.optimize',
+    'matplotlib.backends.backend_qtagg', 'matplotlib.backends.backend_agg',
+    'xlsxwriter', 'reportlab.pdfbase._fontdata',
+] + collect_submodules('labkit')
+try:
+    import originpro                        # noqa: F401
+    hiddenimports += collect_submodules('originpro') + ['win32com.client', 'pythoncom', 'pywintypes']
+except ImportError:
+    pass
 
 a = Analysis(
     ['main.py'],
-    pathex=['modules'],
+    pathex=['modules', '.'],
     binaries=[],
-    datas=_datas,
-    hiddenimports=[
-        'file_readers', 'ftir_analysis', 'xrd_analysis', 'signal_utils',
-        'peak_fitting', 'report_export', 'session_io', 'app_config',
-        'ui_common', 'trace_model', 'workers', 'formula_sources',
-        'ftir_tab', 'xrd_tab',
-        'scipy.signal', 'scipy.integrate', 'scipy.optimize',
-        'PIL._tkinter_finder',
-        'ttkbootstrap', 'tkinterdnd2', 'mplcursors',
-        'reportlab.pdfbase._fontdata',
-    ],
+    datas=[('database/ftir_reference_db.json', 'database'), ('assets', 'assets')],
+    hiddenimports=hiddenimports,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    # This app only ever uses matplotlib's TkAgg canvas (see the
-    # matplotlib.use("TkAgg") pin in main.py) -- explicitly excluding every
-    # other GUI toolkit backend keeps a shared/polluted build environment
-    # (e.g. another project's PySide6 on the same machine) from getting
-    # needlessly pulled in by matplotlib's own backend auto-discovery hook.
-    excludes=['PySide6', 'PySide2', 'PyQt5', 'PyQt6', 'shiboken6', 'shiboken2',
-              'gi', 'wx', 'IPython', 'notebook', 'jupyter'],
+    excludes=['tkinter', 'ttkbootstrap', 'tkinterdnd2', 'PySide2', 'PyQt5', 'PyQt6', 'gi', 'wx',
+              'IPython', 'notebook', 'jupyter', 'pytest', 'matplotlib.backends.backend_tkagg'],
     noarchive=False,
     optimize=0,
 )

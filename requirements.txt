@@ -1,10 +1,17 @@
 numpy>=1.24
 scipy>=1.10
 matplotlib>=3.7
+PySide6>=6.5
+xlsxwriter>=3.1
+openpyxl>=3.1
 pillow>=10
-ttkbootstrap>=1.10,<2.0
-mplcursors>=0.5
-tkinterdnd2>=0.3
 reportlab>=4.0
+
+# Optional: drive OriginLab directly (Windows with Origin installed). Without them "Send to
+# Origin" writes a LabTalk package that rebuilds the project in Origin.
+originpro>=1.1; sys_platform == "win32"
+pywin32>=306; sys_platform == "win32"
+
+# Development and building
 pyinstaller>=6.3
 pytest>=7.0

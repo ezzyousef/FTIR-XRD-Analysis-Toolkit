@@ -6,10 +6,11 @@ multiple overlaid traces consistently across the FTIR and XRD tabs.
 import itertools
 import numpy as np
 
-PALETTE = [
-    "#2453ff", "#ff6f3c", "#12b886", "#e64980", "#f59f00",
-    "#7048e8", "#15aabf", "#82c91e", "#e03131", "#1971c2",
-]
+# The lab's colour-blind-safe publication palette (labkit), so traces look the same on
+# screen, in Origin and in Excel.
+from labkit.style import PALETTES
+
+PALETTE = list(PALETTES["publication"])
 
 
 class ColorCycle:

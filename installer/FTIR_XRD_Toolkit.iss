@@ -16,7 +16,9 @@
 ; build_installer.ps1, which does both steps).
 
 #define MyAppName "FTIR & XRD Analysis Toolkit"
-#define MyAppVersion "2.0.0"
+#ifndef MyAppVersion
+  #define MyAppVersion "3.0.0"
+#endif
 #define MyAppPublisher "Ezzeldien Yousef"
 #define MyAppURL "mailto:ezzyousef@aucegypt.edu"
 #define MyAppExeName "FTIR_XRD_Toolkit.exe"
@@ -36,7 +38,7 @@ DefaultDirName={autopf}\FTIR_XRD_Toolkit
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
 OutputDir=output
-OutputBaseFilename=FTIR_XRD_ToolkitSetup
+OutputBaseFilename=FTIR_XRD_ToolkitSetup-{#MyAppVersion}
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern

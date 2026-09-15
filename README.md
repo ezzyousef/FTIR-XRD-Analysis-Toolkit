@@ -1,145 +1,138 @@
-# FTIR & XRD Analysis Toolkit — Professional Edition
+# FTIR & XRD Analysis Toolkit
 
-A professional Windows desktop application (Tkinter/ttkbootstrap) for:
-- **FTIR**: multi-spectrum overlay, smoothing, baseline correction, automatic
-  peak detection, Gaussian/Lorentzian/pseudo-Voigt peak fitting, and matching
-  against a **224-material reference database** (polymers, hydrogels, salts,
-  inorganic oxides/minerals, organic/biomolecules, elements & allotropes) plus
-  **67 generic functional-group correlations** — covering common calculations
-  (%T ↔ Absorbance, peak area, FWHM, Beer-Lambert concentration). The search
-  can be **restricted to a single category** (e.g. just Organic/Biomolecules,
-  or just Salts) when you already know roughly what the sample is, for more
-  accurate and faster matching.
-- **XRD**: reading multiple diffractometer file formats, peak detection,
-  d-spacing (Bragg's law), crystallite size (Scherrer equation),
-  Williamson-Hall size/strain analysis, approximate % crystallinity, SNIP
-  background subtraction, 2θ/d/Q conversion, single-peak cubic lattice
-  parameter estimation, and peak fitting. Phase identification against
-  reference cards is out of scope — use your diffractometer's search/match
-  software for that, then bring the pattern here for the quantitative work.
+A Windows desktop application (PySide6) for FTIR spectra and X-ray diffraction patterns,
+built on the lab's shared **labkit** interface — the same one as AeroLab Studio, the DV1
+Viscosity Logger and Supercap Suite: a navigation rail, light and dark themes, a Ctrl+K
+command palette, undo/redo, styled OriginLab graphs, Excel workbooks and PDF reports.
 
-Every FTIR database entry and every calculation carries a **literature citation**
-— click the ⓘ button next to a tool, or open **Help → Data Sources &
-References** inside the app.
+Made by Ezzeldien Yousef (ezzyousef@aucegypt.edu), Energy Materials Laboratory (EML).
+A step-by-step user guide is in `docs/FTIR_XRD_Toolkit_User_Guide.docx`.
+
+- **FTIR**: multi-spectrum overlay, smoothing, baseline correction, ATR correction,
+  derivatives, normalization, automatic peak detection (with optional second-derivative
+  shoulder resolution), Gaussian/Lorentzian/pseudo-Voigt peak fitting, and screening against
+  a **224-material reference database** plus **99 functional-group correlations**, optionally
+  restricted to one category. Calculators: %T ↔ absorbance, peak area, FWHM, Beer–Lambert.
+- **XRD**: several diffractometer file formats, peak detection, d-spacing (Bragg), crystallite
+  size (Scherrer), Williamson–Hall size/strain, approximate % crystallinity, SNIP background
+  subtraction, 2θ/d/Q conversion, single-peak cubic lattice parameter and peak fitting.
+  Phase identification against reference cards is out of scope — use your diffractometer's
+  search/match software for that, then bring the pattern here for the quantitative work.
+
+Every database entry and every calculation carries a **literature citation** — the ⓘ button
+next to each tool, or **Library › Sources & references** in the app.
 
 ## Getting the Windows app
 
-This app is built and tested on Windows. Three ways to get it:
+### Installer (recommended)
+```
+.\build.ps1
+```
+Runs the tests, builds `dist\FTIR_XRD_Toolkit\` with PyInstaller, runs the built exe's
+`--selftest`, packs a portable zip and compiles `installer\output\FTIR_XRD_ToolkitSetup-<version>.exe`
+with [Inno Setup 6](https://jrsoftware.org/isdl.php) (`winget install JRSoftware.InnoSetup`).
+Copy the setup file to any Windows PC — nothing else needs to be installed there.
+(`build_installer.ps1` and `build_exe.bat` still work and call the same build.)
 
-### 1. Windows installer (recommended)
-Run `build_installer.ps1` (needs [Inno Setup 6](https://jrsoftware.org/isdl.php)
-installed, free) — produces `installer\output\FTIR_XRD_ToolkitSetup.exe`, a
-normal double-click Windows installer (Start Menu shortcut, optional Desktop
-shortcut, uninstaller). Copy that one file to any Windows PC and run it —
-nothing else needs to be installed there.
+The build is **onedir**, not onefile: onefile re-extracts its whole runtime to a temp folder on
+every launch, a well-known cause of slow, flaky startup as antivirus rescans it.
 
-### 2. Standalone folder (no installer)
-Double-click `build_exe.bat` (or run it from a terminal). When it finishes,
-your app is at `dist\FTIR_XRD_Toolkit\FTIR_XRD_Toolkit.exe`. Copy the **whole**
-`dist\FTIR_XRD_Toolkit\` folder anywhere — it needs every file alongside it,
-not just the exe.
-
-(Both use an **onedir** PyInstaller build rather than onefile — onefile
-re-extracts its entire bundled runtime to a fresh temp folder on every launch,
-which is a well-documented cause of flaky/slow startup as antivirus
-real-time-scans the new payload each time. onedir extracts once.)
-
-### 3. Run from source
-`pip install -r requirements.txt`, then `python main.py` — no packaging
-needed, works on any OS with Python 3.10+.
+### Run from source
+`pip install -r requirements.txt`, then `python main.py` (Python 3.11+).
+`python main.py file1.csv pattern.xrdml` opens files at start-up;
+`python main.py --selftest` checks the whole application without a window.
 
 ## Using the app
 
-### FTIR tab
-1. **Load Spectrum** (or drag & drop a file onto the plot) — accepts
-   two-column `.csv/.txt/.dat/.xy` files (wavenumber, intensity/%T/absorbance).
-   Load multiple files to overlay them; click a trace in "Loaded Traces" to
-   make it active, click its ● to hide/show it.
-2. Choose **Absorbance** or **%Transmittance** mode, adjust the sensitivity
-   slider, and **Detect Peaks**.
-3. **Smooth / Baseline Correct / Normalize / Revert to Raw** as needed.
-4. **Match to Database** — screens detected peaks against the 224-material
-   database and 67 functional groups, ranked by corroborating peak count
-   then coverage score. Pick a category (Polymers, Hydrogels, Salts,
-   Inorganic, Organic/Biomolecules, Elements/Allotropes, or All) to narrow
-   the search when you already know roughly what the sample is. This is a
-   **heuristic screening tool, not definitive identification** — always
-   confirm anything important against a certified
-   reference spectrum (NIST WebBook, SDBS) or an expert.
-5. **Fit All Detected Peaks** for Gaussian/Lorentzian/pseudo-Voigt refinement.
-6. Calculation tools (with ⓘ formula/source buttons): %T↔A converter,
-   peak-area integration, FWHM, Beer-Lambert concentration.
-7. **Export Peak List (CSV)**, **Export PDF Report**, or **Save/Load Session**
-   (`.ftirxrd` project files).
+The rail on the left has **Analyse** (FTIR spectra, XRD patterns), **Library** (reference
+database, sources & references) and **Help** (About).
 
-### XRD tab
-1. **Load XRD File** (or drag & drop) — auto-detects format from the extension:
-   - `.xy` `.txt` `.dat` `.csv` — generic two-column ASCII (high confidence)
-   - `.uxd` — Siemens/Bruker text (high confidence)
-   - `.ras` — Rigaku text (high confidence)
-   - `.xrdml` — PANalytical/Malvern XML (high confidence)
-   - `.raw` — legacy Bruker binary (**best-effort** — undocumented format;
-     export ASCII from your instrument software if it fails to parse)
-2. Select the **X-ray wavelength**, **Detect Peaks**, then **Run All
-   Calculations** for d-spacing and Scherrer crystallite size per peak.
-3. **Williamson-Hall** separates size vs. strain broadening (needs 3+ peaks).
-4. **% Crystallinity** — specify crystalline vs. amorphous-halo 2θ regions.
-5. **Cubic Lattice Parameter** — a quick single-peak estimate (cubic only).
-6. **Fit All Detected Peaks**, **Export Peak List (CSV)**, **Export PDF
-   Report**, or **Save/Load Session**.
+### FTIR spectra
+1. **Load spectra…** (Ctrl+O) or drop files anywhere on the page — `.csv .txt .dat .xy .dpt .jdx`.
+   Load several to overlay them; click a row in *Loaded traces* to make it the active trace,
+   untick *Show* to hide it.
+2. Choose **Absorbance** or **%Transmittance**, set the sensitivity and **Detect peaks**.
+3. **Processing**: smooth, baseline correct, ATR correction, derivative, normalize, revert to raw.
+4. **Match to database** — screens the detected peaks against the database and functional
+   groups (in the background; the window stays responsive). Click a match to overlay its
+   reference bands on the plot and list every band as matched or not found. This is
+   **heuristic screening, not identification** — confirm against a certified reference
+   spectrum (NIST WebBook, SDBS) or an expert.
+5. **Fit all detected peaks** — the fitted peaks are drawn as one model curve in the
+   spectrum's colour and listed in *Peak fits*.
+6. **Calculations** with ⓘ formula/source buttons.
 
-### Everywhere
-- **Tools → FTIR Reference Database** browses every material entry, its
-  peaks, and its literature source.
-- **Help → Data Sources & References** lists the full bibliography.
-- **View → Light/Dark Themes** — 18 ttkbootstrap themes, persisted across runs.
-- Long-running matches/fits run on a background thread so the window stays
-  responsive.
+### XRD patterns
+1. **Load patterns…** — format detected from the extension:
+   `.xy .txt .dat .csv` (generic two-column ASCII), `.uxd` (Siemens/Bruker), `.ras` (Rigaku),
+   `.xrdml` (PANalytical/Malvern) — high confidence; `.raw` (legacy Bruker binary) — best
+   effort, export ASCII if it fails.
+2. Choose the **X-ray wavelength** (or *Custom...*), **Detect peaks**, then
+   **d-spacing + Scherrer size**.
+3. **Williamson–Hall** separates size and strain broadening (3+ peaks); **% crystallinity**
+   uses crystalline and amorphous 2θ regions you give; **cubic lattice parameter** is a quick
+   single-peak estimate; the **converter** switches between 2θ, d and Q.
+4. **Fit all detected peaks**.
+
+### Exports (both pages)
+- **Send to Origin** (button under the plot, or Ctrl+Shift+O) — a workbook with every visible
+  trace, the peak table and a Results sheet, and a styled graph (colour-blind-safe palette,
+  FTIR axis running high to low, fits in their spectrum's colour, legend clear of the data).
+  Each send adds to the same Origin project; the arrow menu saves or closes it. Without Origin,
+  **Write LabTalk package** builds the same project on any PC with Origin.
+- **Export to Excel** (Ctrl+Shift+E) — a summary, one sheet and native chart per trace, match
+  and fit tables, and a provenance sheet.
+- **Save figures** (300 dpi PNG), **Export graph** (SVG/EPS/PDF/PNG), **Export PDF report**
+  (Ctrl+E), **Export peak list (CSV)**, **Export for OriginLab (CSV)**.
+- **Save / load session** (Ctrl+S / Ctrl+L) — `.ftirxrd` project files, compatible with
+  earlier versions.
+
+### Keyboard
+| Keys | Action |
+|---|---|
+| Ctrl+O | Open data files |
+| Ctrl+Z / Ctrl+Y | Undo / redo (loading, processing, detection, matching, fitting, calculations) |
+| Ctrl+S / Ctrl+L | Save / load session |
+| Ctrl+E | PDF report |
+| Ctrl+Shift+O / Ctrl+Shift+E | Send to Origin / export to Excel |
+| Ctrl+D | FTIR reference database |
+| Ctrl+T | Light / dark theme |
+| Ctrl+K | Command palette |
+| Ctrl+1 … Ctrl+5 | Go to a page |
 
 ## Important accuracy notes
-- All FTIR reference-database peak positions are compiled from standard,
-  published literature (see in-app citations), not certified measurements of
-  a specific sample batch. Treat matches as a starting point, not a
-  certificate of identity.
-- Scherrer crystallite sizes are **apparent** sizes from peak broadening
-  alone — not corrected for instrumental broadening, and conflate size/strain
-  effects unless you use Williamson-Hall.
-- % Crystallinity by area-under-curve is inherently method- and
-  region-choice-dependent. Always report which regions you used.
-- Bruker `.raw` binary parsing is best-effort (undocumented format) — cross-
-  check against an ASCII export when it matters.
+- FTIR reference peak positions are compiled from published literature (see the in-app
+  citations), not certified measurements of a specific sample. Treat matches as a starting
+  point, not a certificate of identity.
+- Scherrer crystallite sizes are **apparent** sizes from broadening alone — not corrected for
+  instrumental broadening, and they mix size and strain unless you use Williamson–Hall.
+- % crystallinity by area under the curve depends on the method and the regions chosen —
+  report the regions with the number.
+- Bruker `.raw` parsing is best effort (undocumented format) — cross-check against an ASCII export.
 
 ## Project structure
 ```
 ftir_xrd_toolkit/
-  main.py                          # App shell: menu, theming, tabs, status bar
-  app.spec                         # PyInstaller build spec (onedir)
-  build_exe.bat                    # Standalone-folder build
-  build_installer.ps1              # Full Setup.exe build (PyInstaller + Inno Setup)
-  installer/FTIR_XRD_Toolkit.iss   # Inno Setup script
-  requirements.txt
-  database/
-    ftir_reference_db.json         # 224 materials + 67 functional groups, cited
+  main.py                          entry point (splash, --selftest, --version, files to open)
+  selftest.py                      headless check used on packaged builds
+  app.spec, build.ps1              PyInstaller spec and the full build
+  installer/FTIR_XRD_Toolkit.iss   Inno Setup script
+  database/ftir_reference_db.json  224 materials + 99 functional groups, cited
+  labkit/                          vendored shared interface — edit ..\..\labkit and run sync.py
   modules/
-    file_readers.py                # FTIR/XRD file format readers
-    ftir_analysis.py               # Peak detection, DB matching, calculations
-    xrd_analysis.py                # Bragg/Scherrer/W-H/crystallinity/SNIP/conversions
-    peak_fitting.py                # Gaussian/Lorentzian/pseudo-Voigt fitting
-    signal_utils.py                # Shared smoothing helpers
-    report_export.py               # PDF report generation
-    session_io.py                  # Session save/load
-    app_config.py                  # Persisted user settings
-    trace_model.py                 # Multi-trace data model
-    workers.py                     # Background-thread helper
-    formula_sources.py             # Formula/citation text for the ⓘ buttons
-    ui_common.py                   # Shared UI scaffolding (trace panel, tables,
-                                    #   dialogs, database viewer)
-    ftir_tab.py / xrd_tab.py       # The two analysis tabs
-  tests/                           # pytest suite for the core analysis modules
-  assets/                          # App icon, EML logo
+    app_window.py                  the window: pages, menus, recent files, undo/redo, Origin
+    ui_common.py                   shared page scaffolding: traces, plot, tables, dialogs, sessions
+    ftir_tab.py / xrd_tab.py       the two analysis pages
+    exports.py                     figures, Origin workbooks and Excel reports (no Qt)
+    file_readers.py                FTIR/XRD file format readers
+    ftir_analysis.py               peak detection, database matching, calculations
+    xrd_analysis.py                Bragg/Scherrer/W-H/crystallinity/SNIP/conversions
+    peak_fitting.py                Gaussian/Lorentzian/pseudo-Voigt fitting
+    signal_utils.py, report_export.py, session_io.py, app_config.py, trace_model.py,
+    workers.py, formula_sources.py, app_info.py
+  tests/                           pytest suite (analysis, readers, exports, the Qt pages)
+  assets/                          icon, EML logo
 ```
 
-You can extend the FTIR database by editing its JSON file directly — no code
-changes needed.
-
-Run the test suite with `pytest tests/`.
+Extend the FTIR database by editing its JSON file — no code changes needed.
+Run the tests with `python -m pytest tests`.

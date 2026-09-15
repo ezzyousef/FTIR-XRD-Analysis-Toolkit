@@ -1,50 +1,35 @@
 """
 workers.py
-Runs a slow, pure computation (database matching, batch peak fitting --
-anything with no Tk widget access) on a background thread so the window
-stays responsive (draggable, other tab clickable) instead of freezing
-solid until it returns. Tkinter itself is not thread-safe, so the result
-is handed back to the main thread via root.after() polling rather than
-touched directly from the worker thread.
+Runs a slow, pure computation (database matching, batch peak fitting -- anything that
+touches no widget) on a background QThread so the window stays responsive instead of
+freezing until it returns.
 
-Usage:
-    task = BackgroundTask(root, lambda: slow_pure_function(data),
-                           on_success=lambda result: ...,
-                           on_error=lambda exc: ...)
-    task.start()
+The result comes back through a signal. Connect it to a method of a QObject that lives
+on the interface thread (a tab, a window): Qt then delivers it on that thread. A plain
+function or lambda would be called on the worker thread, where touching widgets crashes.
+
+Usage (inside a QWidget):
+    worker = Worker(lambda: slow_pure_function(data), token=7, parent=self)
+    worker.succeeded.connect(self._on_done)        # receives (token, result)
+    worker.failed.connect(self._on_failed)          # receives (token, message)
+    worker.start()
 """
-import threading
-import queue
+from PySide6.QtCore import QThread, Signal
 
 
-class BackgroundTask:
-    def __init__(self, root, fn, on_success, on_error=None, poll_ms=80):
-        self.root = root
-        self.fn = fn
-        self.on_success = on_success
-        self.on_error = on_error
-        self.poll_ms = poll_ms
-        self._q = queue.Queue()
+class Worker(QThread):
+    succeeded = Signal(object, object)          # token, result
+    failed = Signal(object, str)                # token, message
 
-    def start(self):
-        threading.Thread(target=self._run, daemon=True).start()
-        self.root.after(self.poll_ms, self._poll)
+    def __init__(self, fn, token=None, parent=None):
+        super().__init__(parent)
+        self._fn = fn
+        self.token = token
 
-    def _run(self):
+    def run(self):
         try:
-            result = self.fn()
-        except Exception as e:  # deliberately broad: report back, never crash the thread silently
-            self._q.put(("error", e))
+            result = self._fn()
+        except Exception as exc:  # noqa: BLE001 - reported to the user, never lost silently
+            self.failed.emit(self.token, str(exc) or type(exc).__name__)
         else:
-            self._q.put(("ok", result))
-
-    def _poll(self):
-        try:
-            status, payload = self._q.get_nowait()
-        except queue.Empty:
-            self.root.after(self.poll_ms, self._poll)
-            return
-        if status == "ok":
-            self.on_success(payload)
-        elif self.on_error:
-            self.on_error(payload)
+            self.succeeded.emit(self.token, result)

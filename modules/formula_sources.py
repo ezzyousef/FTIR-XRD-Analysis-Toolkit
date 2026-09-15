@@ -190,5 +190,5 @@ XRD_UNIT_CONVERTER = (
 
 
 def show_formula_dialog(parent, title, text):
-    from ttkbootstrap.dialogs import Messagebox
-    Messagebox.show_info(text, title, parent=parent)
+    from ui_common import show_formula
+    show_formula(parent, title, text)

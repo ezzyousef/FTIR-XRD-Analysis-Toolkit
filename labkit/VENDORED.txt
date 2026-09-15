@@ -1,0 +1,2 @@
+Vendored copy of labkit 1.0.0.
+Do not edit here: change C:\Users\ezzyo\Downloads\12 Folders\labkit\labkit, run its tests, then `python sync.py`.
