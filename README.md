@@ -6,7 +6,7 @@ Viscosity Logger and Supercap Suite: a navigation rail, light and dark themes, a
 command palette, undo/redo, styled OriginLab graphs, Excel workbooks and PDF reports.
 
 Made by Ezzeldien Yousef (ezzyousef@aucegypt.edu), Energy Materials Laboratory (EML).
-A step-by-step user guide is in `docs/FTIR_XRD_Toolkit_User_Guide.docx`.
+A step-by-step user guide with screenshots is in `FTIR_XRD_Toolkit_User_Guide.docx` (this folder).
 
 - **FTIR**: multi-spectrum overlay, smoothing, baseline correction, ATR correction,
   derivatives, normalization, automatic peak detection (with optional second-derivative
