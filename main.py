@@ -188,14 +188,6 @@ class MainWindow:
                 self.dnd_ready = False
 
         self.ftir_db = ftir_analysis.load_database(resource_path(os.path.join("database", "ftir_reference_db.json")))
-        self.xrd_db = xrd_analysis.load_xrd_database(resource_path(os.path.join("database", "xrd_reference_db.json")))
-        # Bundled COD (Crystallography Open Database) phase database, built
-        # from a HighScore .hsrdb file by scripts/build_cod_database.py --
-        # ~511,000 phases, ~1.6GB, shipped only in the installer (never
-        # committed to git, see .gitignore), so it may not exist in a dev
-        # checkout that hasn't run the build script.
-        cod_path = resource_path(os.path.join("database", "cod_reference.sqlite"))
-        self.cod_db_path = cod_path if os.path.exists(cod_path) else None
 
         self.theme_var = tb.StringVar(value=theme)
         self.status_msg_var = tb.StringVar(value="Ready.")
@@ -244,7 +236,7 @@ class MainWindow:
         menubar.add_cascade(label="View", menu=view_menu)
 
         tools_menu = tb.Menu(menubar, tearoff=False)
-        tools_menu.add_command(label="Reference Database Viewer...  (Ctrl+D)", command=self.open_database_viewer)
+        tools_menu.add_command(label="FTIR Reference Database...  (Ctrl+D)", command=self.open_database_viewer)
         menubar.add_cascade(label="Tools", menu=tools_menu)
 
         help_menu = tb.Menu(menubar, tearoff=False)
@@ -353,8 +345,7 @@ class MainWindow:
         bar.pack(fill="x", side="bottom")
         tb.Label(bar, textvariable=self.status_msg_var, bootstyle="secondary").pack(side="left")
         tb.Label(bar, textvariable=self.status_coords_var, bootstyle="secondary").pack(side="left", padx=20)
-        db_counts = (f"FTIR DB: {sum(len(self.ftir_db.get(c, [])) for c in ftir_analysis.MATERIAL_CATEGORIES)} materials   |   "
-                     f"XRD DB: {len(self.xrd_db.get('phases', []))} phases")
+        db_counts = f"FTIR DB: {sum(len(self.ftir_db.get(c, [])) for c in ftir_analysis.MATERIAL_CATEGORIES)} materials"
         tb.Label(bar, text=db_counts, bootstyle="secondary").pack(side="right")
 
     def set_status_message(self, msg):
@@ -418,11 +409,10 @@ class MainWindow:
     # ---------------------------------------------------------------- dialogs
 
     def open_database_viewer(self):
-        DatabaseViewerDialog(self.root, self.ftir_db, ftir_analysis,
-                              lambda: xrd_analysis.merged_database(self.xrd_db), xrd_analysis)
+        DatabaseViewerDialog(self.root, self.ftir_db, ftir_analysis)
 
     def open_references(self):
-        ReferencesDialog(self.root, self.ftir_db, self.xrd_db)
+        ReferencesDialog(self.root, self.ftir_db)
 
     def open_about(self):
         AboutDialog(self.root, icon_path=resource_path(os.path.join("assets", "icon.png")))

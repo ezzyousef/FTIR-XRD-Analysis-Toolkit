@@ -2,8 +2,8 @@
 xrd_tab.py
 The XRD Analysis tab: load diffraction patterns (multi-trace overlay),
 detect peaks, compute d-spacing/Scherrer size, Williamson-Hall, %
-crystallinity, cubic lattice parameter, match against the phase database,
-fit peaks, and export a CSV/PDF/session.
+crystallinity and a single-peak cubic lattice parameter, fit peaks, and
+export a CSV/PDF/session.
 """
 import os
 import csv
@@ -20,25 +20,18 @@ import peak_fitting
 import report_export
 import session_io
 import formula_sources as fs
-from ui_common import AnalysisTabBase, DataTable, MultiFieldDialog, parse_float, save_figure_snapshot, DatabaseViewerDialog, HsrdbImportDialog
-import ftir_analysis
+from ui_common import AnalysisTabBase, DataTable, MultiFieldDialog, parse_float, save_figure_snapshot
 from trace_model import Trace
 
 
 class XRDTab(AnalysisTabBase):
     def __init__(self, parent, app):
         super().__init__(parent, app, x_label="2theta (deg)", y_label="Intensity", invert_x=False)
-        self.database = app.xrd_db
         self.wl_var = tb.StringVar(value="Cu Ka1")
         self.custom_wl = None
         self.prom_var = tb.DoubleVar(value=2.0)
-        self.d_tolerance_var = tb.DoubleVar(value=app.cfg.get("d_tolerance_pct", 1.5))
         self.fit_shape_var = tb.StringVar(value="gaussian")
         self.fit_window_var = tb.DoubleVar(value=0.5)
-        self.category_var = tb.StringVar(value=xrd_analysis.ALL_CATEGORIES_LABEL)
-        self._current_match = None
-        self._current_match_phase = None
-        self._current_match_ref_peaks = None
 
         self._build_controls()
         self._build_results_tabs()
@@ -83,28 +76,10 @@ class XRDTab(AnalysisTabBase):
                               info_title="% Crystallinity Method", info_text=fs.PERCENT_CRYSTALLINITY)
         self.make_action_row(card, "Cubic Lattice Parameter (quick, single-peak)", self.run_lattice_param,
                               info_title="Cubic Lattice Parameter", info_text=fs.CUBIC_LATTICE_PARAMETER)
-        self.make_action_row(card, "Iterative Lattice Refinement (multi-peak, accurate)", self.open_lattice_refinement,
-                              bootstyle="success", info_title="Iterative Lattice Refinement Method",
-                              info_text=fs.ITERATIVE_LATTICE_REFINEMENT)
         self.make_action_row(card, "2theta / d-spacing / Q Converter", self.open_unit_converter,
                               info_title="XRD Unit Converter", info_text=fs.XRD_UNIT_CONVERTER)
 
-        card = tb.Labelframe(c, text="4. Phase Identification", padding=10, bootstyle="warning")
-        card.pack(fill="x", padx=6, pady=6)
-        tol_row = tb.Frame(card)
-        tol_row.pack(fill="x")
-        tb.Label(tol_row, text="d-spacing tolerance (%):").pack(side="left")
-        tb.Spinbox(tol_row, from_=0.1, to=10, increment=0.1, textvariable=self.d_tolerance_var, width=6).pack(side="right")
-        tb.Label(card, text="Restrict search to category (more accurate if known):").pack(anchor="w", pady=(8, 0))
-        cat_values = [xrd_analysis.ALL_CATEGORIES_LABEL] + [xrd_analysis.PHASE_CATEGORY_LABELS[k] for k in sorted(xrd_analysis.PHASE_CATEGORY_LABELS)]
-        tb.Combobox(card, textvariable=self.category_var, values=cat_values, state="readonly").pack(fill="x")
-        self.make_action_row(card, "Match to Phase Database", self.match_phases, bootstyle="warning",
-                              info_title="XRD Phase Matching Method", info_text=fs.XRD_PHASE_MATCHING, pady=(8, 2))
-        tb.Button(card, text="Open Database Viewer / Import CSV...", command=self.open_database_viewer).pack(fill="x", pady=2)
-        tb.Button(card, text="Search COD Database / Import Phases...", bootstyle="info-outline",
-                  command=self.open_hsrdb_import).pack(fill="x", pady=2)
-
-        card = tb.Labelframe(c, text="5. Peak Fitting", padding=10, bootstyle="info")
+        card = tb.Labelframe(c, text="4. Peak Fitting", padding=10, bootstyle="info")
         card.pack(fill="x", padx=6, pady=6)
         shape_row = tb.Frame(card)
         shape_row.pack(fill="x")
@@ -118,7 +93,7 @@ class XRDTab(AnalysisTabBase):
         self.make_action_row(card, "Fit All Detected Peaks", self.fit_peaks,
                               info_title="Peak Fitting Method", info_text=fs.PEAK_FITTING, pady=(8, 0))
 
-        card = tb.Labelframe(c, text="6. Export & Session", padding=10, bootstyle="dark")
+        card = tb.Labelframe(c, text="5. Export & Session", padding=10, bootstyle="dark")
         card.pack(fill="x", padx=6, pady=(6, 16))
         tb.Button(card, text="Export Peak List (CSV)", command=self.export_peaks_csv).pack(fill="x", pady=2)
         tb.Button(card, text="Export PDF Report", bootstyle="danger", command=self.export_pdf_report).pack(fill="x", pady=2)
@@ -137,26 +112,6 @@ class XRDTab(AnalysisTabBase):
                                        ("d", "d-spacing (A)"), ("size", "Crystallite Size (nm)")],
                                       height=9, widths={"tt": 90, "i": 80, "fwhm": 80, "d": 100, "size": 130})
         self.peaks_table.pack(fill="both", expand=True)
-
-        matches_frame = tb.Frame(nb, padding=4)
-        nb.add(matches_frame, text="Phase Matches")
-        matches_toolbar = tb.Frame(matches_frame)
-        matches_toolbar.pack(fill="x")
-        tb.Label(matches_toolbar, text="Click a row to overlay its reference lines (orange) on the pattern.",
-                 bootstyle="secondary", font=("", 8)).pack(side="left")
-        tb.Button(matches_toolbar, text="Clear Overlay", bootstyle="secondary-outline",
-                  command=self.clear_reference_overlay).pack(side="right")
-        tb.Button(matches_toolbar, text="Export Reference Peaks (CSV)...", bootstyle="secondary-outline",
-                  command=self.export_reference_peaks_csv).pack(side="right", padx=(0, 4))
-        self.matches_table = DataTable(matches_frame,
-                                        [("name", "Phase"), ("category", "Category"), ("system", "System"),
-                                         ("score", "Score"), ("count", "Matched/Total"), ("source", "Source")],
-                                        height=7, widths={"name": 190, "category": 80, "system": 90, "score": 60, "count": 90, "source": 160})
-        self.matches_table.pack(fill="both", expand=True)
-        self.matches_table.on_select = self._show_match_detail
-        self.match_detail = tb.Text(matches_frame, height=9, wrap="word")
-        self.match_detail.pack(fill="both", expand=False, pady=(6, 0))
-        self.match_detail.configure(state="disabled")
 
         wh_frame = tb.Frame(nb, padding=4)
         nb.add(wh_frame, text="Williamson-Hall")
@@ -189,25 +144,6 @@ class XRDTab(AnalysisTabBase):
                 ys = func(xs, fit["height"], fit["center"], fit["fwhm"], fit["offset"])
             self.ax.plot(xs, ys, "--", color="#12b886", lw=1.2, alpha=0.9)
 
-    def _draw_reference_overlay(self):
-        wl = self._get_wavelength()
-        tol_pct = self.d_tolerance_var.get() / 100.0
-        label = self.reference_overlay.get("label", "Reference")
-        first = True
-        for p in self.reference_overlay.get("peaks", []):
-            d = p["d_A"]
-            two_theta = xrd_analysis.two_theta_from_d(d, wl)
-            if two_theta is None:
-                continue  # this reflection isn't observable at the current wavelength
-            tt_hi = xrd_analysis.two_theta_from_d(d * (1 - tol_pct), wl)  # smaller d -> larger 2theta
-            tt_lo = xrd_analysis.two_theta_from_d(d * (1 + tol_pct), wl)
-            tt_lo = tt_lo if tt_lo is not None else two_theta
-            tt_hi = tt_hi if tt_hi is not None else two_theta
-            self.ax.axvspan(tt_lo, tt_hi, color="#f59f00", alpha=0.20, lw=0,
-                             label=f"Reference: {label}" if first else None)
-            self.ax.axvline(two_theta, color="#f59f00", alpha=0.6, lw=0.8, linestyle=":")
-            first = False
-
     # ---------------------------------------------------------------- loading
 
     def _load_pattern(self):
@@ -237,22 +173,12 @@ class XRDTab(AnalysisTabBase):
     # ---------------------------------------------------------------- results refresh
 
     def on_active_trace_changed(self):
-        if self.reference_overlay is not None:
-            # the overlay was tied to a match row for whichever trace was
-            # active before -- clear it so it doesn't linger, misleadingly,
-            # over a different pattern.
-            self.reference_overlay = None
-            self.redraw()
         t = self.get_active()
         if t is None:
             self.peaks_table.clear()
-            self.matches_table.clear()
             self.fits_table.clear()
             return
         self.peaks_table.set_rows(t.peaks, self._format_peak_row)
-        self.matches_table.set_rows(t.matches, lambda m: (m["name"], m["category"], m.get("crystal_system", ""),
-                                                           f"{m['score']*100:.0f}%",
-                                                           f"{m['matched_count']}/{m['total_reference_peaks']}", m.get("source", "")))
         self.fits_table.set_rows(t.fits, lambda f: (f"{f['seed_x']:.3f}", f"{f['center']:.3f}", f"{f['fwhm']:.3f}",
                                                       f"{f['height']:.2f}", f"{f['area']:.3f}", f"{f['r_squared']:.4f}"))
         wh = t.metadata.get("wh_result")
@@ -262,65 +188,6 @@ class XRDTab(AnalysisTabBase):
         d = f"{p['d_A']:.4f}" if "d_A" in p else "-"
         size = f"{p['size_nm']:.2f}" if p.get("size_nm") is not None else "-"
         return (f"{p['two_theta']:.3f}", f"{p['intensity']:.1f}", f"{p['fwhm_deg']:.3f}", d, size)
-
-    def _show_match_detail(self, match):
-        if match.get("cod_phase_id") is not None and self.app.cod_db_path:
-            import cod_database
-            con = cod_database.open_db(self.app.cod_db_path)
-            phase = cod_database.get_phase(con, match["cod_phase_id"], top_n=match["total_reference_peaks"])
-        else:
-            merged = xrd_analysis.merged_database(self.database)
-            phase = xrd_analysis.find_phase(merged, match["name"])
-        self._current_match = match
-        self._current_match_phase = phase
-        self._current_match_ref_peaks = (
-            sorted(phase["peaks"], key=lambda r: -r.get("rel_intensity", 0))[:match["total_reference_peaks"]]
-            if phase else None
-        )
-
-        self.match_detail.configure(state="normal")
-        self.match_detail.delete("1.0", "end")
-        full_source = match.get("source", "") or "(no source on file)"
-        source_short = full_source.split(",")[0].strip()
-        lines = [f"{match['name']} [{match.get('crystal_system','')}]  Source: {full_source}"]
-        if phase:
-            # List every reference line actually CONSIDERED for this match
-            # (match_xrd_phases only scores the top_n strongest lines, which
-            # is what "total_reference_peaks" counts) so the text panel gives
-            # the same complete picture as the orange overlay -- marking each
-            # one MATCHED or not found in your pattern.
-            n_considered = match["total_reference_peaks"]
-            ref_peaks = sorted(phase["peaks"], key=lambda r: -r.get("rel_intensity", 0))[:n_considered]
-            lines.append(f"Reference lines ({match['matched_count']}/{len(ref_peaks)} matched, "
-                         f"strongest {n_considered} lines considered):")
-            matched_by_d = {round(mm["reference"]["d_A"], 6): mm for mm in match["matches"]}
-            for ref in ref_peaks:
-                mm = matched_by_d.get(round(ref["d_A"], 6))
-                if mm:
-                    lines.append(f"  [MATCHED]   ref d={ref['d_A']:.4f} A (hkl {ref.get('hkl','')}, "
-                                 f"I={ref.get('rel_intensity','')})  ~ observed d={mm['observed_d_A']:.4f} A, "
-                                 f"delta={mm['delta_d_A']:+.4f} A  [ref: {source_short}]")
-                else:
-                    lines.append(f"  [not found] ref d={ref['d_A']:.4f} A (hkl {ref.get('hkl','')}, "
-                                 f"I={ref.get('rel_intensity','')})  [ref: {source_short}]")
-        else:
-            for mm in match["matches"]:
-                ref = mm["reference"]
-                lines.append(f"  observed d={mm['observed_d_A']:.4f} A  ~  ref d={ref['d_A']:.4f} A "
-                             f"(hkl {ref.get('hkl','')}, I={ref.get('rel_intensity','')}), delta={mm['delta_d_A']:+.4f} A  [ref: {source_short}]")
-        lines.append("")
-        lines.append("Full citation(s): see Help > Data Sources & References for the complete bibliography entries.")
-        self.match_detail.insert("1.0", "\n".join(lines))
-        self.match_detail.configure(state="disabled")
-
-        # Overlay the phase's FULL reference line list (not just the ones
-        # that happened to fall within tolerance) on the pattern, so the
-        # user can visually compare every expected reflection against their
-        # data -- including the ones that DIDN'T show up as a real peak.
-        if phase:
-            self.set_reference_overlay({"label": match["name"], "peaks": phase["peaks"]})
-        else:
-            self.clear_reference_overlay()
 
     def _show_wh_result(self, wh):
         self.wh_text.configure(state="normal")
@@ -436,7 +303,7 @@ class XRDTab(AnalysisTabBase):
             res["n_peaks"] = len(tt)
             t.metadata["wh_result"] = res
             self._show_wh_result(res)
-            self.results_notebook.select(2)
+            self.results_notebook.select(1)
         except Exception as e:
             Messagebox.show_error(str(e), "Error")
 
@@ -522,73 +389,6 @@ class XRDTab(AnalysisTabBase):
 
         self.run_background(compute, on_done, busy_text="Fitting peaks...")
 
-    def match_phases(self):
-        t = self._require_active()
-        if t is None:
-            return
-        if not t.peaks:
-            self.detect_peaks()
-            t = self.get_active()
-            if not t.peaks:
-                return
-        wl = self._get_wavelength()
-        tol = self.d_tolerance_var.get()
-        peaks_snapshot = t.peaks
-        merged = xrd_analysis.merged_database(self.database)
-        label_to_key = {v: k for k, v in xrd_analysis.PHASE_CATEGORY_LABELS.items()}
-        selected_label = self.category_var.get()
-        categories = None if selected_label == xrd_analysis.ALL_CATEGORIES_LABEL else [label_to_key[selected_label]]
-
-        cod_db_path = self.app.cod_db_path
-
-        def compute():
-            results = xrd_analysis.match_xrd_phases(peaks_snapshot, wl, merged, d_tolerance_pct=tol, categories=categories)
-            if cod_db_path:
-                import cod_database
-                observed = []
-                for p in peaks_snapshot:
-                    try:
-                        d = xrd_analysis.bragg_d_spacing(p["two_theta"], wl)
-                        observed.append({"d_A": float(d), "y": p.get("intensity", 0)})
-                    except Exception:
-                        continue
-                con = cod_database.open_db(cod_db_path)
-                # the bundled COD database's auto-classified categories
-                # (element/organic/oxide_or_mineral/halide_salt/inorganic)
-                # are a different, coarser vocabulary than the curated
-                # database's PHASE_CATEGORY_LABELS, so the category filter
-                # above only narrows the small curated+user database --
-                # the bundled COD search always covers every category.
-                cod_results = cod_database.match_by_peaks(con, observed, d_tolerance_pct=tol, max_results=50)
-                results = results + cod_results
-                results.sort(key=lambda r: (r["matched_count"], r["score"]), reverse=True)
-            return results
-
-        def on_done(matches):
-            t.matches = matches
-            self.on_active_trace_changed()
-            self.results_notebook.select(1)
-            scope = "all categories" if categories is None else selected_label
-            cod_note = " (including bundled COD database)" if cod_db_path else ""
-            self.app.set_status_message(f"{len(t.matches)} candidate phase(s) found in {scope}{cod_note} (tolerance {tol}%).")
-
-        self.run_background(compute, on_done, busy_text="Matching against XRD phase database...")
-
-    def open_database_viewer(self):
-        DatabaseViewerDialog(self.app.root, self.app.ftir_db, ftir_analysis,
-                              lambda: xrd_analysis.merged_database(self.database), xrd_analysis)
-
-    def open_hsrdb_import(self):
-        HsrdbImportDialog(self.app.root, self.app, xrd_analysis,
-                           on_imported=lambda: self.app.set_status_message(
-                               "Imported phase(s) from HighScore database into My Phases (local, COD-cited)."))
-
-    def open_lattice_refinement(self):
-        t = self._require_active()
-        if t is None:
-            return
-        LatticeRefinementDialog(self.app.root, self)
-
     def open_unit_converter(self):
         wl = self._get_wavelength()
         dlg = MultiFieldDialog(
@@ -615,34 +415,6 @@ class XRDTab(AnalysisTabBase):
         Messagebox.show_info(msg, "Conversion Result")
 
     # ---------------------------------------------------------------- export
-
-    def export_reference_peaks_csv(self):
-        if self._current_match_phase is None:
-            Messagebox.show_warning("Click a row in the Phase Matches table first.", "No Phase Selected")
-            return
-        phase = self._current_match_phase
-        match = self._current_match
-        ref_peaks = self._current_match_ref_peaks
-        matched_by_d = {round(mm["reference"]["d_A"], 6): mm for mm in match["matches"]}
-        wl = self._get_wavelength()
-        path = filedialog.asksaveasfilename(defaultextension=".csv", filetypes=[("CSV", "*.csv")],
-                                             initialfile=f"{phase['name']}_reference_peaks.csv")
-        if not path:
-            return
-        with open(path, "w", newline="") as f:
-            w = csv.writer(f)
-            w.writerow(["phase", "d_spacing_A", "two_theta_deg", "hkl", "rel_intensity",
-                        "matched_in_your_pattern", "observed_d_A", "delta_d_A", "source"])
-            for ref in ref_peaks:
-                mm = matched_by_d.get(round(ref["d_A"], 6))
-                tt = xrd_analysis.two_theta_from_d(ref["d_A"], wl)
-                w.writerow([phase["name"], f"{ref['d_A']:.5f}", f"{tt:.4f}" if tt is not None else "",
-                            ref.get("hkl", ""), ref.get("rel_intensity", ""),
-                            "yes" if mm else "no",
-                            f"{mm['observed_d_A']:.5f}" if mm else "",
-                            f"{mm['delta_d_A']:+.5f}" if mm else "",
-                            phase.get("source", "")])
-        Messagebox.show_info(f"Saved {len(ref_peaks)} reference peak(s) for {phase['name']} to {path}", "Exported")
 
     def export_peaks_csv(self):
         t = self._require_active()
@@ -685,12 +457,6 @@ class XRDTab(AnalysisTabBase):
                 rows.append([f"{p['two_theta']:.3f}", f"{p['intensity']:.1f}", f"{p['fwhm_deg']:.3f}",
                              f"{p['d_A']:.4f}" if p.get("d_A") else "-", f"{p['size_nm']:.2f}" if p.get("size_nm") else "-"])
             sections.append(("Detected Peaks", rows, None))
-        if t.matches:
-            rows = [["Phase", "Category", "System", "Score", "Matched/Total", "Source"]]
-            for m in t.matches[:12]:
-                rows.append([m["name"], m["category"], m.get("crystal_system", ""), f"{m['score']*100:.0f}%",
-                             f"{m['matched_count']}/{m['total_reference_peaks']}", m.get("source", "")])
-            sections.append(("Phase Matches (heuristic screening)", rows, None))
         wh = t.metadata.get("wh_result")
         if wh:
             size_txt = f"{wh['crystallite_size_nm']:.2f} nm" if wh["crystallite_size_nm"] else "not resolvable"
@@ -699,7 +465,9 @@ class XRDTab(AnalysisTabBase):
         if not sections:
             sections.append(("Notes", None, "No peaks were detected/analyzed on this trace."))
 
-        disclaimer = self.database.get("_meta", {}).get("note", "")
+        disclaimer = ("Peak positions, d-spacings and crystallite sizes are computed from the "
+                      "measured pattern. Scherrer and Williamson-Hall sizes are not corrected "
+                      "for instrumental broadening.")
         report_export.build_report(path, "XRD Analysis Report",
                                     f"Wavelength: {self._get_wavelength():.6f} A ({self.wl_var.get()})",
                                     tmp_png, sections, disclaimer, source_file=t.label)
@@ -714,13 +482,11 @@ class XRDTab(AnalysisTabBase):
             "wavelength_name": self.wl_var.get(),
             "custom_wl": self.custom_wl,
             "prominence": self.prom_var.get(),
-            "d_tolerance": self.d_tolerance_var.get(),
-            "category": self.category_var.get(),
             "active_id": self.active_id,
             "traces": [{
                 "label": t.label, "color": t.color, "visible": t.visible,
                 "x": t.x, "y": t.y, "y_raw": t.y_raw, "peaks": t.peaks,
-                "matches": t.matches, "fits": t.fits, "metadata": t.metadata, "id": t.id,
+                "fits": t.fits, "metadata": t.metadata, "id": t.id,
             } for t in self.traces],
         }
         session_io.save_session(path, state)
@@ -741,15 +507,12 @@ class XRDTab(AnalysisTabBase):
         self.wl_var.set(state.get("wavelength_name", "Cu Ka1"))
         self.custom_wl = state.get("custom_wl")
         self.prom_var.set(state.get("prominence", 2.0))
-        self.d_tolerance_var.set(state.get("d_tolerance", 1.5))
-        self.category_var.set(state.get("category", xrd_analysis.ALL_CATEGORIES_LABEL))
         self.traces = []
         for td in state.get("traces", []):
             t = Trace(td["label"], td["x"], td["y"], td["color"], metadata=td.get("metadata"))
             t.y_raw = np.array(td["y_raw"], dtype=float)
             t.visible = td.get("visible", True)
             t.peaks = td.get("peaks", [])
-            t.matches = td.get("matches", [])
             t.fits = td.get("fits", [])
             self.traces.append(t)
         self.active_id = state.get("active_id")
@@ -757,211 +520,3 @@ class XRDTab(AnalysisTabBase):
             self.active_id = self.traces[-1].id
         self._on_traces_changed()
         self.app.set_status_message(f"Loaded session {os.path.basename(path)} ({len(self.traces)} trace(s)).")
-
-
-class LatticeRefinementDialog(tb.Toplevel):
-    """
-    Iterative multi-peak unit-cell refinement: the user indexes several
-    detected peaks with (h,k,l), picks a crystal system, and the lattice
-    parameter(s) are refined by nonlinear least squares across ALL of them
-    at once, with automatic outlier (misindexed-peak) rejection -- see
-    formula_sources.ITERATIVE_LATTICE_REFINEMENT for the method and why
-    this is materially more accurate than the single-peak quick-calc.
-    """
-    def __init__(self, parent, xrd_tab):
-        super().__init__(parent)
-        self.xrd_tab = xrd_tab
-        self.title("Iterative Lattice Parameter Refinement")
-        self.geometry("880x680")
-        self.row_widgets = []
-
-        self._build_ui()
-        self._populate_from_detected_peaks()
-
-    def _build_ui(self):
-        top = tb.Frame(self, padding=10)
-        top.pack(fill="x")
-        tb.Label(top, text="Crystal system:").pack(side="left")
-        self.system_var = tb.StringVar(value="cubic")
-        tb.Combobox(top, textvariable=self.system_var, state="readonly", width=14,
-                    values=list(xrd_analysis.LATTICE_SYSTEMS.keys())).pack(side="left", padx=(4, 16))
-        tb.Label(top, text="Outlier threshold (sigma):").pack(side="left")
-        self.sigma_var = tb.DoubleVar(value=3.0)
-        tb.Spinbox(top, from_=1.5, to=10, increment=0.5, textvariable=self.sigma_var, width=6).pack(side="left", padx=4)
-        tb.Button(top, text="ⓘ", width=3, bootstyle="secondary-outline", command=self._show_formula).pack(side="left", padx=(12, 0))
-
-        btn_row = tb.Frame(self, padding=(10, 0))
-        btn_row.pack(fill="x")
-        tb.Button(btn_row, text="Populate from Detected Peaks", command=self._populate_from_detected_peaks).pack(side="left", padx=(0, 4))
-        tb.Button(btn_row, text="Auto-fill hkl from Top Phase Match", command=self._autofill_hkl).pack(side="left", padx=4)
-        tb.Button(btn_row, text="Add Blank Row", command=lambda: self._add_row()).pack(side="left", padx=4)
-        tb.Button(btn_row, text="Clear All Rows", bootstyle="danger-outline", command=self._clear_rows).pack(side="left", padx=4)
-
-        header = tb.Frame(self, padding=(10, 10, 10, 0))
-        header.pack(fill="x")
-        for text, w in [("2theta (deg)", 14), ("h", 6), ("k", 6), ("l", 6), ("", 4)]:
-            tb.Label(header, text=text, width=w, bootstyle="secondary").pack(side="left", padx=2)
-
-        self.rows_scroll = ScrolledFrame(self, autohide=True, height=180)
-        self.rows_scroll.pack(fill="x", padx=10, pady=(0, 6))
-
-        tb.Button(self, text="Run Iterative Refinement", bootstyle="success",
-                  command=self._run_refinement).pack(fill="x", padx=10, pady=(0, 8))
-
-        results_frame = tb.Frame(self, padding=10)
-        results_frame.pack(fill="both", expand=True)
-        tb.Label(results_frame, text="Summary", bootstyle="secondary").pack(anchor="w")
-        self.summary_text = tb.Text(results_frame, height=6, wrap="word")
-        self.summary_text.pack(fill="x")
-        self.summary_text.insert("1.0", "Enter/populate peaks with their (h,k,l) indices above, then click "
-                                         "'Run Iterative Refinement'.")
-        self.summary_text.configure(state="disabled")
-
-        tb.Label(results_frame, text="Per-Peak Residuals", bootstyle="secondary").pack(anchor="w", pady=(8, 0))
-        self.results_table = DataTable(results_frame,
-                                        [("hkl", "hkl"), ("obs", "2theta obs"), ("calc", "2theta calc"),
-                                         ("delta", "Delta (deg)"), ("used", "Used")],
-                                        height=9, widths={"hkl": 70, "obs": 100, "calc": 100, "delta": 100, "used": 60})
-        self.results_table.pack(fill="both", expand=True, pady=(4, 0))
-
-    # ---- row management ----
-
-    def _add_row(self, two_theta="", h="", k="", l=""):
-        row_frame = tb.Frame(self.rows_scroll)
-        row_frame.pack(fill="x", pady=1)
-        tt_var = tb.StringVar(value=str(two_theta))
-        h_var = tb.StringVar(value=str(h))
-        k_var = tb.StringVar(value=str(k))
-        l_var = tb.StringVar(value=str(l))
-        tb.Entry(row_frame, textvariable=tt_var, width=14).pack(side="left", padx=2)
-        tb.Entry(row_frame, textvariable=h_var, width=6).pack(side="left", padx=2)
-        tb.Entry(row_frame, textvariable=k_var, width=6).pack(side="left", padx=2)
-        tb.Entry(row_frame, textvariable=l_var, width=6).pack(side="left", padx=2)
-        row_record = {"frame": row_frame, "two_theta": tt_var, "h": h_var, "k": k_var, "l": l_var}
-        tb.Button(row_frame, text="×", width=3, bootstyle="danger-outline",
-                  command=lambda: self._remove_row(row_record)).pack(side="left", padx=2)
-        self.row_widgets.append(row_record)
-
-    def _remove_row(self, row_record):
-        row_record["frame"].destroy()
-        self.row_widgets.remove(row_record)
-
-    def _clear_rows(self):
-        for r in list(self.row_widgets):
-            self._remove_row(r)
-
-    def _populate_from_detected_peaks(self):
-        t = self.xrd_tab.get_active()
-        if t is None or not t.peaks:
-            return
-        self._clear_rows()
-        for p in t.peaks:
-            self._add_row(two_theta=f"{p['two_theta']:.3f}")
-
-    def _autofill_hkl(self):
-        t = self.xrd_tab.get_active()
-        if t is None or not t.matches:
-            Messagebox.show_warning("Run 'Match to Phase Database' on this trace first (Section 4), "
-                                     "then reopen this dialog.", "No Phase Match")
-            return
-        # Use whichever phase the user actually clicked in the Phase Matches
-        # table (tracked as _current_match), NOT always the top-ranked result
-        # -- the top match is often not the phase you actually want to index
-        # against. Only fall back to the top result if nothing has been
-        # clicked yet, and say so explicitly.
-        selected = self.xrd_tab._current_match
-        if selected is not None and selected in t.matches:
-            chosen_match = selected
-            fallback_used = False
-        else:
-            chosen_match = t.matches[0]
-            fallback_used = True
-        wl = self.xrd_tab._get_wavelength()
-
-        chosen_system = chosen_match.get("crystal_system")
-        if chosen_system in xrd_analysis.LATTICE_SYSTEMS:
-            self.system_var.set(chosen_system)
-
-        filled = 0
-        for row in self.row_widgets:
-            try:
-                tt = float(row["two_theta"].get())
-            except ValueError:
-                continue
-            d_obs = xrd_analysis.bragg_d_spacing(tt, wl)
-            candidates = chosen_match["matches"]
-            if not candidates:
-                continue
-            best = min(candidates, key=lambda m: abs(m["reference"]["d_A"] - d_obs))
-            if abs(best["reference"]["d_A"] - d_obs) / best["reference"]["d_A"] > 0.03:
-                continue
-            try:
-                hkl = xrd_analysis.parse_hkl(best["reference"].get("hkl", ""))
-            except ValueError:
-                hkl = None
-            if hkl is None or len(hkl) != 3:
-                continue
-            row["h"].set(str(hkl[0]))
-            row["k"].set(str(hkl[1]))
-            row["l"].set(str(hkl[2]))
-            filled += 1
-        note = (" (no row was selected in the Phase Matches table, so this used the "
-                "top-ranked result -- click a specific row there first if you want a "
-                "different phase)" if fallback_used else " (the phase you selected in the Phase Matches table)")
-        Messagebox.show_info(f"Filled hkl for {filled} row(s) from '{chosen_match['name']}'{note}. "
-                              f"Double-check these before refining -- auto-fill matches by nearest "
-                              f"d-spacing and can be wrong for closely-spaced or weak reflections.",
-                              "Auto-fill Complete")
-
-    def _show_formula(self):
-        fs.show_formula_dialog(self, "Iterative Lattice Refinement Method", fs.ITERATIVE_LATTICE_REFINEMENT)
-
-    # ---- refinement ----
-
-    def _run_refinement(self):
-        peaks = []
-        for row in self.row_widgets:
-            tt_s = row["two_theta"].get().strip()
-            h_s, k_s, l_s = row["h"].get().strip(), row["k"].get().strip(), row["l"].get().strip()
-            if not (tt_s and h_s and k_s and l_s):
-                continue
-            try:
-                peaks.append({"two_theta": float(tt_s), "h": int(h_s), "k": int(k_s), "l": int(l_s)})
-            except ValueError:
-                Messagebox.show_error(f"Could not parse row: 2theta={tt_s!r} h={h_s!r} k={k_s!r} l={l_s!r}", "Invalid Row")
-                return
-        if len(peaks) < 2:
-            Messagebox.show_warning("Enter 2theta and h,k,l for enough peaks (more than the number of lattice "
-                                     "parameters being refined) -- blank rows are ignored.", "Not Enough Peaks")
-            return
-        wl = self.xrd_tab._get_wavelength()
-        system = self.system_var.get()
-        sigma = self.sigma_var.get()
-        try:
-            res = xrd_analysis.refine_lattice_parameters(peaks, wl, crystal_system=system, outlier_sigma=sigma)
-        except Exception as e:
-            Messagebox.show_error(str(e), "Refinement Failed")
-            return
-        self._show_results(res)
-
-    def _show_results(self, res):
-        lines = [f"Crystal system: {res['crystal_system']}"]
-        for name, val in res["params"].items():
-            err = res["param_errors"].get(name, float("nan"))
-            lines.append(f"  {name} = {val:.5f} +/- {err:.5f} A")
-        lines.append(f"R-squared: {res['r_squared']:.6f}    Reduced chi-square: {res['reduced_chi_square']:.3e}")
-        lines.append(f"Peaks used: {res['n_peaks_used']}    Excluded as outliers: {res['n_peaks_excluded']}    "
-                      f"Refinement rounds: {res['rounds']}")
-        if not res["converged"]:
-            lines.append("WARNING: the fit did not fully converge -- treat these results with caution.")
-        self.summary_text.configure(state="normal")
-        self.summary_text.delete("1.0", "end")
-        self.summary_text.insert("1.0", "\n".join(lines))
-        self.summary_text.configure(state="disabled")
-
-        def fmt(p):
-            calc = f"{p['two_theta_calc']:.3f}" if p["two_theta_calc"] is not None else "-"
-            delta = f"{p['delta_two_theta']:+.3f}" if p["delta_two_theta"] is not None else "-"
-            return (f"{p['h']}{p['k']}{p['l']}", f"{p['two_theta_obs']:.3f}", calc, delta, "Yes" if p["used"] else "No")
-
-        self.results_table.set_rows(res["per_peak"], fmt)

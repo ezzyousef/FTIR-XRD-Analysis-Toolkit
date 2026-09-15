@@ -223,305 +223,23 @@ def save_figure_snapshot(fig, path):
     return path
 
 
-# ========================= Periodic Table Element Picker =========================
-
-# (symbol, row, col) for the standard 18-column periodic table layout, with
-# lanthanides/actinides pulled out to their own two rows below the main body
-# (rows 8/9, columns 3-17) -- exactly like the wall-chart layout, and like the
-# "chemical filter" element picker in commercial XRD search/match software.
-_PERIODIC_TABLE_LAYOUT = [
-    ("H", 1, 1), ("He", 1, 18),
-    ("Li", 2, 1), ("Be", 2, 2), ("B", 2, 13), ("C", 2, 14), ("N", 2, 15), ("O", 2, 16), ("F", 2, 17), ("Ne", 2, 18),
-    ("Na", 3, 1), ("Mg", 3, 2), ("Al", 3, 13), ("Si", 3, 14), ("P", 3, 15), ("S", 3, 16), ("Cl", 3, 17), ("Ar", 3, 18),
-    ("K", 4, 1), ("Ca", 4, 2), ("Sc", 4, 3), ("Ti", 4, 4), ("V", 4, 5), ("Cr", 4, 6), ("Mn", 4, 7), ("Fe", 4, 8),
-    ("Co", 4, 9), ("Ni", 4, 10), ("Cu", 4, 11), ("Zn", 4, 12), ("Ga", 4, 13), ("Ge", 4, 14), ("As", 4, 15),
-    ("Se", 4, 16), ("Br", 4, 17), ("Kr", 4, 18),
-    ("Rb", 5, 1), ("Sr", 5, 2), ("Y", 5, 3), ("Zr", 5, 4), ("Nb", 5, 5), ("Mo", 5, 6), ("Tc", 5, 7), ("Ru", 5, 8),
-    ("Rh", 5, 9), ("Pd", 5, 10), ("Ag", 5, 11), ("Cd", 5, 12), ("In", 5, 13), ("Sn", 5, 14), ("Sb", 5, 15),
-    ("Te", 5, 16), ("I", 5, 17), ("Xe", 5, 18),
-    ("Cs", 6, 1), ("Ba", 6, 2), ("Hf", 6, 4), ("Ta", 6, 5), ("W", 6, 6), ("Re", 6, 7), ("Os", 6, 8), ("Ir", 6, 9),
-    ("Pt", 6, 10), ("Au", 6, 11), ("Hg", 6, 12), ("Tl", 6, 13), ("Pb", 6, 14), ("Bi", 6, 15), ("Po", 6, 16),
-    ("At", 6, 17), ("Rn", 6, 18),
-    ("Fr", 7, 1), ("Ra", 7, 2), ("Rf", 7, 4), ("Db", 7, 5), ("Sg", 7, 6), ("Bh", 7, 7), ("Hs", 7, 8), ("Mt", 7, 9),
-    ("Ds", 7, 10), ("Rg", 7, 11), ("Cn", 7, 12), ("Nh", 7, 13), ("Fl", 7, 14), ("Mc", 7, 15), ("Lv", 7, 16),
-    ("Ts", 7, 17), ("Og", 7, 18),
-    ("La", 9, 3), ("Ce", 9, 4), ("Pr", 9, 5), ("Nd", 9, 6), ("Pm", 9, 7), ("Sm", 9, 8), ("Eu", 9, 9), ("Gd", 9, 10),
-    ("Tb", 9, 11), ("Dy", 9, 12), ("Ho", 9, 13), ("Er", 9, 14), ("Tm", 9, 15), ("Yb", 9, 16), ("Lu", 9, 17),
-    ("Ac", 10, 3), ("Th", 10, 4), ("Pa", 10, 5), ("U", 10, 6), ("Np", 10, 7), ("Pu", 10, 8), ("Am", 10, 9),
-    ("Cm", 10, 10), ("Bk", 10, 11), ("Cf", 10, 12), ("Es", 10, 13), ("Fm", 10, 14), ("Md", 10, 15), ("No", 10, 16),
-    ("Lr", 10, 17),
-]
-
-
-class PeriodicTableDialog(tb.Toplevel):
-    """
-    A clickable periodic table for picking which elements your sample
-    contains, then filtering the reference database down to phases that
-    contain all of them -- much faster than scrolling/typing names when you
-    don't know the exact compound name or formula, only its composition.
-
-    Construct, let the user toggle elements and click Apply/Clear, then read
-    `.result`: a list of element symbols if Apply was clicked, an empty list
-    if Clear was clicked, or None if the dialog was closed/cancelled without
-    changing anything.
-    """
-    def __init__(self, parent, initial_selection=None):
-        super().__init__(parent)
-        self.title("Select Elements")
-        self.resizable(False, False)
-        self.result = None
-        self.selected = set(initial_selection or [])
-        self._buttons = {}
-
-        tb.Label(self, text="Click elements present in your sample, then Apply Filter.\n"
-                             "Only phases containing ALL selected elements will be shown.",
-                 bootstyle="secondary", padding=(10, 10, 10, 0)).pack(anchor="w")
-
-        grid = tb.Frame(self, padding=10)
-        grid.pack()
-        for symbol, row, col in _PERIODIC_TABLE_LAYOUT:
-            btn = tb.Button(grid, text=symbol, width=4,
-                             bootstyle="success" if symbol in self.selected else "secondary-outline",
-                             command=lambda s=symbol: self._toggle(s))
-            btn.grid(row=row, column=col, padx=1, pady=1)
-            self._buttons[symbol] = btn
-
-        btn_row = tb.Frame(self, padding=10)
-        btn_row.pack(fill="x")
-        self.selection_label = tb.Label(btn_row, text=self._selection_text(), bootstyle="info")
-        self.selection_label.pack(side="left")
-        tb.Button(btn_row, text="Clear", bootstyle="danger-outline",
-                  command=self._clear).pack(side="right", padx=4)
-        tb.Button(btn_row, text="Apply Filter", bootstyle="success",
-                  command=self._apply).pack(side="right", padx=4)
-
-    def _selection_text(self):
-        return f"Selected: {', '.join(sorted(self.selected)) or '(none)'}"
-
-    def _toggle(self, symbol):
-        if symbol in self.selected:
-            self.selected.remove(symbol)
-            self._buttons[symbol].configure(bootstyle="secondary-outline")
-        else:
-            self.selected.add(symbol)
-            self._buttons[symbol].configure(bootstyle="success")
-        self.selection_label.configure(text=self._selection_text())
-
-    def _clear(self):
-        self.result = []
-        self.destroy()
-
-    def _apply(self):
-        self.result = sorted(self.selected)
-        self.destroy()
-
-
-# ==================== HighScore Reference Database (.hsrdb) Import ====================
-
-class HsrdbImportDialog(tb.Toplevel):
-    """
-    Search a reference database -- either this app's own bundled COD
-    (Crystallography Open Database) database (~511,000 phases, opened
-    automatically if present) or an external PANalytical/Malvern HighScore
-    .hsrdb file you point it at -- and import selected phases into your
-    local user-phase library.
-
-    Both backends (modules/cod_database.py and modules/hsrdb_reader.py)
-    expose the same function names/summary-dict shape, so this dialog
-    doesn't need to know or care which one it's talking to. An external file
-    is opened read-only wherever you keep it and is never bundled, embedded,
-    or committed by this app -- only the specific entries you explicitly
-    import get added to your local user-phases store (see
-    xrd_analysis.add_user_phases), each one carrying its own Crystallography
-    Open Database (COD) citation. See modules/hsrdb_reader.py and
-    modules/cod_database.py for exactly what was verified about the file
-    formats and where the data comes from.
-    """
-    def __init__(self, parent, app, xrd_module, on_imported=None):
-        super().__init__(parent)
-        self.app = app
-        self.xrd_module = xrd_module
-        self.on_imported = on_imported
-        self.con = None
-        self.backend = None
-        self.element_filter = []
-        self._results = []
-
-        self.title("Search Reference Database (bundled COD / HighScore .hsrdb)")
-        self.geometry("920x600")
-        self._build_ui()
-
-        bundled_path = getattr(self.app, "cod_db_path", None)
-        last_path = self.app.cfg.get("hsrdb_path", "")
-        if bundled_path and os.path.exists(bundled_path):
-            self._open_file(bundled_path)
-        elif last_path and os.path.exists(last_path):
-            self._open_file(last_path)
-
-    def _build_ui(self):
-        top = tb.Frame(self, padding=10)
-        top.pack(fill="x")
-        self.path_label = tb.Label(top, text="No file open.", bootstyle="secondary")
-        self.path_label.pack(side="left", fill="x", expand=True)
-        tb.Button(top, text="Open .hsrdb File...", bootstyle="info", command=self._choose_file).pack(side="right")
-
-        search_row = tb.Frame(self, padding=(10, 0))
-        search_row.pack(fill="x")
-        tb.Label(search_row, text="Search name/formula:").pack(side="left")
-        self.query_var = tb.StringVar()
-        ent = tb.Entry(search_row, textvariable=self.query_var, width=26)
-        ent.pack(side="left", padx=6)
-        ent.bind("<Return>", lambda e: self._search())
-        tb.Button(search_row, text="Select Elements...", command=self._open_element_picker).pack(side="left", padx=6)
-        self.element_label = tb.Label(search_row, text="", bootstyle="info")
-        self.element_label.pack(side="left", padx=(0, 6))
-        tb.Button(search_row, text="Search", bootstyle="primary", command=self._search).pack(side="left")
-
-        body = tb.Frame(self, padding=10)
-        body.pack(fill="both", expand=True)
-        self.results_table = DataTable(
-            body, [("name", "Name"), ("code", "Reference Code"), ("system", "System"), ("formula", "Formula")],
-            height=16, widths={"name": 240, "code": 130, "system": 90, "formula": 300})
-        self.results_table.pack(fill="both", expand=True)
-        select_row = tb.Frame(body)
-        select_row.pack(fill="x", pady=(4, 0))
-        tb.Label(select_row, text="Ctrl/Shift-click to select multiple rows (many materials have several "
-                                   "phases/polymorphs -- select all the ones you want, then import together).",
-                 bootstyle="secondary", font=("", 8)).pack(side="left")
-        tb.Button(select_row, text="Select All Results", bootstyle="secondary-outline",
-                  command=self._select_all_results).pack(side="right")
-
-        bottom = tb.Frame(self, padding=10)
-        bottom.pack(fill="x")
-        self.status_label = tb.Label(bottom, text="Open a .hsrdb file to begin.", bootstyle="secondary")
-        self.status_label.pack(side="left")
-        tb.Button(bottom, text="Import Selected to My Phases", bootstyle="success",
-                  command=self._import_selected).pack(side="right")
-
-    def _choose_file(self):
-        path = filedialog.askopenfilename(filetypes=[("HighScore Reference Database", "*.hsrdb"), ("All files", "*.*")])
-        if not path:
-            return
-        self._open_file(path)
-
-    def _open_file(self, path):
-        import hsrdb_reader
-        import cod_database
-        con = None
-        backend = None
-        errors = []
-        for candidate in (hsrdb_reader, cod_database):
-            try:
-                con = candidate.open_hsrdb(path)
-                backend = candidate
-                break
-            except ValueError as e:
-                errors.append(str(e))
-        if con is None:
-            Messagebox.show_error("\n\n".join(errors), "Open Failed")
-            return
-        n = backend.count_entries(con)
-        self.con = con
-        self.backend = backend
-        is_bundled = getattr(self.app, "cod_db_path", None) and os.path.abspath(path) == os.path.abspath(self.app.cod_db_path)
-        label = "Bundled COD database" if is_bundled else path
-        self.path_label.configure(text=f"{label}   ({n:,} entries)")
-        if not is_bundled:
-            self.app.cfg["hsrdb_path"] = path
-            from app_config import save_config
-            save_config(self.app.cfg)
-        self.status_label.configure(text=f"Opened -- {n:,} entries available. Search by name/formula or elements.")
-
-    def _open_element_picker(self):
-        dlg = PeriodicTableDialog(self, initial_selection=self.element_filter)
-        self.wait_window(dlg)
-        if dlg.result is not None:
-            self.element_filter = dlg.result
-            self.element_label.configure(text=f"Elements: {', '.join(self.element_filter) or '(none)'}")
-
-    def _search(self):
-        if self.con is None:
-            Messagebox.show_warning("Open a .hsrdb file first.", "No File Open")
-            return
-        query = self.query_var.get()
-        if not query and not self.element_filter:
-            Messagebox.show_warning("Enter a search term or select elements first -- searching with no "
-                                     "filter at all would try to list all 500,000+ entries.", "Search Too Broad")
-            return
-        self.status_label.configure(text="Searching...")
-        self.update_idletasks()
-        try:
-            results = self.backend.search_hsrdb(self.con, query=query, elements=self.element_filter, limit=300)
-        except Exception as e:
-            Messagebox.show_error(str(e), "Search Failed")
-            return
-        self._results = results
-        self.results_table.set_rows(results, lambda r: (
-            r["compound_name"] or r["mineral_name"] or r["common_name"] or "(unnamed)",
-            r.get("reference_code", ""), r.get("crystal_system", ""), r["formula"]))
-        cap_note = " (capped at 300 -- narrow your search for a complete list)" if len(results) == 300 else ""
-        self.status_label.configure(text=f"{len(results)} result(s){cap_note}.")
-
-    def _select_all_results(self):
-        children = self.results_table.tree.get_children()
-        if not children:
-            Messagebox.show_warning("Search for something first.", "No Results")
-            return
-        self.results_table.tree.selection_set(children)
-
-    def _import_selected(self):
-        sel = self.results_table.tree.selection()
-        if not sel or self.con is None:
-            Messagebox.show_warning("Search and select at least one row first.", "Nothing Selected")
-            return
-        imported = []
-        errors = []
-        for iid in sel:
-            idx = int(iid)
-            r = self.results_table._rows_data[idx]
-            try:
-                phase = self.backend.get_phase_detail(self.con, r["id"], top_n=20)
-                imported.append(phase)
-            except Exception as e:
-                errors.append(f"{r.get('reference_code', '?')}: {e}")
-        if imported:
-            self.xrd_module.add_user_phases(imported)
-            if self.on_imported:
-                self.on_imported()
-        msg = f"Imported {len(imported)} phase(s) to My Phases (local, persisted, cited to COD)."
-        if errors:
-            msg += "\n\nFailed:\n" + "\n".join(errors)
-        Messagebox.show_info(msg, "Import Complete" if not errors else "Import Partially Complete")
-
-
 # ============================= Database Viewer =============================
 
 class DatabaseViewerDialog(tb.Toplevel):
     """
-    Browse the built-in FTIR reference database and XRD phase database, see
-    every peak/line and its literature source, and (for XRD) import extra
-    phases from a CSV the user transcribed from their own reference source.
+    Browse the built-in FTIR reference database: every material, its peaks and
+    the literature source behind each one.
     """
-    def __init__(self, parent, ftir_db, ftir_module, xrd_db_provider, xrd_module, on_phases_imported=None):
+    def __init__(self, parent, ftir_db, ftir_module):
         super().__init__(parent)
-        self.title("Reference Database Viewer")
+        self.title("FTIR Reference Database")
         self.geometry("880x600")
         self.ftir_db = ftir_db
         self.ftir_module = ftir_module
-        self.xrd_db_provider = xrd_db_provider  # callable() -> merged xrd db (built-in + user)
-        self.xrd_module = xrd_module
-        self.on_phases_imported = on_phases_imported
 
-        nb = tb.Notebook(self)
-        nb.pack(fill="both", expand=True, padx=10, pady=10)
-
-        self.ftir_frame = tb.Frame(nb, padding=8)
-        self.xrd_frame = tb.Frame(nb, padding=8)
-        nb.add(self.ftir_frame, text="FTIR Reference Database")
-        nb.add(self.xrd_frame, text="XRD Phase Database")
-
+        self.ftir_frame = tb.Frame(self, padding=8)
+        self.ftir_frame.pack(fill="both", expand=True, padx=10, pady=10)
         self._build_ftir_tab()
-        self._build_xrd_tab()
 
     def _build_ftir_tab(self):
         top = tb.Frame(self.ftir_frame)
@@ -564,106 +282,12 @@ class DatabaseViewerDialog(tb.Toplevel):
     def _show_ftir_detail(self, entry):
         self.ftir_detail.set_rows(entry["peaks"], lambda p: (f"{p['range'][0]}-{p['range'][1]}", p["assignment"], p.get("intensity", "")))
 
-    def _build_xrd_tab(self):
-        self.xrd_element_filter = []
-
-        top = tb.Frame(self.xrd_frame)
-        top.pack(fill="x")
-        tb.Label(top, text="Search:").pack(side="left")
-        self.xrd_query = tb.StringVar()
-        ent = tb.Entry(top, textvariable=self.xrd_query, width=30)
-        ent.pack(side="left", padx=6)
-        ent.bind("<KeyRelease>", lambda e: self._refresh_xrd())
-
-        tb.Button(top, text="Select Elements (Periodic Table)...", bootstyle="primary",
-                  command=self._open_element_picker).pack(side="left", padx=6)
-
-        tb.Button(top, text="Import Phases from CSV...", bootstyle="info", command=self._import_csv).pack(side="right", padx=4)
-        tb.Button(top, text="Remove Selected User Phase", bootstyle="danger-outline", command=self._remove_user_phase).pack(side="right", padx=4)
-
-        filter_row = tb.Frame(self.xrd_frame)
-        filter_row.pack(fill="x")
-        self.xrd_element_filter_label = tb.Label(filter_row, text="", bootstyle="info")
-        self.xrd_element_filter_label.pack(side="left")
-
-        body = tb.Frame(self.xrd_frame)
-        body.pack(fill="both", expand=True, pady=(8, 0))
-
-        self.xrd_list = DataTable(body, [("name", "Phase"), ("category", "Category"), ("system", "Crystal System"), ("nlines", "# Lines"), ("source", "Source")],
-                                   height=16, widths={"name": 220, "category": 90, "system": 100, "nlines": 55, "source": 180})
-        self.xrd_list.pack(side="left", fill="both", expand=True)
-        self.xrd_list.on_select = self._show_xrd_detail
-
-        detail_frame = tb.Frame(body)
-        detail_frame.pack(side="left", fill="both", expand=True, padx=(8, 0))
-        tb.Label(detail_frame, text="Reference Lines", bootstyle="secondary").pack(anchor="w")
-        self.xrd_detail = DataTable(detail_frame, [("d", "d (A)"), ("hkl", "hkl"), ("intensity", "Rel. Intensity")],
-                                     height=16, widths={"d": 90, "hkl": 90, "intensity": 100})
-        self.xrd_detail.pack(fill="both", expand=True)
-
-        self._refresh_xrd()
-
-    def _open_element_picker(self):
-        dlg = PeriodicTableDialog(self, initial_selection=self.xrd_element_filter)
-        self.wait_window(dlg)
-        if dlg.result is not None:
-            self.xrd_element_filter = dlg.result
-            self._refresh_xrd()
-
-    def _refresh_xrd(self):
-        db = self.xrd_db_provider()
-        entries = self.xrd_module.search_xrd_database(db, self.xrd_query.get(), elements=self.xrd_element_filter)
-        self.xrd_list.set_rows(entries, lambda p: (p["name"], p.get("category", ""), p.get("crystal_system", ""), len(p["peaks"]), p.get("source", "")))
-        self.xrd_detail.clear()
-        if self.xrd_element_filter:
-            self.xrd_element_filter_label.configure(
-                text=f"Element filter: {', '.join(self.xrd_element_filter)} ({len(entries)} matching phase(s))")
-        else:
-            self.xrd_element_filter_label.configure(text="")
-
-    def _show_xrd_detail(self, phase):
-        rows = sorted(phase["peaks"], key=lambda r: -r.get("rel_intensity", 0))
-        self.xrd_detail.set_rows(rows, lambda p: (f"{p['d_A']:.4f}", p.get("hkl", ""), p.get("rel_intensity", "")))
-
-    def _import_csv(self):
-        from tkinter import filedialog
-        path = filedialog.askopenfilename(title="Import Reference Phases from CSV",
-                                           filetypes=[("CSV files", "*.csv"), ("All files", "*.*")])
-        if not path:
-            return
-        try:
-            new_phases = self.xrd_module.import_phases_from_csv(path)
-            self.xrd_module.add_user_phases(new_phases)
-        except Exception as e:
-            Messagebox.show_error(str(e), "Import Failed")
-            return
-        Messagebox.show_info(f"Imported {len(new_phases)} phase(s) from {os.path.basename(path)}.", "Import Complete")
-        self._refresh_xrd()
-        if self.on_phases_imported:
-            self.on_phases_imported()
-
-    def _remove_user_phase(self):
-        sel = self.xrd_list.tree.selection()
-        if not sel:
-            Messagebox.show_warning("Select a phase in the list first.", "No Selection")
-            return
-        idx = int(sel[0])
-        entry = self.xrd_list._rows_data[idx]
-        user_names = {p["name"] for p in self.xrd_module.load_user_phases()}
-        if entry["name"] not in user_names:
-            Messagebox.show_warning("Only user-imported phases can be removed here (built-in phases are read-only).", "Not Removable")
-            return
-        self.xrd_module.remove_user_phase(entry["name"])
-        self._refresh_xrd()
-        if self.on_phases_imported:
-            self.on_phases_imported()
-
 
 # ============================= References dialog =============================
 
 class ReferencesDialog(tb.Toplevel):
-    """Shows the full bibliography behind the FTIR + XRD reference databases."""
-    def __init__(self, parent, ftir_db, xrd_db):
+    """Shows the full bibliography behind the FTIR reference database."""
+    def __init__(self, parent, ftir_db):
         super().__init__(parent)
         self.title("Data Sources & References")
         self.geometry("640x520")
@@ -672,7 +296,7 @@ class ReferencesDialog(tb.Toplevel):
         frm.pack(fill="both", expand=True)
 
         tb.Label(frm, text="Data Sources & References", font=("", 14, "bold"), bootstyle="primary").pack(anchor="w")
-        tb.Label(frm, text="Every material/phase entry in the built-in databases carries a 'source' tag "
+        tb.Label(frm, text="Every material entry in the built-in FTIR database carries a 'source' tag "
                             "referencing one or more of the works below. This toolkit compiles well-known, "
                             "published correlation tables and crystallographic constants -- it is a screening "
                             "aid, not a certified reference measurement. Always confirm anything consequential "
@@ -683,16 +307,13 @@ class ReferencesDialog(tb.Toplevel):
         text.pack(fill="both", expand=True)
 
         seen = {}
-        for db in (ftir_db, xrd_db):
+        for db in (ftir_db,):
             for ref in db.get("_meta", {}).get("references", []):
                 seen[ref["id"]] = ref["citation"]
 
         lines = []
         lines.append("FTIR reference database note:")
         lines.append("  " + ftir_db.get("_meta", {}).get("note", ""))
-        lines.append("")
-        lines.append("XRD reference database note:")
-        lines.append("  " + xrd_db.get("_meta", {}).get("note", ""))
         lines.append("")
         lines.append("Bibliography:")
         for i, (rid, citation) in enumerate(sorted(seen.items()), 1):
@@ -726,8 +347,8 @@ class AboutDialog(tb.Toplevel):
         tb.Label(frm, text="Professional Edition", bootstyle="secondary").pack(pady=(0, 10))
         tb.Label(frm, text=(
             "A desktop toolkit for FTIR spectral identification and XRD pattern\n"
-            "analysis: peak detection, database phase/material matching, peak\n"
-            "fitting, Williamson-Hall analysis, PDF reporting, and session save/load.\n\n"
+            "analysis: peak detection, FTIR material matching, peak fitting,\n"
+            "Williamson-Hall analysis, PDF reporting, and session save/load.\n\n"
             "All reference data is drawn from published literature (see\n"
             "Help > Data Sources & References) and is a screening aid, not a\n"
             "certified identification."

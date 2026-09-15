@@ -12,13 +12,13 @@ A professional Windows desktop application (Tkinter/ttkbootstrap) for:
   accurate and faster matching.
 - **XRD**: reading multiple diffractometer file formats, peak detection,
   d-spacing (Bragg's law), crystallite size (Scherrer equation),
-  Williamson-Hall size/strain analysis, approximate % crystallinity, cubic
-  lattice parameter estimation, and matching against a **23-phase reference
-  database** (metals, oxides, minerals, salts, semiconductors, carbon
-  allotropes) by wavelength-independent d-spacing — also restrictable by
-  category, and extensible via CSV import of your own reference cards.
+  Williamson-Hall size/strain analysis, approximate % crystallinity, SNIP
+  background subtraction, 2θ/d/Q conversion, single-peak cubic lattice
+  parameter estimation, and peak fitting. Phase identification against
+  reference cards is out of scope — use your diffractometer's search/match
+  software for that, then bring the pattern here for the quantitative work.
 
-Every database entry and every calculation carries a **literature citation**
+Every FTIR database entry and every calculation carries a **literature citation**
 — click the ⓘ button next to a tool, or open **Help → Data Sources &
 References** inside the app.
 
@@ -85,33 +85,19 @@ needed, works on any OS with Python 3.10+.
 3. **Williamson-Hall** separates size vs. strain broadening (needs 3+ peaks).
 4. **% Crystallinity** — specify crystalline vs. amorphous-halo 2θ regions.
 5. **Cubic Lattice Parameter** — a quick single-peak estimate (cubic only).
-   For an accurate result, use **Iterative Lattice Refinement** instead: index
-   several detected peaks with their (h,k,l) (use **Auto-fill hkl from Top
-   Phase Match** for a starting guess after running phase ID, then verify
-   them), pick a crystal system (cubic/tetragonal/hexagonal/orthorhombic),
-   and it refines the lattice parameter(s) by nonlinear least squares across
-   **all** of them at once — with automatic outlier rejection that repeats
-   the fit, dropping any peak whose residual is inconsistent with the rest
-   (catches a wrong hkl assignment), until it converges. Reports each
-   parameter with a real uncertainty, R², and a per-peak residual table.
-6. **Match to Phase Database** — screens detected peaks (as wavelength-
-   independent d-spacings) against the 23-phase database. **Open Database
-   Viewer / Import CSV** lets you add your own phases (e.g. transcribed from
-   a certified ICDD PDF card in your own diffraction software) — they persist
-   across sessions.
-7. **Fit All Detected Peaks**, **Export Peak List (CSV)**, **Export PDF
+6. **Fit All Detected Peaks**, **Export Peak List (CSV)**, **Export PDF
    Report**, or **Save/Load Session**.
 
 ### Everywhere
-- **Tools → Reference Database Viewer** browses every material/phase entry,
-  its peaks, and its literature source.
+- **Tools → FTIR Reference Database** browses every material entry, its
+  peaks, and its literature source.
 - **Help → Data Sources & References** lists the full bibliography.
 - **View → Light/Dark Themes** — 18 ttkbootstrap themes, persisted across runs.
 - Long-running matches/fits run on a background thread so the window stays
   responsive.
 
 ## Important accuracy notes
-- All reference-database peak positions/d-spacings are compiled from standard,
+- All FTIR reference-database peak positions are compiled from standard,
   published literature (see in-app citations), not certified measurements of
   a specific sample batch. Treat matches as a starting point, not a
   certificate of identity.
@@ -134,11 +120,10 @@ ftir_xrd_toolkit/
   requirements.txt
   database/
     ftir_reference_db.json         # 224 materials + 67 functional groups, cited
-    xrd_reference_db.json          # 23 phases, cited
   modules/
     file_readers.py                # FTIR/XRD file format readers
     ftir_analysis.py               # Peak detection, DB matching, calculations
-    xrd_analysis.py                # Bragg/Scherrer/W-H/crystallinity, phase matching
+    xrd_analysis.py                # Bragg/Scherrer/W-H/crystallinity/SNIP/conversions
     peak_fitting.py                # Gaussian/Lorentzian/pseudo-Voigt fitting
     signal_utils.py                # Shared smoothing helpers
     report_export.py               # PDF report generation
@@ -154,7 +139,7 @@ ftir_xrd_toolkit/
   assets/                          # App icon, EML logo
 ```
 
-You can extend either database by editing its JSON file directly, or (for
-XRD) via the in-app **Import Phases from CSV** — no code changes needed.
+You can extend the FTIR database by editing its JSON file directly — no code
+changes needed.
 
 Run the test suite with `pytest tests/`.

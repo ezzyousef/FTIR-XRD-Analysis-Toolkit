@@ -64,32 +64,6 @@ CUBIC_LATTICE_PARAMETER = (
     "triclinic systems each need a different (more complex) formula."
 )
 
-ITERATIVE_LATTICE_REFINEMENT = (
-    "Q = 1/d² expressed per crystal system:\n"
-    "  Cubic:         Q = (h²+k²+l²)/a²\n"
-    "  Tetragonal:    Q = (h²+k²)/a² + l²/c²\n"
-    "  Hexagonal:     Q = (4/3)(h²+hk+k²)/a² + l²/c²\n"
-    "  Orthorhombic:  Q = h²/a² + k²/b² + l²/c²\n\n"
-    "Refines the lattice parameter(s) by nonlinear least squares "
-    "(Levenberg-Marquardt) across ALL indexed peaks simultaneously, "
-    "instead of computing 'a' from a single peak -- this averages down "
-    "measurement noise and gives a real, statistically meaningful "
-    "uncertainty on each parameter. After each fit, peaks whose residual "
-    "exceeds your outlier threshold (a robust median-absolute-deviation "
-    "scale, not a plain standard deviation, so one bad peak can't inflate "
-    "its own exclusion threshold) are dropped and the fit is REPEATED -- "
-    "iterating until no further peaks are excluded. This is what catches a "
-    "peak that was assigned the wrong (h,k,l) index.\n\n"
-    "Source: standard least-squares unit-cell refinement methodology, e.g. "
-    "Cullity & Stock, Elements of X-Ray Diffraction, 3rd ed., 2001, Ch. 11 "
-    "(Precise Lattice-Parameter Measurements); the underlying single-peak "
-    "relations are the same standard interplanar-spacing formulas as the "
-    "Cubic Lattice Parameter tool, extended here to tetragonal/hexagonal/"
-    "orthorhombic and to multi-peak least squares. Requires each peak to "
-    "already be correctly indexed (h,k,l) by you -- this refines the cell "
-    "given the indexing, it does not do the indexing itself."
-)
-
 BEER_LAMBERT = (
     "A = ε·l·c   →   c = A / (ε·l)\n\n"
     "A = absorbance (dimensionless)\n"
@@ -120,18 +94,6 @@ FTIR_DATABASE_MATCHING = (
     "spectrum (NIST WebBook, SDBS) or an expert. See Help > Data Sources "
     "& References for exactly which literature each entry's ranges come "
     "from."
-)
-
-XRD_PHASE_MATCHING = (
-    "Screening method: each detected peak's 2θ is converted to a "
-    "d-spacing via Bragg's law (wavelength-independent), then compared "
-    "against each reference phase's strongest published d-spacings (+/- "
-    "your % tolerance). Score is intensity-weighted coverage of the "
-    "reference lines.\n\n"
-    "This is a HEURISTIC screening tool, not definitive phase "
-    "identification -- always confirm against a certified ICDD PDF-2/"
-    "PDF-4 card for anything consequential. See Help > Data Sources & "
-    "References for the literature behind the built-in phases."
 )
 
 PEAK_FITTING = (
