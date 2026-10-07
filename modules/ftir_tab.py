@@ -135,6 +135,9 @@ def evidence_lines(match, entry, verdict=None, pattern_r=None):
     for ref in (entry or {}).get("peaks", []):
         if not ftir_matching.is_matchable(ref):
             lines.append(f"  · (IR-inactive) {ref['assignment']}")
+    prov = (entry or {}).get("provenance") or {}
+    if prov.get("verify"):
+        lines.append(f"  ⚠ Entry added from literature excerpts ({prov.get('confidence', '?')} confidence) — verify")
     lines += ["", f"Source: {full_source}"]
     return lines
 
@@ -772,6 +775,11 @@ class FTIRTab(AnalysisTabBase):
                              " — a peak list cannot tell these apart; treat the match as the family.")
             if match.get("outside_count"):
                 warns.append(f"{match['outside_count']} band(s) outside the measured range were not scored.")
+            prov = (entry or {}).get("provenance") or {}
+            if prov.get("verify"):
+                warns.append(f"This entry was added in {prov.get('added', '')[:4]} from literature excerpts "
+                             f"({prov.get('confidence', '?')} confidence) and is marked for verification — "
+                             "see docs/FTIR_DATABASE_ADDITIONS.md.")
             for w in warns:
                 out.append(f"<div style='color:{c['warn']}'>⚠ {e(w)}</div>")
             rows = []

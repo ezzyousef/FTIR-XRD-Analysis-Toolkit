@@ -59,7 +59,7 @@ def audit(db):
             for key in ("name", "category", "source", "peaks"):
                 if not e.get(key):
                     errors.append(f"{where}: missing '{key}'")
-            cited = re.findall(r"[a-z]+\d{4}|\bnist\b|\bsdbs\b|\bicdd\b|\bcod\b", e.get("source", ""))
+            cited = re.findall(r"\b[a-z][a-z0-9]*\d{4}\b|\bnist\b|\bsdbs\b|\bicdd\b|\bcod\b", e.get("source", ""))
             for c in cited:
                 if c not in refs:
                     errors.append(f"{where}: cites '{c}', which is not in _meta.references")

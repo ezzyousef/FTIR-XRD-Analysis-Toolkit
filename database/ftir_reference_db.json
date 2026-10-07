@@ -2,7 +2,7 @@
   "_meta": {
     "note": "Peak positions are typical literature ranges (cm-1) compiled from standard FTIR spectroscopy correlation-table references (polymer/materials/biomolecule spectroscopy literature). These are reference/approximate ranges, not certified measurements of a specific sample batch. For publication-grade identification, always cross-check against NIST Chemistry WebBook, SDBS, or a certified reference spectrum. Every entry below carries a 'source' field naming the reference literature its ranges are drawn from -- use it to trace and verify any match.",
     "units": "wavenumber (cm-1)",
-    "version": "4.2",
+    "version": "4.3",
     "categories": [
       "polymers",
       "hydrogels",
@@ -60,6 +60,94 @@
       {
         "id": "cod",
         "citation": "Crystallography Open Database (COD), crystallography.net – open-access crystal structure data, for cross-checking unit-cell/d-spacing values."
+      },
+      {
+        "id": "bertie1996",
+        "citation": "Bertie, J.E.; Lan, Z. – Infrared intensities of liquids XX: the intensity of the OH stretching band of liquid water revisited, and the best current values of the optical constants of H2O(l) at 25 °C between 15,000 and 1 cm-1. Appl. Spectrosc. 50 (1996) 1047."
+      },
+      {
+        "id": "verma2017",
+        "citation": "Verma, P.K. et al. – The bend+libration combination band is an intrinsic, collective, and strongly solute-dependent reporter on the hydrogen bonding network of liquid water. J. Phys. Chem. B (2017)."
+      },
+      {
+        "id": "chieffo2007",
+        "citation": "Chieffo, L.R. et al. – Ultrafast vibrational relaxation of liquid H2O following librational combination band excitation. Chem. Phys. (2007)."
+      },
+      {
+        "id": "carpenter2017",
+        "citation": "Carpenter, W. et al. – Delocalization and stretch-bend mixing of the HOH bend in liquid water. J. Chem. Phys. (2017)."
+      },
+      {
+        "id": "xu2019",
+        "citation": "Xu, J. et al. – First-principles study of the infrared spectrum in liquid water from a systematically improved description of H-bond network. Phys. Rev. B (2019); arXiv:1909.10632."
+      },
+      {
+        "id": "cha1999",
+        "citation": "Cha, D.-K. et al. – Solvent-induced frequency shifts in the infrared spectrum of acetone in organic solvents. Phys. Chem. Chem. Phys. (1999)."
+      },
+      {
+        "id": "dellepiane1966",
+        "citation": "Dellepiane, G.; Overend, J. – Vibrational spectra and assignment of acetone, ααα acetone-d3 and acetone-d6. Spectrochim. Acta (1966)."
+      },
+      {
+        "id": "dmsoir2019",
+        "citation": "Supplementary information of 'Complementary vibrational spectroscopy' (arXiv:1904.02857, 2019): IR bands of DMSO in a benzene/DMSO mixture."
+      },
+      {
+        "id": "dmsoeg2026",
+        "citation": "'IR spectroscopy of ethylene glycol solutions of dimethylsulfoxide', Russ. J. Phys. Chem. A (journals.rcsi.science/0036-0244/article/view/170053) – S=O band at 1057 cm-1 in solution."
+      },
+      {
+        "id": "hudson2019",
+        "citation": "Hudson, R.L. et al. – Infrared intensities and molar refraction of amorphous dimethyl carbonate. (NASA GSFC Cosmic Ice Lab, 2019; PMC8865332)."
+      },
+      {
+        "id": "dmcweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07): DMC carbonyl near 1750 cm-1 in electrolyte (US patent 10686223/11011781) and free C=O near 1767 cm-1 in LiPF6/DMC 2D-IR work (RSC PCCP supplementary c7cp05096h); saturated-carbonate O-C-O 1280-1240 cm-1 (Spectroscopy, 'Infrared spectroscopy of polymers IX')."
+      },
+      {
+        "id": "ecweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07): EC C=O doublet 1774/1803, ring breathing 893 and C=O bend 718 cm-1 in pure EC (FTIR study of EC with LiCF3SO3, Univ. Malaya repository eprints.um.edu.my/8478); free-EC ring breathing 896 cm-1 (Sigma-Aldrich technical paper 239378)."
+      },
+      {
+        "id": "goweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07) from graphene-oxide FTIR papers: Materials 13 (2020) 1081 (doi:10.3390/ma13051081) and RSC supplementary files c6ra13865a, c2jm35429b, c2cc33829g, d3ra07254a; overview: Frogley et al., Vib. Spectrosc. 75 (2014) 178 (not opened)."
+      },
+      {
+        "id": "rgoweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07) on reduced graphene oxide: 'Combined effects of functional groups, lattice defects, and edges in the infrared spectra of graphene oxide' (Princeton, J. Phys. Chem. C) and RSC supplementary files c2jm31158e, c2ra21825a, c3ra40412a."
+      },
+      {
+        "id": "cntweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07) on oxidized multi-walled carbon nanotubes: US patents 9704628 and 9884987, RSC supplementary files c3ra40662h, c2jm34361d, c6tb02344d, and PMC9648156 table 1."
+      },
+      {
+        "id": "cmcweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07) on carboxymethyl cellulose: CMC crosslinked with citric acid (RSC Adv. supplementary d3ra01519j / d0ra00999g), 'Raman and FTIR spectroscopic study of carboxymethylated non-starch polysaccharides' (VTC repository), and CMC from kenaf/pineapple studies."
+      },
+      {
+        "id": "nafionweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07) on Nafion: 'Signal enhanced FTIR analysis of alignment in Nafion thin films at SiO2 and Au interfaces' (Penn State); J. Mater. Chem. A correction d4ta90108h (2024); 'Categorization of sulfonated ionomer vibrational modes by exchange site symmetry' (Northeastern, hdl 2047/D20248678); RSC suppl. c2ta00955b."
+      },
+      {
+        "id": "lipf6web2026",
+        "citation": "Web excerpts (accessed 2026-10-07): 'Solid state vibrational spectroscopy of anhydrous lithium hexafluorophosphate (LiPF6)' (T1u at 567 cm-1; P-F stretch 826 cm-1); 'An infrared, Raman, and X-ray database of battery interphase components' (arXiv:2310.13871); free/ion-paired PF6- at 843/834 cm-1 in carbonate electrolytes."
+      },
+      {
+        "id": "lfpweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07) on LiFePO4: 'Suppression of FeLi antisite defects in fluorine-doped LiFePO4' (Boise State, nu1 P-O at 970 -> 957 cm-1); Wu et al. (Henkelman group), 'In situ Raman spectroscopy of LiFePO4: size and ...' (O-P-O bending 593-637 cm-1); nu3 P-O stretching 1000-1200 cm-1; overview: 'FTIR features of lithium-iron phosphates as electrode materials', Spectrochim. Acta A (2006) (not opened)."
+      },
+      {
+        "id": "ethanolweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07): neat alcohol O-H 3500-3200 cm-1, ethanol O-H 3391 and C-O 1102/1055 cm-1 (University of Colorado Boulder IR tutorial, orgchemboulder.com)."
+      },
+      {
+        "id": "acetoneweb2026",
+        "citation": "Web excerpts (accessed 2026-10-07): acetone CH3 deformation 1365 and C-C stretch 1225 cm-1 (FTIR spectral guide, brainbound.blog; educational source)."
+      },
+      {
+        "id": "waterweb2026",
+        "citation": "Web excerpt (accessed 2026-10-07): liquid water bend v2 1644 cm-1 (University of Sydney chemistry teaching material, scilearn.sydney.edu.au)."
       }
     ],
     "schema": {
@@ -75,6 +163,13 @@
         "changes": [
           "Intensity labels normalised to one vocabulary and word order (86 labels; meaning unchanged, e.g. 'broad, strong' -> 'strong, broad').",
           "Schema and audit tool documented in _meta; no band positions were changed."
+        ]
+      },
+      {
+        "version": "4.3",
+        "changes": [
+          "Added 13 materials relevant to energy-materials labs (water, ethanol, acetone, DMSO, EC, DMC, GO, rGO, oxidized MWCNT, CMC, Nafion, LiPF6, LiFePO4).",
+          "Their bands come from quoted excerpts of the cited sources found by literature/web search; each entry carries a 'provenance' block with a confidence level and verify=true. Evidence per band: docs/FTIR_DATABASE_ADDITIONS.md."
         ]
       }
     ]
@@ -6087,6 +6182,138 @@
           "intensity": "strong, broad"
         }
       ]
+    },
+    {
+      "name": "Carboxymethyl Cellulose (CMC, sodium salt)",
+      "category": "polymer",
+      "source": "cmcweb2026",
+      "peaks": [
+        {
+          "range": [
+            3200,
+            3500
+          ],
+          "assignment": "O-H stretching",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            1590,
+            1615
+          ],
+          "assignment": "COO- asymmetric stretching",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            1410,
+            1425
+          ],
+          "assignment": "COO- symmetric stretching",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1320,
+            1330
+          ],
+          "assignment": "COO- symmetric stretching (second component) / O-H bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1105,
+            1115
+          ],
+          "assignment": "C2-OH / ring C-O stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1050,
+            1060
+          ],
+          "assignment": "C3-OH / ring C-O stretching",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1020,
+            1030
+          ],
+          "assignment": "C6-OH C-O stretching",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            890,
+            900
+          ],
+          "assignment": "beta-(1->4) glycosidic linkage",
+          "intensity": "weak"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "Carboxylate positions shift with counter-ion (Na+ vs H+), hydration and ATR vs KBr."
+      }
+    },
+    {
+      "name": "Nafion (perfluorosulfonic acid ionomer)",
+      "category": "polymer",
+      "source": "nafionweb2026",
+      "peaks": [
+        {
+          "range": [
+            1200,
+            1225
+          ],
+          "assignment": "CF2 asymmetric stretching (+ SO3- asymmetric)",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            1145,
+            1155
+          ],
+          "assignment": "CF2 symmetric stretching",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            1050,
+            1064
+          ],
+          "assignment": "SO3- symmetric stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            980,
+            985
+          ],
+          "assignment": "C-O-C stretching (ether)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            965,
+            972
+          ],
+          "assignment": "C-O-C (side-chain ether) / SO3- (assignment disputed)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "Sulfonate bands depend on hydration and counter-ion."
+      }
     }
   ],
   "hydrogels": [
@@ -8921,6 +9148,36 @@
           "intensity": "strong, broad"
         }
       ]
+    },
+    {
+      "name": "Lithium Hexafluorophosphate (LiPF6)",
+      "category": "salt",
+      "source": "lipf6web2026",
+      "peaks": [
+        {
+          "range": [
+            826,
+            845
+          ],
+          "assignment": "P-F stretching (PF6-)",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            555,
+            570
+          ],
+          "assignment": "F-P-F bending (PF6-, T1u)",
+          "intensity": "strong"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "Hydrolyses in moist air (watch for POF3/HF products); position depends on ion pairing."
+      }
     }
   ],
   "inorganics_minerals": [
@@ -10593,6 +10850,44 @@
           "intensity": "strong, broad"
         }
       ]
+    },
+    {
+      "name": "Lithium Iron Phosphate (LiFePO4, olivine)",
+      "category": "inorganic",
+      "source": "lfpweb2026",
+      "peaks": [
+        {
+          "range": [
+            1000,
+            1200
+          ],
+          "assignment": "PO4 asymmetric stretching (nu3)",
+          "intensity": "very strong, broad"
+        },
+        {
+          "range": [
+            955,
+            972
+          ],
+          "assignment": "PO4 symmetric stretching (nu1)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            590,
+            640
+          ],
+          "assignment": "O-P-O bending (nu4)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "nu1 shifts with antisite defects; low-wavenumber bands below 600 cm-1 not included."
+      }
     }
   ],
   "organics_biomolecules": [
@@ -13103,6 +13398,274 @@
           "intensity": "weak"
         }
       ]
+    },
+    {
+      "name": "Water (liquid H2O)",
+      "category": "organic",
+      "source": "bertie1996, carpenter2017, verma2017, chieffo2007, xu2019, waterweb2026",
+      "peaks": [
+        {
+          "range": [
+            3150,
+            3550
+          ],
+          "assignment": "O-H stretching (H-bonded), max ~3400",
+          "intensity": "very strong, broad"
+        },
+        {
+          "range": [
+            1630,
+            1650
+          ],
+          "assignment": "H-O-H bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2100,
+            2150
+          ],
+          "assignment": "bend + libration combination ('association band')",
+          "intensity": "weak, broad"
+        },
+        {
+          "range": [
+            450,
+            800
+          ],
+          "assignment": "librations (hindered rotation)",
+          "intensity": "strong, very broad"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "Positions shift with temperature, solutes and H-bonding; bands of absorbed water appear in many samples."
+      }
+    },
+    {
+      "name": "Ethanol",
+      "category": "organic",
+      "source": "ethanolweb2026, pavia2015, socrates2001",
+      "peaks": [
+        {
+          "range": [
+            3200,
+            3500
+          ],
+          "assignment": "O-H stretching (H-bonded)",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            2850,
+            2980
+          ],
+          "assignment": "C-H stretching (CH3, CH2)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1045,
+            1060
+          ],
+          "assignment": "C-O stretching",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1085,
+            1105
+          ],
+          "assignment": "C-O stretching (second component)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "C-H range is the general alkyl correlation; O-H and C-O from an educational source."
+      }
+    },
+    {
+      "name": "Acetone",
+      "category": "organic",
+      "source": "cha1999, dellepiane1966, acetoneweb2026",
+      "peaks": [
+        {
+          "range": [
+            1705,
+            1720
+          ],
+          "assignment": "C=O stretching (monomer/dimer)",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            1355,
+            1370
+          ],
+          "assignment": "CH3 symmetric deformation",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1215,
+            1230
+          ],
+          "assignment": "C-C-C asymmetric skeletal stretching",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "low",
+        "verify": true,
+        "note": "C=O from Cha et al. (1999); the 1365/1225 positions come from an educational web guide and need checking against Dellepiane & Overend (1966)."
+      }
+    },
+    {
+      "name": "Dimethyl Sulfoxide (DMSO)",
+      "category": "organic",
+      "source": "dmsoir2019, dmsoeg2026",
+      "peaks": [
+        {
+          "range": [
+            1040,
+            1060
+          ],
+          "assignment": "S=O stretching coupled with CH3 rocking",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            940,
+            955
+          ],
+          "assignment": "S-O stretching / CH3 rocking",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1300,
+            1315
+          ],
+          "assignment": "CH3 symmetric (umbrella) deformation",
+          "intensity": "weak-medium"
+        },
+        {
+          "range": [
+            1398,
+            1410
+          ],
+          "assignment": "CH3 deformation",
+          "intensity": "weak-medium"
+        },
+        {
+          "range": [
+            1430,
+            1442
+          ],
+          "assignment": "CH3 deformation",
+          "intensity": "weak-medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "S=O position depends strongly on H-bonding and self-association."
+      }
+    },
+    {
+      "name": "Ethylene Carbonate (EC)",
+      "category": "organic",
+      "source": "ecweb2026",
+      "peaks": [
+        {
+          "range": [
+            1770,
+            1780
+          ],
+          "assignment": "C=O stretching (doublet, lower component)",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            1798,
+            1808
+          ],
+          "assignment": "C=O stretching (doublet, Fermi resonance partner)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            888,
+            900
+          ],
+          "assignment": "ring breathing (free EC; ~905 when Li+-coordinated)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            714,
+            722
+          ],
+          "assignment": "C=O bending / ring deformation",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "Pure EC; positions shift on coordination to Li+."
+      }
+    },
+    {
+      "name": "Dimethyl Carbonate (DMC)",
+      "category": "organic",
+      "source": "dmcweb2026, hudson2019",
+      "peaks": [
+        {
+          "range": [
+            1745,
+            1770
+          ],
+          "assignment": "C=O stretching",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            1240,
+            1280
+          ],
+          "assignment": "O-C-O asymmetric stretching",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            965,
+            975
+          ],
+          "assignment": "O-CH3 stretching region (solid-phase feature ~971)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "low",
+        "verify": true,
+        "note": "C=O and O-C-O from electrolyte/correlation sources; the ~971 feature is reported for solid DMC."
+      }
     }
   ],
   "elements_allotropes": [
@@ -13265,6 +13828,160 @@
           "intensity": "weak"
         }
       ]
+    },
+    {
+      "name": "Graphene Oxide (GO)",
+      "category": "element",
+      "source": "goweb2026",
+      "peaks": [
+        {
+          "range": [
+            3200,
+            3600
+          ],
+          "assignment": "O-H stretching (hydroxyl, carboxyl, adsorbed water)",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            1720,
+            1740
+          ],
+          "assignment": "C=O stretching (carboxyl, carbonyl)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1600,
+            1630
+          ],
+          "assignment": "C=C skeletal (unoxidized domains) + adsorbed water bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1220,
+            1240
+          ],
+          "assignment": "C-O-C stretching (epoxy)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1040,
+            1075
+          ],
+          "assignment": "C-O stretching (alkoxy)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "Assignments of the 1620 and 1050 bands vary between papers."
+      }
+    },
+    {
+      "name": "Reduced Graphene Oxide (rGO)",
+      "category": "element",
+      "source": "rgoweb2026",
+      "peaks": [
+        {
+          "range": [
+            1560,
+            1580
+          ],
+          "assignment": "C=C stretching (restored sp2 network)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1720,
+            1740
+          ],
+          "assignment": "residual C=O stretching",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            1180,
+            1240
+          ],
+          "assignment": "residual C-O / C-O-C (or skeletal C-C)",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            1040,
+            1080
+          ],
+          "assignment": "residual C-O stretching (alkoxy)",
+          "intensity": "weak"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "low",
+        "verify": true,
+        "note": "Weak absorber; spectra depend strongly on the degree of reduction."
+      }
+    },
+    {
+      "name": "Carbon Nanotubes, oxidized (MWCNT-COOH)",
+      "category": "element",
+      "source": "cntweb2026",
+      "peaks": [
+        {
+          "range": [
+            3400,
+            3450
+          ],
+          "assignment": "O-H stretching (carboxyl/hydroxyl, adsorbed water)",
+          "intensity": "medium, broad"
+        },
+        {
+          "range": [
+            1700,
+            1740
+          ],
+          "assignment": "C=O stretching (carboxylic acid)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1560,
+            1600
+          ],
+          "assignment": "C=C stretching (graphitic backbone)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1225,
+            1261
+          ],
+          "assignment": "C-O-C stretching",
+          "intensity": "weak-medium"
+        },
+        {
+          "range": [
+            1044,
+            1056
+          ],
+          "assignment": "C-O stretching",
+          "intensity": "weak-medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-07",
+        "method": "values taken from quoted excerpts of the cited sources found by web/literature search; full texts not opened (publisher sites blocked in the build environment)",
+        "confidence": "medium",
+        "verify": true,
+        "note": "Pristine nanotubes absorb weakly; these bands describe acid-treated (oxidized) tubes."
+      }
     }
   ],
   "functional_groups": [

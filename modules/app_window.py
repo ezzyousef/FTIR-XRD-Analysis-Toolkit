@@ -91,7 +91,7 @@ class DatabasePage(QWidget):
         row.addWidget(self.count)
         layout.addLayout(row)
         splitter = QSplitter(Qt.Horizontal)
-        self.materials = DataTable(["Material", "Category", "Bands", "Source"])
+        self.materials = DataTable(["Material", "Category", "Bands", "Status", "Source"])
         self.materials.on_select = self._show_peaks
         self.peaks = DataTable(["Range (cm⁻¹)", "Assignment", "Intensity"])
         splitter.addWidget(self.materials)
@@ -104,9 +104,16 @@ class DatabasePage(QWidget):
         entries = ftir_analysis.search_database(self.db, self.search.text(), category=self.category.currentData())
         self.materials.set_rows(entries, lambda e: (
             e["name"], ftir_analysis.CATEGORY_LABELS.get(e.get("category"), e.get("category", "")),
-            len(e["peaks"]), e.get("source", "")))
+            len(e["peaks"]), self.status(e), e.get("source", "")))
         self.peaks.clear_rows()
         self.count.setText(f"{len(entries)} of {material_count(self.db)}")
+
+    @staticmethod
+    def status(entry):
+        prov = entry.get("provenance") or {}
+        if prov.get("verify"):
+            return f"to verify ({prov.get('confidence', '?')} confidence)"
+        return ""
 
     def _show_peaks(self, entry):
         self.peaks.set_rows(entry["peaks"], lambda p: (

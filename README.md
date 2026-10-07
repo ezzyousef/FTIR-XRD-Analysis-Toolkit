@@ -11,7 +11,7 @@ A step-by-step user guide with screenshots is in `FTIR_XRD_Toolkit_User_Guide.do
 - **FTIR**: multi-spectrum overlay, smoothing, baseline correction, ATR correction,
   derivatives, normalization, automatic peak detection (with optional second-derivative
   shoulder resolution), Gaussian/Lorentzian/pseudo-Voigt peak fitting, and screening against
-  a **224-material reference database** plus **99 functional-group correlations**, optionally
+  a **237-material reference database** plus **99 functional-group correlations**, optionally
   restricted to one category. Calculators: %T ↔ absorbance, peak area, FWHM, Beer–Lambert.
 - **XRD**: several diffractometer file formats, peak detection, d-spacing (Bragg), crystallite
   size (Scherrer), Williamson–Hall size/strain, approximate % crystallinity, SNIP background
@@ -160,7 +160,7 @@ ftir_xrd_toolkit/
   selftest.py                      headless check used on packaged builds
   app.spec, build.ps1              PyInstaller spec and the full build
   installer/FTIR_XRD_Toolkit.iss   Inno Setup script
-  database/ftir_reference_db.json  224 materials + 99 functional groups, cited (v4.2)
+  database/ftir_reference_db.json  237 materials + 99 functional groups, cited (v4.3; additions in docs/FTIR_DATABASE_ADDITIONS.md)
   tools/audit_ftir_database.py     database audit -> docs/FTIR_DATABASE_AUDIT.md
   tools/benchmark_ftir_matching.py simulated-spectrum benchmark of the matcher
   labkit/                          vendored shared interface — edit ..\..\labkit and run sync.py

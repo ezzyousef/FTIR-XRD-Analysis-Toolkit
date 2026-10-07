@@ -304,3 +304,11 @@ def test_database_passes_the_audit(db):
     assert errors == []
     assert len(pairs) > 50
     assert db["_meta"]["version"] >= "4.2" and "schema" in db["_meta"]
+
+
+def test_added_entries_are_flagged_for_verification(db):
+    added = [e for c in ftir_analysis.MATERIAL_CATEGORIES for e in db[c] if e.get("provenance")]
+    assert len(added) >= 13
+    assert all(e["provenance"]["verify"] and e["provenance"]["confidence"] in ("low", "medium") for e in added)
+    names = {e["name"] for e in added}
+    assert "Graphene Oxide (GO)" in names and "Lithium Hexafluorophosphate (LiPF6)" in names
