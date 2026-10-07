@@ -143,7 +143,9 @@ ftir_xrd_toolkit/
   selftest.py                      headless check used on packaged builds
   app.spec, build.ps1              PyInstaller spec and the full build
   installer/FTIR_XRD_Toolkit.iss   Inno Setup script
-  database/ftir_reference_db.json  224 materials + 99 functional groups, cited
+  database/ftir_reference_db.json  224 materials + 99 functional groups, cited (v4.2)
+  tools/audit_ftir_database.py     database audit -> docs/FTIR_DATABASE_AUDIT.md
+  tools/benchmark_ftir_matching.py simulated-spectrum benchmark of the matcher
   labkit/                          vendored shared interface — edit ..\..\labkit and run sync.py
   modules/
     app_window.py                  the window: pages, menus, recent files, undo/redo, Origin

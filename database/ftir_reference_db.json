@@ -2,7 +2,7 @@
   "_meta": {
     "note": "Peak positions are typical literature ranges (cm-1) compiled from standard FTIR spectroscopy correlation-table references (polymer/materials/biomolecule spectroscopy literature). These are reference/approximate ranges, not certified measurements of a specific sample batch. For publication-grade identification, always cross-check against NIST Chemistry WebBook, SDBS, or a certified reference spectrum. Every entry below carries a 'source' field naming the reference literature its ranges are drawn from -- use it to trace and verify any match.",
     "units": "wavenumber (cm-1)",
-    "version": "4.1",
+    "version": "4.2",
     "categories": [
       "polymers",
       "hydrogels",
@@ -60,6 +60,22 @@
       {
         "id": "cod",
         "citation": "Crystallography Open Database (COD), crystallography.net – open-access crystal structure data, for cross-checking unit-cell/d-spacing values."
+      }
+    ],
+    "schema": {
+      "categories": "polymers, hydrogels, salts_inorganic, inorganics_minerals, organics_biomolecules, elements_allotropes: lists of materials; functional_groups: flat list of generic correlations",
+      "material": "{name (unique), category, source (reference ids from _meta.references, ';'-separated notes allowed), peaks: [band]}",
+      "band": "{range: [low, high] cm-1 ([0, 0] = IR-inactive placeholder), assignment, intensity}",
+      "intensity": "strength first (very strong | strong | medium-strong | medium | weak-medium | weak | n/a), then shape words in alphabetical order (broad, doublet, sharp, very broad), comma-separated",
+      "checks": "python tools/audit_ftir_database.py -- schema, label vocabulary, citations, band/assignment plausibility, look-alike entries"
+    },
+    "changelog": [
+      {
+        "version": "4.2",
+        "changes": [
+          "Intensity labels normalised to one vocabulary and word order (86 labels; meaning unchanged, e.g. 'broad, strong' -> 'strong, broad').",
+          "Schema and audit tool documented in _meta; no band positions were changed."
+        ]
       }
     ]
   },
@@ -1024,7 +1040,7 @@
             3450
           ],
           "assignment": "O-H stretch (hydroxyl, post-cure)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -1301,7 +1317,7 @@
             3400
           ],
           "assignment": "O-H stretch (hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -1483,7 +1499,7 @@
             3550
           ],
           "assignment": "O-H stretch (hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -2486,7 +2502,7 @@
             3500
           ],
           "assignment": "O-H stretch (chain-end hydroxyl)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -2549,7 +2565,7 @@
             3300
           ],
           "assignment": "O-H stretch (carboxylic acid, H-bonded)",
-          "intensity": "very broad, medium"
+          "intensity": "medium, very broad"
         }
       ]
     },
@@ -2770,7 +2786,7 @@
             3400
           ],
           "assignment": "O-H stretch (phenolic)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -3567,7 +3583,7 @@
             3500
           ],
           "assignment": "O-H stretch (residual hydroxyl)",
-          "intensity": "broad, weak-medium"
+          "intensity": "weak-medium, broad"
         }
       ]
     },
@@ -4127,7 +4143,7 @@
             3500
           ],
           "assignment": "O-H stretch (residual hydroxyl)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -4261,7 +4277,7 @@
             3550
           ],
           "assignment": "O-H stretch (hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -5358,7 +5374,7 @@
             3550
           ],
           "assignment": "O-H stretch (secondary hydroxyl, cured)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -5997,7 +6013,7 @@
             3300
           ],
           "assignment": "N-H stretch (Amide A)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6068,7 +6084,7 @@
             3300
           ],
           "assignment": "N-H stretch (Amide A)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     }
@@ -6157,7 +6173,7 @@
             3450
           ],
           "assignment": "O-H / N-H stretch (water + amide, broad envelope)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6228,7 +6244,7 @@
             3550
           ],
           "assignment": "O-H stretch (hydrogen bonded / water)",
-          "intensity": "very broad, strong"
+          "intensity": "strong, very broad"
         }
       ]
     },
@@ -6307,7 +6323,7 @@
             3400
           ],
           "assignment": "O-H stretch (broad, hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6386,7 +6402,7 @@
             3450
           ],
           "assignment": "O-H / N-H stretch (overlapping, broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6457,7 +6473,7 @@
             3300
           ],
           "assignment": "N-H stretch (Amide A) / O-H (water)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6528,7 +6544,7 @@
             3400
           ],
           "assignment": "O-H / N-H stretch (broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6591,7 +6607,7 @@
             3400
           ],
           "assignment": "O-H stretch (broad, hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6820,7 +6836,7 @@
             3450
           ],
           "assignment": "O-H stretch (pendant hydroxyl, hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6891,7 +6907,7 @@
             3400
           ],
           "assignment": "O-H stretch (broad, hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -6954,7 +6970,7 @@
             3450
           ],
           "assignment": "O-H stretch (water, broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -7025,7 +7041,7 @@
             3400
           ],
           "assignment": "O-H stretch (broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -7096,7 +7112,7 @@
             3400
           ],
           "assignment": "O-H stretch (broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -7159,7 +7175,7 @@
             3400
           ],
           "assignment": "O-H stretch (broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -7222,7 +7238,7 @@
             3400
           ],
           "assignment": "O-H stretch (broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     }
@@ -7715,7 +7731,7 @@
             3500
           ],
           "assignment": "O-H stretch (water of crystallization)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -7754,7 +7770,7 @@
             3450
           ],
           "assignment": "O-H stretch (hydrate water)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -7801,7 +7817,7 @@
             2900
           ],
           "assignment": "O-H stretch (P-O-H, strongly H-bonded)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -7966,7 +7982,7 @@
             3400
           ],
           "assignment": "O-H stretch (water of crystallization)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -8223,7 +8239,7 @@
             3450
           ],
           "assignment": "O-H stretch (hydrate water)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -8269,7 +8285,7 @@
             3550
           ],
           "assignment": "O-H stretch (hydrate water, hygroscopic)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -8300,7 +8316,7 @@
             3550
           ],
           "assignment": "O-H stretch (hydrate water, hygroscopic)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -8378,7 +8394,7 @@
             3450
           ],
           "assignment": "O-H stretch (hydrate water)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -8433,7 +8449,7 @@
             3550
           ],
           "assignment": "O-H stretch (water of crystallization)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -8488,7 +8504,7 @@
             3450
           ],
           "assignment": "O-H stretch (water of crystallization)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -8543,7 +8559,7 @@
             3450
           ],
           "assignment": "O-H stretch (water of crystallization)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -8967,7 +8983,7 @@
             3450
           ],
           "assignment": "O-H stretch (silanol / adsorbed water)",
-          "intensity": "broad, weak-medium"
+          "intensity": "weak-medium, broad"
         }
       ]
     },
@@ -9053,7 +9069,7 @@
             3450
           ],
           "assignment": "O-H stretch (surface hydroxyl)",
-          "intensity": "broad, weak"
+          "intensity": "weak, broad"
         }
       ]
     },
@@ -9092,7 +9108,7 @@
             3450
           ],
           "assignment": "O-H stretch (surface)",
-          "intensity": "broad, weak"
+          "intensity": "weak, broad"
         }
       ]
     },
@@ -9225,7 +9241,7 @@
             3450
           ],
           "assignment": "O-H stretch (surface hydroxyl)",
-          "intensity": "broad, weak"
+          "intensity": "weak, broad"
         }
       ]
     },
@@ -9380,7 +9396,7 @@
             3625
           ],
           "assignment": "Inner O-H stretch",
-          "intensity": "sharp, medium"
+          "intensity": "medium, sharp"
         },
         {
           "range": [
@@ -9388,7 +9404,7 @@
             3670
           ],
           "assignment": "Inner-surface O-H stretch",
-          "intensity": "sharp, medium"
+          "intensity": "medium, sharp"
         },
         {
           "range": [
@@ -9396,7 +9412,7 @@
             3700
           ],
           "assignment": "Inner-surface O-H stretch",
-          "intensity": "sharp, strong"
+          "intensity": "strong, sharp"
         }
       ]
     },
@@ -9459,7 +9475,7 @@
             3450
           ],
           "assignment": "O-H stretch (adsorbed/interlayer water)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         },
         {
           "range": [
@@ -9530,7 +9546,7 @@
             3450
           ],
           "assignment": "O-H stretch (adsorbed water)",
-          "intensity": "broad, weak"
+          "intensity": "weak, broad"
         },
         {
           "range": [
@@ -9538,7 +9554,7 @@
             3575
           ],
           "assignment": "Structural O-H stretch",
-          "intensity": "sharp, medium"
+          "intensity": "medium, sharp"
         }
       ]
     },
@@ -9585,7 +9601,7 @@
             3680
           ],
           "assignment": "Structural O-H stretch",
-          "intensity": "sharp, strong"
+          "intensity": "strong, sharp"
         }
       ]
     },
@@ -9679,7 +9695,7 @@
             3600
           ],
           "assignment": "O-H stretch (silanol / adsorbed water)",
-          "intensity": "broad, medium-strong"
+          "intensity": "medium-strong, broad"
         }
       ]
     },
@@ -9804,7 +9820,7 @@
             3630
           ],
           "assignment": "Structural O-H stretch",
-          "intensity": "sharp, medium"
+          "intensity": "medium, sharp"
         }
       ]
     },
@@ -9851,7 +9867,7 @@
             3500
           ],
           "assignment": "O-H stretch (interlayer water)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -9890,7 +9906,7 @@
             3450
           ],
           "assignment": "O-H stretch (adsorbed water)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         },
         {
           "range": [
@@ -9937,7 +9953,7 @@
             3450
           ],
           "assignment": "O-H stretch",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         },
         {
           "range": [
@@ -9984,7 +10000,7 @@
             3690
           ],
           "assignment": "Structural O-H stretch",
-          "intensity": "sharp, strong"
+          "intensity": "strong, sharp"
         }
       ]
     },
@@ -10631,7 +10647,7 @@
             3400
           ],
           "assignment": "O-H stretch (hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -10694,7 +10710,7 @@
             3400
           ],
           "assignment": "O-H stretch (hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -10773,7 +10789,7 @@
             3300
           ],
           "assignment": "N-H stretch (Amide A)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -11049,7 +11065,7 @@
             3300
           ],
           "assignment": "O-H stretch (carboxylic acid, H-bonded)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -11112,7 +11128,7 @@
             3100
           ],
           "assignment": "N-H3+ stretch (ammonium, broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -11175,7 +11191,7 @@
             3400
           ],
           "assignment": "O-H / N-H stretch (broad)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -11246,7 +11262,7 @@
             3450
           ],
           "assignment": "O-H stretch (phenolic/aliphatic)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -11309,7 +11325,7 @@
             3400
           ],
           "assignment": "O-H stretch (phenolic, H-bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -11459,7 +11475,7 @@
             3450
           ],
           "assignment": "O-H stretch (free/H-bonded, steroid 3-OH)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -11601,7 +11617,7 @@
             3400
           ],
           "assignment": "O-H stretch (H-bonded, multiple)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         },
         {
           "range": [
@@ -11609,7 +11625,7 @@
             3540
           ],
           "assignment": "O-H stretch (free)",
-          "intensity": "sharp, medium"
+          "intensity": "medium, sharp"
         }
       ]
     },
@@ -11672,7 +11688,7 @@
             3450
           ],
           "assignment": "O-H stretch (phenolic)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -11830,7 +11846,7 @@
             3300
           ],
           "assignment": "O-H stretch (carboxylic acid, H-bonded)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -11901,7 +11917,7 @@
             3550
           ],
           "assignment": "O-H stretch (hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -11972,7 +11988,7 @@
             3400
           ],
           "assignment": "O-H stretch (hydrogen bonded)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -12051,7 +12067,7 @@
             3400
           ],
           "assignment": "O-H stretch (phenolic/carboxylic, broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -12122,7 +12138,7 @@
             3400
           ],
           "assignment": "O-H stretch (carboxylic/phenolic, broad)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -12343,7 +12359,7 @@
             3330
           ],
           "assignment": "N-H stretch (Amide A)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -12414,7 +12430,7 @@
             3300
           ],
           "assignment": "N-H stretch (Amide A)",
-          "intensity": "broad, strong"
+          "intensity": "strong, broad"
         }
       ]
     },
@@ -12469,7 +12485,7 @@
             3100
           ],
           "assignment": "O-H stretch (carboxylic acid, H-bonded, broad)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -12532,7 +12548,7 @@
             3300
           ],
           "assignment": "O-H stretch (carboxylic acid, dimer, very broad)",
-          "intensity": "very broad, medium"
+          "intensity": "medium, very broad"
         }
       ]
     },
@@ -12587,7 +12603,7 @@
             3200
           ],
           "assignment": "O-H stretch (carboxylic acid, very broad)",
-          "intensity": "very broad, medium"
+          "intensity": "medium, very broad"
         }
       ]
     },
@@ -12650,7 +12666,7 @@
             3300
           ],
           "assignment": "O-H stretch (carboxylic acid, broad)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         },
         {
           "range": [
@@ -12879,7 +12895,7 @@
             3200
           ],
           "assignment": "O-H stretch (phenolic, H-bonded)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -12958,7 +12974,7 @@
             3520
           ],
           "assignment": "O-H stretch (phenolic, free)",
-          "intensity": "sharp, medium"
+          "intensity": "medium, sharp"
         }
       ]
     },
@@ -13021,7 +13037,7 @@
             3400
           ],
           "assignment": "O-H stretch (H-bonded)",
-          "intensity": "broad, medium"
+          "intensity": "medium, broad"
         }
       ]
     },
@@ -13101,7 +13117,7 @@
             2670
           ],
           "assignment": "Two-phonon lattice absorption band (intrinsic; no single-bond-type fundamental)",
-          "intensity": "broad, weak-medium"
+          "intensity": "weak-medium, broad"
         }
       ]
     },
@@ -13155,7 +13171,7 @@
             3450
           ],
           "assignment": "O-H stretch (surface oxidation/adsorbed water)",
-          "intensity": "broad, weak"
+          "intensity": "weak, broad"
         }
       ]
     },
@@ -13258,7 +13274,7 @@
         3580,
         3650
       ],
-      "intensity": "sharp, medium",
+      "intensity": "medium, sharp",
       "source": "socrates2001, pavia2015, coates2000"
     },
     {
@@ -13267,7 +13283,7 @@
         3200,
         3550
       ],
-      "intensity": "broad, strong",
+      "intensity": "strong, broad",
       "source": "socrates2001, pavia2015, coates2000"
     },
     {
@@ -13276,7 +13292,7 @@
         2500,
         3300
       ],
-      "intensity": "very broad, medium",
+      "intensity": "medium, very broad",
       "source": "socrates2001, pavia2015, coates2000"
     },
     {
@@ -13303,7 +13319,7 @@
         3300,
         3310
       ],
-      "intensity": "sharp, medium",
+      "intensity": "medium, sharp",
       "source": "socrates2001, pavia2015, coates2000"
     },
     {

@@ -292,3 +292,15 @@ def test_weighted_results_survive_a_json_session_round_trip(db, tmp_path):
     assert back["matches"][0]["name"] == PET and back["matches"][0]["bands"]
     assert back["mixture"]["components"][0]["name"] == PET
     assert os.path.getsize(path) < 400_000
+
+
+def test_database_passes_the_audit(db):
+    import importlib.util
+    path = os.path.join(DB_DIR, "..", "tools", "audit_ftir_database.py")
+    spec = importlib.util.spec_from_file_location("audit_ftir_database", path)
+    audit = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(audit)
+    errors, _notes, pairs, _entries = audit.audit(db)
+    assert errors == []
+    assert len(pairs) > 50
+    assert db["_meta"]["version"] >= "4.2" and "schema" in db["_meta"]
