@@ -51,16 +51,41 @@ database, sources & references) and **Help** (About).
 1. **Load spectra…** (Ctrl+O) or drop files anywhere on the page — `.csv .txt .dat .xy .dpt .jdx`.
    Load several to overlay them; click a row in *Loaded traces* to make it the active trace,
    untick *Show* to hide it.
-2. Choose **Absorbance** or **%Transmittance**, set the sensitivity and **Detect peaks**.
-3. **Processing**: smooth, baseline correct, ATR correction, derivative, normalize, revert to raw.
-4. **Match to database** — screens the detected peaks against the database and functional
-   groups (in the background; the window stays responsive). Click a match to overlay its
-   reference bands on the plot and list every band as matched or not found. This is
-   **heuristic screening, not identification** — confirm against a certified reference
-   spectrum (NIST WebBook, SDBS) or an expert.
-5. **Fit all detected peaks** — the fitted peaks are drawn as one model curve in the
+2. **Process first** (the *Processing* card): ATR correction, then baseline correction, then
+   smoothing. Baseline correction always starts again from the raw data, so do it before
+   smoothing. Any processing step clears the detected peaks and the match results, because
+   they no longer describe the spectrum.
+3. Choose **Absorbance** or **%Transmittance**, set the sensitivity and **Detect peaks**.
+   Peaks are picked above an automatic noise floor, and the atmospheric CO₂ region
+   (2280–2400 cm⁻¹) is skipped unless you untick it.
+4. **Match to database** (Ctrl+M) — screens the detected peaks against the reference database
+   and functional groups in the background. The default *Weighted evidence* scoring asks three
+   questions for each material:
+   - Are its bands, especially the strong ones, present close to the expected positions?
+   - Does it explain most of your strong peaks in its region?
+   - Could this many hits happen by luck, given how crowded the peak list is and how many
+     materials were searched?
+
+   Results are ranked by **match score** with a tier: Strong, Moderate, Weak or Poor. The score
+   is a screening score, **not the probability that the identification is correct**.
+
+   Click a row to see the evidence band by band (✓ found, ≈ at the tolerance edge, ✗ missing,
+   ⚠ for a missing strong band) and to overlay the bands on the plot. *Hide matches below* and
+   the filter box only change what is listed. *Coverage (legacy)* reproduces the scoring used
+   by earlier versions.
+5. **Analyse as mixture** — when no single material explains the spectrum, screens for up to
+   three components and lists the peaks left unexplained. *Share of peak intensity* is not a
+   concentration.
+6. **Check, then confirm.** Mark a candidate *Confirmed* or *Rejected* (with a note) once you
+   have compared it with a certified reference spectrum (NIST WebBook, SDBS) or an expert. The
+   PDF and Excel exports record the method, every parameter, the database version and the
+   band-by-band evidence, so others can reproduce the result.
+   The scoring was tested on synthetic peak lists only
+   (`python tools/benchmark_ftir_matching.py`). It has not yet been validated on lab spectra of
+   known materials. Design notes are in `docs/FTIR_MATCHING_PLAN.md`.
+7. **Fit all detected peaks** — the fitted peaks are drawn as one model curve in the
    spectrum's colour and listed in *Peak fits*.
-6. **Calculations** with ⓘ formula/source buttons.
+8. **Calculations** with ⓘ formula/source buttons.
 
 ### XRD patterns
 1. **Load patterns…** — format detected from the extension:
@@ -95,6 +120,7 @@ database, sources & references) and **Help** (About).
 | Ctrl+S / Ctrl+L | Save / load session |
 | Ctrl+E | PDF report |
 | Ctrl+Shift+O / Ctrl+Shift+E | Send to Origin / export to Excel |
+| Ctrl+M | Match the active FTIR spectrum to the database |
 | Ctrl+D | FTIR reference database |
 | Ctrl+T | Light / dark theme |
 | Ctrl+K | Command palette |

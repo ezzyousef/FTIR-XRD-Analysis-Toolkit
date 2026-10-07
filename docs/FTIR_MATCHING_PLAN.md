@@ -1,6 +1,7 @@
 # FTIR matching upgrade — plan
 
-Status: implemented on branch `claude/intelligent-planck-3addcx` (see "Delivery" at the end).
+Status: implemented on branch `claude/intelligent-planck-3addcx`, then revised after four independent
+reviews (spectroscopy, UX/UI, code, lab user) — see section 9.
 
 ## 1. What the current matcher does, and where it goes wrong
 
@@ -72,13 +73,19 @@ For each candidate material:
    inside the material's own spectral window (lowest band − 50 to highest band + 50 cm⁻¹, because
    reference lists are incomplete outside that window):
    R = Σ prominence(assigned peaks) / Σ prominence(all peaks in the window).
-7. **Chance probability (P4).** Peak density ρ = N_peaks / spectral span. The chance that band
-   *i* is hit by coincidence is p_i = 1 − exp(−ρ·(width_i + 2·tol_i)). The number of bands hit
-   by chance follows a Poisson–binomial distribution, computed exactly by dynamic programming.
-   P_chance = P(X ≥ k matched). This is the main fix for large band lists matching noise.
-8. **Confidence**:
-   C = F^0.6 · R^0.4 · (1 − P_chance), and C = 0 if no band matched.
-   Tiers: **High** ≥ 0.60, **Medium** ≥ 0.40, **Low** ≥ 0.20, otherwise **Weak**.
+7. **Chance probability (P4).** Only peaks with at least 5 % of the largest prominence count
+   here, so baseline noise neither inflates the density nor counts as evidence. Peak density
+   ρ = N_significant / spectral span. The chance that band *i* is hit by coincidence is
+   p_i = 1 − exp(−ρ·(width_i + 2·tol_i)). The number of bands hit by chance follows a
+   Poisson–binomial distribution, computed exactly by dynamic programming:
+   P = P(X ≥ k significant hits). Because M materials are searched, the best of them will often
+   look good by luck (the look-elsewhere effect), so the family-wise value
+   P_f = 1 − (1 − P)^M is used.
+8. **Match score** (shown as a tier, not a probability):
+   S = min(1, −log₁₀(P_f) / 2), so full credit needs P_f ≤ 0.01;
+   C = F^0.6 · R^0.4 · S.
+   Tiers: **Strong** ≥ 0.60, **Moderate** ≥ 0.40, **Weak** ≥ 0.20, otherwise **Poor**.
+   Restricting the category lowers M and therefore raises scores.
 9. **Missing strong bands** are listed explicitly (strong or very strong bands with no
    assigned peak) and shown in the table and detail panel.
 10. **Ranking** is by C. The old coverage fraction is kept as `coverage`.
