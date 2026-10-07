@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 import numpy as np
+from PySide6.QtCore import Qt
 import pytest
 
 pytest.importorskip("PySide6")
@@ -379,3 +380,111 @@ def test_legacy_coverage_results_are_listed_without_scores(window, qapp, pet_csv
     assert t.matches[0]["method"] == "coverage"
     assert ftir.matches_table.rowCount() == len(t.matches)
     assert "coverage" in ftir.matches_table.cell_text(0, 2)
+
+
+# ------------------------------------------------------------------ XRD workflow
+@pytest.fixture
+def ceo2_xy(tmp_path):
+    """CeO2-like pattern, 80 nm crystallites, 0.08 deg Gaussian instrument width, with Ka2."""
+    l1, l2, a, K, D, inst = 1.540562, 1.544390, 5.411, 0.9, 80.0, 0.08
+    x = np.arange(20, 100, 0.01)
+    y = np.full_like(x, 50.0)
+    for hkl in [(1, 1, 1), (2, 0, 0), (2, 2, 0), (3, 1, 1), (2, 2, 2), (4, 0, 0), (3, 3, 1), (4, 2, 0)]:
+        d = a / np.sqrt(sum(v * v for v in hkl))
+        for lam, w in ((l1, 1.0), (l2, 0.5)):
+            tt = 2 * np.degrees(np.arcsin(lam / (2 * d)))
+            f = np.sqrt(np.degrees(K * lam * 0.1 / (D * np.cos(np.radians(tt / 2)))) ** 2 + inst ** 2)
+            y += 1000 * w * (0.5 / (1 + 4 * ((x - tt) / f) ** 2) + 0.5 * np.exp(-4 * np.log(2) * ((x - tt) / f) ** 2))
+    y = np.random.default_rng(0).poisson(y).astype(float)
+    path = tmp_path / "CeO2.xy"
+    path.write_text("".join(f"{a:.3f} {b:.0f}\n" for a, b in zip(x, y)))
+    return str(path)
+
+
+def test_xrd_kalpha2_instrument_and_williamson_hall_recover_the_size(window, qapp, ceo2_xy, monkeypatch):
+    import ui_common
+    xrd = window.page("xrd")
+    window.go_to("xrd")
+    xrd.load_paths([ceo2_xy])
+    answers = iter([{"w": "2.0"}, {"l1": "1.540562", "l2": "1.544390", "r": "0.5"},
+                    {"const": "0.08", "U": "0", "V": "0", "W": "0", "mode": "gaussian"}])
+    monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: next(answers))
+    xrd.subtract_background_active()
+    xrd.strip_kalpha2_active()
+    xrd.edit_instrument_profile()
+    t = xrd.get_active()
+    assert any("Kα2 stripped" in step for step in t.metadata["processing"])
+    xrd.detect_peaks()
+    assert 8 <= len(t.peaks) <= 14
+    xrd.fit_peaks()
+    assert pump(qapp, lambda: not xrd.is_busy)
+    xrd.run_all_calcs()
+    sizes = [p["size_nm"] for p in t.peaks if p.get("size_nm")]
+    assert len(sizes) >= 6 and 65 < np.median(sizes) < 95
+    xrd.run_williamson_hall()
+    wh = t.metadata["wh_result"]
+    assert 60 < wh["crystallite_size_nm"] < 100 and wh["crystallite_size_se_nm"] is not None
+    assert t.metadata["xrd_params"]["instrument"]["source"] == "entered"
+    assert "Williamson" in xrd.wh_text.toPlainText()
+
+
+def test_xrd_wavelength_change_clears_stale_results(window, qapp, xrd_xy):
+    xrd = window.page("xrd")
+    window.go_to("xrd")
+    xrd.load_paths([xrd_xy])
+    xrd.run_all_calcs()
+    t = xrd.get_active()
+    assert t.peaks[0]["d_A"]
+    xrd.wl_combo.setCurrentText("Mo Ka1")
+    assert not t.peaks[0].get("d_A") and "xrd_params" not in t.metadata
+    xrd.run_all_calcs()
+    assert t.metadata["xrd_params"]["wavelength_name"] == "Mo Ka1"
+
+
+def test_xrd_custom_wavelength_cancel_reverts(window, qapp, monkeypatch):
+    import ui_common
+    xrd = window.page("xrd")
+    monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: None)
+    xrd.wl_combo.setCurrentText("Custom...")
+    assert xrd.wl_combo.currentText() == "Cu Ka1"
+
+
+def test_xrd_crystallinity_uses_raw_data_and_peak_toggle(window, qapp, xrd_xy, monkeypatch, tmp_path):
+    import ui_common
+    import exports
+    import openpyxl
+    from labkit.excel import write_workbook
+    xrd = window.page("xrd")
+    window.go_to("xrd")
+    xrd.load_paths([xrd_xy])
+    answers = iter([{"crys": "27-30,46-49", "amorph": "12-20"}, {"w": "2"}, {"crys": "27-30,46-49", "amorph": "12-20"}])
+    monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: next(answers))
+    xrd.run_crystallinity()
+    t = xrd.get_active()
+    before = t.metadata["crystallinity_pct"]
+    xrd.subtract_background_active()
+    xrd.run_crystallinity()
+    assert t.metadata["crystallinity_pct"] == pytest.approx(before)
+    xrd.detect_peaks()
+    xrd.run_all_calcs()
+    item = xrd.peaks_table.item(0, 0)
+    item.setCheckState(Qt.Unchecked)
+    assert t.peaks[0]["use"] is False
+    xrd.run_all_calcs()
+    assert t.peaks[0].get("size_nm") is None and t.peaks[0]["note"] == "excluded by you"
+    pdf = xrd.export_pdf_report(str(tmp_path / "x.pdf"))
+    assert pdf and os.path.getsize(pdf) > 10_000
+    book = openpyxl.load_workbook(write_workbook(xrd.excel_report(), tmp_path / "x.xlsx"))
+    assert book.sheetnames
+
+
+def test_xrd_lattice_parameter_needs_whole_hkl(window, qapp, xrd_xy, monkeypatch):
+    import ui_common
+    xrd = window.page("xrd")
+    xrd.load_paths([xrd_xy])
+    monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: {"tt": "28.44", "h": "1.5", "k": "1", "l": "1"})
+    xrd.run_lattice_param()
+    assert window.messages[-1][0] == "Lattice parameter failed"
+    monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: {"tt": "28.44", "h": "1", "k": "1", "l": "1"})
+    xrd.run_lattice_param()
+    assert "a = 5.43" in xrd.calc_log[-1]["result"] and "face-centred" in xrd.calc_log[-1]["result"]

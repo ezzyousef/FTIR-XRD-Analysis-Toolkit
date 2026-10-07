@@ -1,5 +1,6 @@
 import pytest
 
+import file_readers
 import file_readers as fr
 
 
@@ -118,3 +119,66 @@ def test_read_ftir_any_dispatches_dpt(tmp_path):
     assert len(result.x) == 5
     assert result.x[0] == pytest.approx(4000.0)
     assert result.y[-1] == pytest.approx(0.014)
+
+
+# ------------------------------------------------------------------ XRD readers
+def _write(tmp_path, name, text):
+    p = tmp_path / name
+    p.write_text(text, encoding="utf-8")
+    return str(p)
+
+
+def test_generic_text_skips_numeric_header_lines(tmp_path):
+    rows = "\n".join(f"{10 + 0.02 * i:.2f} {100 + i}" for i in range(20))
+    path = _write(tmp_path, "p.xy", "Sample A\nWavelength 1.5406 step 0.02\n2theta counts\n" + rows + "\n")
+    r = file_readers.read_any(path)
+    assert len(r.x) == 20 and r.x[0] == pytest.approx(10.0) and r.y[0] == pytest.approx(100)
+
+
+def test_generic_text_decimal_comma(tmp_path):
+    rows = "\n".join(f"{10 + 0.5 * i:.2f};{100 + i},5".replace(".", ",") for i in range(10))
+    r = file_readers.read_any(_write(tmp_path, "p.csv", "2theta;I\n" + rows + "\n"))
+    assert r.x[1] == pytest.approx(10.5) and r.y[0] == pytest.approx(100.5)
+    tab = "\n".join(f"{10 + 0.5 * i:.2f}\t{100 + i}".replace(".", ",") for i in range(10))
+    r = file_readers.read_any(_write(tmp_path, "t.txt", tab + "\n"))
+    assert r.x[1] == pytest.approx(10.5)
+    plain = "\n".join(f"{10 + 0.5 * i:.2f},{100 + i}" for i in range(10))
+    r = file_readers.read_any(_write(tmp_path, "c.csv", plain + "\n"))
+    assert r.x[1] == pytest.approx(10.5) and r.y[1] == pytest.approx(101)
+
+
+def test_uxd_counts_only_block_builds_the_axis(tmp_path):
+    counts = "\n".join(" ".join(str(100 + 5 * i + j) for j in range(5)) for i in range(4))
+    text = ("; Comment\n_WL1=1.540562\n_DRIVE=COUPLED\n_STEPSIZE=0.02\n_STEPTIME=1.0\n_START=10.000\n_2THETA=10.000\n"
+            "_COUNTS\n" + counts + "\n")
+    r = file_readers.read_any(_write(tmp_path, "c.uxd", text))
+    assert len(r.x) == 20 and r.x[0] == pytest.approx(10.0) and r.x[1] == pytest.approx(10.02)
+    assert r.y[0] == 100 and r.y[1] == 101
+
+
+def test_uxd_pair_rows_still_work(tmp_path):
+    rows = "\n".join(f"{20 + 0.05 * i:.3f}   {50 + i}" for i in range(10))
+    r = file_readers.read_any(_write(tmp_path, "p.uxd", "; Siemens UXD\n_2THETACOUNTS\n" + rows + "\n"))
+    assert len(r.x) == 10 and r.x[0] == pytest.approx(20.0)
+
+
+def test_ras_reads_intensity_block_and_applies_attenuation(tmp_path):
+    rows = "\n".join(f"{10 + 0.02 * i:.4f} {100 + i} {10.0 if i == 3 else 1.0}" for i in range(8))
+    text = ('*RAS_DATA_START\n*RAS_HEADER_START\n*MEAS_SCAN_START "10.0000"\n*HW_XG_WAVE_LENGTH_ALPHA1 "1.540593"\n'
+            '*RAS_HEADER_END\n*RAS_INT_START\n' + rows + '\n*RAS_INT_END\n*RAS_DATA_END\n')
+    r = file_readers.read_any(_write(tmp_path, "s.ras", text))
+    assert len(r.x) == 8 and r.y[3] == pytest.approx(1030.0) and r.y[0] == pytest.approx(100.0)
+    assert r.metadata["HW_XG_WAVE_LENGTH_ALPHA1"] == "1.540593"
+
+
+def test_xrdml_list_positions_and_attenuation(tmp_path):
+    xs = " ".join(f"{10 + 0.1 * i:.2f}" for i in range(6))
+    text = ('<?xml version="1.0"?><xrdMeasurements xmlns="http://www.xrdml.com/XRDMeasurement/1.5">'
+            '<xrdMeasurement><usedWavelength><kAlpha1 unit="Angstrom">1.540598</kAlpha1></usedWavelength>'
+            '<scan><dataPoints><positions axis="2Theta" unit="deg"><listPositions>' + xs + '</listPositions>'
+            '</positions><commonCountingTime unit="seconds">2.0</commonCountingTime>'
+            '<beamAttenuationFactors>1 1 2 1 1 1</beamAttenuationFactors>'
+            '<counts unit="counts">10 20 30 40 50 60</counts></dataPoints></scan></xrdMeasurement></xrdMeasurements>')
+    r = file_readers.read_any(_write(tmp_path, "m.xrdml", text))
+    assert r.x[1] == pytest.approx(10.1) and r.y[2] == pytest.approx(60.0)
+    assert r.metadata["wavelength_kalpha1"] == pytest.approx(1.540598) and r.metadata["counting_time_s"] == 2.0

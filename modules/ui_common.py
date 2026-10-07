@@ -608,7 +608,9 @@ class AnalysisTabBase(QWidget):
         note_recent = getattr(self.app, "note_recent_file", None)
         if callable(note_recent):
             note_recent(path)
-        if meta["confidence"] == "high":
+        if meta.get("warning"):
+            self.app.notify(f"Loaded {trace.label}: {len(result.x)} points — {meta['warning']}", "warning")
+        elif meta["confidence"] == "high":
             self.app.notify(f"Loaded {trace.label}: {len(result.x)} points", "success")
         else:
             self.app.notify(f"Loaded {trace.label}: {len(result.x)} points — LOW-CONFIDENCE parse, "

@@ -89,15 +89,32 @@ database, sources & references) and **Help** (About).
 
 ### XRD patterns
 1. **Load patterns…** — format detected from the extension:
-   `.xy .txt .dat .csv` (generic two-column ASCII), `.uxd` (Siemens/Bruker), `.ras` (Rigaku),
-   `.xrdml` (PANalytical/Malvern) — high confidence; `.raw` (legacy Bruker binary) — best
-   effort, export ASCII if it fails.
-2. Choose the **X-ray wavelength** (or *Custom...*), **Detect peaks**, then
-   **d-spacing + Scherrer size**.
-3. **Williamson–Hall** separates size and strain broadening (3+ peaks); **% crystallinity**
-   uses crystalline and amorphous 2θ regions you give; **cubic lattice parameter** is a quick
-   single-peak estimate; the **converter** switches between 2θ, d and Q.
-4. **Fit all detected peaks**.
+   `.xy .txt .dat .csv` (generic two-column ASCII; header lines and decimal commas handled),
+   `.uxd` (Siemens/Bruker, pair or counts-only blocks), `.ras` (Rigaku, attenuation applied),
+   `.xrdml` (PANalytical/Malvern, list or start/end positions, attenuation applied) — high
+   confidence; `.raw` (legacy Bruker binary) — best effort, export ASCII if it fails. Files with
+   several scans load the first and say so; a wavelength stored in the file that differs from
+   the selected one is flagged.
+2. **1 · Instrument** — wavelength, Scherrer K, and the **instrument profile** (a constant FWHM
+   or Caglioti U, V, W; *Refine profile from this pattern* fits them from a line-profile
+   standard such as LaB6 or Si). Without a profile, sizes are not corrected for instrumental
+   broadening. Changing any of these clears results computed with the old values.
+3. **2 · Processing** — in this order: **SNIP background** (window in degrees 2θ), **strip Kα2**
+   (Rachinger; Cu pre-filled — leaving Kα2 in widens peaks with angle and mimics strain), then
+   smoothing only if needed.
+4. **3 · Peak detection** — peaks are judged against the local counting noise (7σ); noise
+   maxima on top of a stronger peak and spikes are dropped.
+5. **6 · Peak fitting** (pseudo-Voigt by default, window ±3 × each peak's width), then
+   **4 · Size & strain**: d-spacing and Scherrer size per peak from the fitted, instrument-
+   corrected width; **Williamson–Hall** with standard errors, R² and its plot. Untick a peak in
+   the Peaks table to leave it out. Sizes are *apparent* sizes.
+6. **5 · Crystallinity** — area method on the raw pattern minus a straight baseline (SNIP would
+   remove the amorphous halo); the regions are drawn on the plot.
+7. **Tools** — cubic lattice parameter (whole-number hkl, P/I/F extinction note, precision per
+   0.01° in 2θ) and the 2θ/d/Q converter; results are kept in the *Calculations* tab and the PDF.
+
+Every result keeps the wavelength, K, instrument profile, width source and processing it was
+computed with; the PDF, Excel and peak CSV print those stored values.
 
 ### Exports (both pages)
 - **Send to Origin** (button under the plot, or Ctrl+Shift+O) — a workbook with every visible

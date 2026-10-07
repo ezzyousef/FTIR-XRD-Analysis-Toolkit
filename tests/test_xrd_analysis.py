@@ -101,13 +101,14 @@ def test_cubic_lattice_parameter():
         xrd_analysis.cubic_lattice_parameter(d, 0, 0, 0)
 
 
-def test_detect_xrd_peaks_sorted_by_intensity():
+def test_detect_xrd_peaks_sorted_by_two_theta():
     two_theta = np.linspace(10, 80, 3000)
     intensity = (100 * np.exp(-0.5 * ((two_theta - 26.6) / 0.1) ** 2)
                  + 40 * np.exp(-0.5 * ((two_theta - 36.5) / 0.1) ** 2))
     peaks = xrd_analysis.detect_xrd_peaks(two_theta, intensity, prominence_frac=0.05)
     assert len(peaks) == 2
-    assert peaks[0]["intensity"] >= peaks[1]["intensity"]
+    assert peaks[0]["two_theta"] < peaks[1]["two_theta"]
+    assert all(p["usable"] for p in peaks)
 
 
 def test_two_theta_from_d_round_trips_with_bragg_d_spacing():

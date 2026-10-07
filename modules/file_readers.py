@@ -29,8 +29,35 @@ class ReadResult:
         self.confidence = confidence  # "high" or "low" (best-effort binary parse)
 
 
+_DECIMAL_COMMA = re.compile(r"\d,\d")
+
+
+def _numbers(line):
+    """The numbers on one data line. Separators: comma, tab, space or semicolon. Decimal
+    commas ('12,5') are accepted when the separator is clearly something else: a semicolon,
+    a tab, or spaces with no comma-space anywhere on the line."""
+    s = line.strip()
+    decimal_comma = bool(_DECIMAL_COMMA.search(s)) and (";" in s or "\t" in s or (" " in s and not re.search(r",\s", s)))
+    if decimal_comma:
+        parts = [p.replace(",", ".") for p in re.split(r"[\t ;]+", s)]
+    elif ";" in s:
+        parts = re.split(r"[;\t ]+", s)
+    else:
+        parts = re.split(r"[,\t ]+", s)
+    nums = []
+    for p in parts:
+        try:
+            nums.append(float(p))
+        except ValueError:
+            pass
+    return nums
+
+
 def _try_parse_two_column_text(path):
-    xs, ys = [], []
+    """Two-column numeric text. Header lines are skipped even when they happen to contain two
+    numbers (e.g. 'Wavelength 1.5406 step 0.02'): the data are the longest block of
+    consecutive numeric rows, so stray numeric lines before or after it are ignored."""
+    blocks, current = [], []
     meta = {}
     with open(path, "r", errors="ignore") as f:
         for line in f:
@@ -38,20 +65,25 @@ def _try_parse_two_column_text(path):
             if not line:
                 continue
             if line.startswith(("#", ";", "'", "*")):
+                if current:
+                    blocks.append(current)
+                    current = []
                 continue
-            # split on comma, tab, or whitespace
-            parts = re.split(r"[,\t ]+", line)
-            nums = []
-            for p in parts:
-                try:
-                    nums.append(float(p))
-                except ValueError:
-                    pass
-            if len(nums) >= 2:
-                xs.append(nums[0])
-                ys.append(nums[1])
-    if len(xs) < 5:
+            nums = _numbers(line)
+            numeric_only = len(nums) >= 2 and not re.search(r"[A-DF-Za-df-z]", line)
+            if numeric_only:
+                current.append((nums[0], nums[1]))
+            elif current:
+                blocks.append(current)
+                current = []
+    if current:
+        blocks.append(current)
+    best = max(blocks, key=len) if blocks else []
+    if len(best) < 5:
         raise ValueError("Fewer than 5 valid numeric rows found; not a recognized two-column format.")
+    if len(blocks) > 1:
+        meta["note"] = f"{len(blocks)} numeric blocks found; used the longest ({len(best)} rows)."
+    xs, ys = zip(*best)
     return np.array(xs), np.array(ys), meta
 
 
@@ -62,63 +94,133 @@ def read_generic_text(path):
 
 
 def read_uxd(path):
-    """Siemens/Bruker UXD text format (2-column data, ; comment lines)."""
-    xs, ys = [], []
+    """
+    Siemens/Bruker UXD text format. Handles both data layouts:
+      _2THETACOUNTS (or no marker): rows of '2theta  counts' pairs;
+      _COUNTS: counts only, several per row, with the axis from _2THETA (or _START) and _STEPSIZE.
+    Keys appear as '_KEY=value' (or '; KEY = value' comments). A file with several ranges
+    returns the first and says so in metadata["warning"].
+    """
     meta = {}
+    ranges = []                       # [{"start", "step", "counts_mode", "pairs", "counts"}]
+    cur = None
+
+    def new_range():
+        r = {"start": None, "step": None, "counts_mode": False, "pairs": [], "counts": []}
+        ranges.append(r)
+        return r
+
     with open(path, "r", errors="ignore") as f:
         for line in f:
             s = line.strip()
+            if not s:
+                continue
             if s.startswith(";"):
                 if "=" in s:
                     k, v = s[1:].split("=", 1)
                     meta[k.strip()] = v.strip()
                 continue
-            parts = re.split(r"[,\t ]+", s)
-            nums = []
-            for p in parts:
-                try:
-                    nums.append(float(p))
-                except ValueError:
-                    pass
-            if len(nums) >= 2:
-                xs.append(nums[0])
-                ys.append(nums[1])
-    if len(xs) < 5:
+            if s.startswith("_"):
+                key, _, val = s.partition("=")
+                key, val = key.strip().upper(), val.strip()
+                if key in ("_RANGE", "_DRIVE") or (key in ("_2THETA", "_START") and cur is not None
+                                                     and (cur["pairs"] or cur["counts"])):
+                    cur = new_range()
+                if cur is None:
+                    cur = new_range()
+                if key in ("_2THETA", "_START") and val:
+                    try:
+                        cur["start"] = float(val)
+                    except ValueError:
+                        pass
+                elif key == "_STEPSIZE" and val:
+                    try:
+                        cur["step"] = float(val)
+                    except ValueError:
+                        pass
+                elif key == "_COUNTS":
+                    cur["counts_mode"] = True
+                elif key == "_2THETACOUNTS":
+                    cur["counts_mode"] = False
+                if val:
+                    meta.setdefault(key.lstrip("_"), val)
+                continue
+            nums = _numbers(s)
+            if not nums:
+                continue
+            if cur is None:
+                cur = new_range()
+            if cur["counts_mode"]:
+                cur["counts"].extend(nums)
+            elif len(nums) >= 2:
+                cur["pairs"].append((nums[0], nums[1]))
+    usable = []
+    for r in ranges:
+        if r["counts_mode"] and r["counts"]:
+            if r["start"] is None or not r["step"]:
+                raise ValueError("UXD counts-only data without _2THETA/_START and _STEPSIZE: cannot build the 2θ axis.")
+            y = np.array(r["counts"], dtype=float)
+            usable.append((r["start"] + r["step"] * np.arange(len(y)), y))
+        elif len(r["pairs"]) >= 5:
+            xs, ys = zip(*r["pairs"])
+            usable.append((np.array(xs), np.array(ys)))
+    if not usable or len(usable[0][0]) < 5:
         raise ValueError("UXD file did not yield usable data rows.")
-    return ReadResult(np.array(xs), np.array(ys), metadata=meta, confidence="high")
+    if len(usable) > 1:
+        meta["warning"] = f"{len(usable)} ranges in this file; loaded the first."
+    return ReadResult(usable[0][0], usable[0][1], metadata=meta, confidence="high")
 
 
 def read_ras(path):
-    """Rigaku .ras text format (*RAS_DATA_START ... *RAS_DATA_END, 3-column: 2theta, intensity, attenuation)."""
-    xs, ys = [], []
+    """
+    Rigaku .ras text format: header lines '*KEY "value"' and intensity blocks between
+    *RAS_INT_START and *RAS_INT_END with columns 2theta, intensity[, attenuation]. The
+    intensity is multiplied by the attenuation factor when one is given. Several scans:
+    the first is returned and metadata["warning"] says so. Files without *RAS_INT markers
+    fall back to the numeric rows between *RAS_DATA_START and *RAS_DATA_END.
+    """
     meta = {}
-    in_data = False
+    scans, cur = [], None
+    fallback, in_data = [], False
     with open(path, "r", errors="ignore") as f:
         for line in f:
             s = line.strip()
-            if s.startswith("*RAS_DATA_START"):
-                in_data = True
+            if not s:
                 continue
-            if s.startswith("*RAS_DATA_END"):
-                in_data = False
+            if s.startswith("*"):
+                tag = s.split()[0].upper()
+                if tag == "*RAS_INT_START":
+                    cur = []
+                elif tag == "*RAS_INT_END":
+                    if cur:
+                        scans.append(cur)
+                    cur = None
+                elif tag == "*RAS_DATA_START":
+                    in_data = True
+                elif tag == "*RAS_DATA_END":
+                    in_data = False
+                else:
+                    if "=" in s:
+                        k, v = s[1:].split("=", 1)
+                    else:
+                        k, _, v = s[1:].partition(" ")
+                    if k.strip():
+                        meta.setdefault(k.strip(), v.strip().strip('"'))
                 continue
-            if s.startswith("*") and "=" in s and not in_data:
-                k, v = s[1:].split("=", 1)
-                meta[k.strip()] = v.strip().strip('"')
+            nums = _numbers(s)
+            if len(nums) < 2:
                 continue
-            if in_data and s:
-                parts = s.split()
-                nums = []
-                for p in parts:
-                    try:
-                        nums.append(float(p))
-                    except ValueError:
-                        pass
-                if len(nums) >= 2:
-                    xs.append(nums[0])
-                    ys.append(nums[1])
-    if len(xs) < 5:
+            row = (nums[0], nums[1] * (nums[2] if len(nums) >= 3 and nums[2] > 0 else 1.0))
+            if cur is not None:
+                cur.append(row)
+            elif in_data:
+                fallback.append(row)
+    rows = scans[0] if scans else fallback
+    if len(rows) < 5:
         raise ValueError("RAS file did not yield usable data rows (unexpected structure).")
+    if len(scans) > 1:
+        meta["warning"] = f"{len(scans)} scans in this file; loaded the first."
+    xs, ys = zip(*rows)
     return ReadResult(np.array(xs), np.array(ys), metadata=meta, confidence="high")
 
 
@@ -148,16 +250,32 @@ def read_xrdml(path):
     if y_el is None or not y_el.text:
         raise ValueError("No intensity/count data found in .xrdml file.")
     y = np.array([float(v) for v in y_el.text.split()])
-
-    pos_list = datapoints.find("n:positions" if ns else "positions", ns)
-    x = None
     meta = {}
+    att_el = datapoints.find("n:beamAttenuationFactors" if ns else "beamAttenuationFactors", ns)
+    if att_el is not None and att_el.text:
+        factors = np.array([float(v) for v in att_el.text.split()])
+        if len(factors) == len(y):
+            y = y * factors
+            meta["attenuation"] = "beam attenuation factors applied"
+    time_el = datapoints.find("n:commonCountingTime" if ns else "commonCountingTime", ns)
+    if time_el is not None and time_el.text:
+        meta["counting_time_s"] = float(time_el.text)
+    n_scans = len(findall(".//{n}dataPoints"))
+    if n_scans > 1:
+        meta["warning"] = f"{n_scans} scans in this file; loaded the first."
+
+    x = None
     for positions in datapoints.findall("n:positions" if ns else "positions", ns):
         axis = positions.get("axis", "")
         if axis == "2Theta":
+            list_el = positions.find("n:listPositions" if ns else "listPositions", ns)
             start_el = positions.find("n:startPosition" if ns else "startPosition", ns)
             end_el = positions.find("n:endPosition" if ns else "endPosition", ns)
-            if start_el is not None and end_el is not None:
+            if list_el is not None and list_el.text:
+                values = np.array([float(v) for v in list_el.text.split()])
+                if len(values) == len(y):
+                    x = values
+            elif start_el is not None and end_el is not None:
                 start, end = float(start_el.text), float(end_el.text)
                 x = np.linspace(start, end, len(y))
     if x is None:

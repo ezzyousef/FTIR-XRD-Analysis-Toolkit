@@ -34,19 +34,66 @@ WAVELENGTHS = {
 }
 
 
-def detect_xrd_peaks(two_theta, intensity, prominence_frac=0.02, min_distance_pts=5):
+# Kalpha2 wavelengths offered for stripping. Only Cu is pre-filled (the values above);
+# for other anodes the user enters Kalpha2 from the instrument documentation.
+KALPHA_PAIRS = {"Cu Ka1": (1.540562, 1.544390)}
+KALPHA2_RATIO = 0.5                 # I(Ka2)/I(Ka1), the usual value for Cu
+NOISE_FLOOR_SIGMAS = 7.0              # chosen on simulated patterns: 5 sigma let ~1 noise peak per 800 points through
+MIN_WIDTH_POINTS = 3.0              # narrower "peaks" are spikes, not reflections
+
+
+def estimate_noise_sigma(intensity):
+    """Robust noise standard deviation from point-to-point differences (MAD)."""
+    d = np.diff(np.asarray(intensity, dtype=float))
+    d = d[np.isfinite(d)]
+    if len(d) < 3:
+        return 0.0
+    return float(1.4826 * np.median(np.abs(d - np.median(d))) / np.sqrt(2.0))
+
+
+def detect_xrd_peaks(two_theta, intensity, prominence_frac=0.02, min_distance_pts=5, noise_floor=False):
+    """
+    Peaks of a diffraction pattern, sorted by 2theta. Each peak carries its width from the
+    raw points ("fwhm_deg", "fwhm_pts") and "usable": False for spikes narrower than
+    MIN_WIDTH_POINTS data points, which must not enter size/strain analysis.
+    noise_floor: keep only peaks whose prominence is >= NOISE_FLOOR_SIGMAS x the noise around
+    them, drop weaker maxima inside a stronger peak's half-maximum width, and drop spikes.
+    """
     from scipy.signal import find_peaks, peak_widths
 
     two_theta = np.asarray(two_theta, dtype=float)
     intensity = np.asarray(intensity, dtype=float)
     y_range = intensity.max() - intensity.min()
     prominence = max(prominence_frac * y_range, 1e-9)
+    if noise_floor:
+        prominence = max(prominence, NOISE_FLOOR_SIGMAS * estimate_noise_sigma(intensity))
 
     idx, props = find_peaks(intensity, prominence=prominence, distance=min_distance_pts)
     widths_result = peak_widths(intensity, idx, rel_height=0.5)
+    keep = np.ones(len(idx), dtype=bool)
+    if noise_floor and len(idx):
+        # Counting noise grows with intensity (Poisson), so judge each peak against the noise
+        # measured around it, not one global value dominated by the background.
+        for i, pk in enumerate(idx):
+            half = max(int(5 * widths_result[0][i]), 25)
+            local = estimate_noise_sigma(intensity[max(pk - half, 0):pk + half + 1])
+            if props["prominences"][i] < NOISE_FLOOR_SIGMAS * local:
+                keep[i] = False
+        # A weaker maximum inside a stronger peak's half-maximum width is noise on that peak.
+        order = np.argsort(-props["prominences"])
+        for rank, i in enumerate(order):
+            if not keep[i]:
+                continue
+            left, right = widths_result[2][i], widths_result[3][i]
+            for j in order[rank + 1:]:
+                if keep[j] and left <= idx[j] <= right:
+                    keep[j] = False
+        keep &= widths_result[0] >= MIN_WIDTH_POINTS
 
     peaks = []
     for i, pk in enumerate(idx):
+        if not keep[i]:
+            continue
         # FWHM in points -> convert to 2theta units using local spacing
         if pk + 1 < len(two_theta):
             dx = abs(two_theta[pk + 1] - two_theta[pk])
@@ -59,9 +106,89 @@ def detect_xrd_peaks(two_theta, intensity, prominence_frac=0.02, min_distance_pt
             "intensity": float(intensity[pk]),
             "prominence": float(props["prominences"][i]),
             "fwhm_deg": float(fwhm_deg),
+            "fwhm_pts": float(widths_result[0][i]),
+            "usable": bool(widths_result[0][i] >= MIN_WIDTH_POINTS),
         })
-    peaks.sort(key=lambda p: -p["intensity"])
+    peaks.sort(key=lambda p: p["two_theta"])
     return peaks
+
+
+# ---------------------------------------------------------------- Kalpha2 and instrument
+def kalpha2_offset_deg(two_theta_deg, lambda1, lambda2):
+    """Separation 2theta(Ka2) - 2theta(Ka1) in degrees: 2*tan(theta)*(l2 - l1)/l1 (radians)."""
+    theta = np.radians(np.asarray(two_theta_deg, dtype=float) / 2.0)
+    return np.degrees(2.0 * np.tan(theta) * (lambda2 - lambda1) / lambda1)
+
+
+def strip_kalpha2(two_theta, intensity, lambda1, lambda2, ratio=KALPHA2_RATIO):
+    """
+    Rachinger correction: remove the Ka2 component, point by point from low angle,
+    I1(2t) = I(2t) - ratio * I1(2t - offset(2t)). Works on any 2theta order and returns the
+    Ka1-only pattern in the input order. The input should be background-free or nearly so
+    near the peaks; noise is carried through (it is not amplified by more than 1 + ratio).
+    """
+    x = np.asarray(two_theta, dtype=float)
+    y = np.asarray(intensity, dtype=float)
+    order = np.argsort(x)
+    xs, ys = x[order], y[order]
+    out = np.empty_like(ys)
+    shift = kalpha2_offset_deg(xs, lambda1, lambda2)
+    for i in range(len(xs)):
+        target = xs[i] - shift[i]
+        if i == 0 or target <= xs[0]:
+            out[i] = ys[i]
+            continue
+        j = int(np.searchsorted(xs, target))           # xs[j-1] < target <= xs[j], j <= i
+        if j >= i:                                       # inside the current step: solve for out[i]
+            w = (xs[i] - target) / (xs[i] - xs[i - 1])
+            out[i] = (ys[i] - ratio * w * out[i - 1]) / (1.0 + ratio * (1.0 - w))
+            continue
+        w = (target - xs[j - 1]) / (xs[j] - xs[j - 1])
+        out[i] = ys[i] - ratio * ((1.0 - w) * out[j - 1] + w * out[j])
+    result = np.empty_like(out)
+    result[order] = out
+    return result
+
+
+def caglioti_fwhm(two_theta_deg, U, V, W):
+    """Instrument FWHM (degrees 2theta): H^2 = U tan^2(theta) + V tan(theta) + W."""
+    t = np.tan(np.radians(np.asarray(two_theta_deg, dtype=float) / 2.0))
+    h2 = U * t ** 2 + V * t + W
+    h = np.sqrt(np.clip(h2, 0.0, None))
+    return float(h) if np.ndim(h) == 0 else h
+
+
+def fit_caglioti(two_theta_deg, fwhm_deg):
+    """Least-squares U, V, W from the peak widths of a line-profile standard (>= 3 peaks).
+    Returns {"U", "V", "W", "r_squared", "n_peaks"}."""
+    tt = np.asarray(two_theta_deg, dtype=float)
+    h2 = np.asarray(fwhm_deg, dtype=float) ** 2
+    if len(tt) < 3:
+        raise ValueError("Refining U, V, W needs at least 3 peaks of the standard.")
+    t = np.tan(np.radians(tt / 2.0))
+    A = np.vstack([t ** 2, t, np.ones_like(t)]).T
+    (U, V, W), *_ = np.linalg.lstsq(A, h2, rcond=None)
+    pred = A @ np.array([U, V, W])
+    ss_tot = float(np.sum((h2 - h2.mean()) ** 2))
+    r2 = 1.0 - float(np.sum((h2 - pred) ** 2)) / ss_tot if ss_tot > 0 else float("nan")
+    return {"U": float(U), "V": float(V), "W": float(W), "r_squared": r2, "n_peaks": int(len(tt))}
+
+
+def correct_instrumental(fwhm_deg, instrument_fwhm_deg, mode="gaussian", min_ratio=1.05):
+    """
+    Sample broadening from the measured width B and the instrument width b (both degrees):
+    Gaussian profiles add in quadrature, beta = sqrt(B^2 - b^2); Lorentzian profiles add
+    linearly, beta = B - b. Returns None when B <= min_ratio * b: the peak is not
+    measurably broader than the instrument, so no size can be derived from it.
+    """
+    B, b = float(fwhm_deg), float(instrument_fwhm_deg or 0.0)
+    if b <= 0:
+        return B
+    if B <= min_ratio * b:
+        return None
+    if mode == "lorentzian":
+        return B - b
+    return float(np.sqrt(B * B - b * b))
 
 
 def bragg_d_spacing(two_theta_deg, wavelength_a, n=1):
@@ -190,16 +317,30 @@ def williamson_hall(two_theta_list, fwhm_list, wavelength_a, K=0.9):
 
     slope, intercept = np.polyfit(x, y, 1)
     strain = slope
+    pred = slope * x + intercept
+    resid = y - pred
+    n = len(x)
+    ss_tot = float(np.sum((y - y.mean()) ** 2))
+    r_squared = 1.0 - float(np.sum(resid ** 2)) / ss_tot if ss_tot > 0 else float("nan")
+    # standard errors of an ordinary least-squares line
+    s2 = float(np.sum(resid ** 2)) / (n - 2)
+    sxx = float(np.sum((x - x.mean()) ** 2))
+    se_slope = float(np.sqrt(s2 / sxx)) if sxx > 0 else float("nan")
+    se_intercept = float(np.sqrt(s2 * (1.0 / n + x.mean() ** 2 / sxx))) if sxx > 0 else float("nan")
     if intercept <= 0:
-        D_nm = None  # non-physical intercept; size term not resolvable from this data
+        D_nm, se_D = None, None  # non-physical intercept; size term not resolvable from this data
     else:
         D_nm = (K * wavelength_nm) / intercept
-    return {"crystallite_size_nm": D_nm, "microstrain": float(strain),
-            "strain_physical": bool(strain >= 0),
-            "slope": float(slope), "intercept": float(intercept)}
+        se_D = float(D_nm * se_intercept / intercept)
+    return {"crystallite_size_nm": D_nm, "crystallite_size_se_nm": se_D, "microstrain": float(strain),
+            "microstrain_se": se_slope, "strain_physical": bool(strain >= 0),
+            "slope": float(slope), "intercept": float(intercept), "intercept_se": se_intercept,
+            "r_squared": r_squared, "K": float(K), "wavelength_a": float(wavelength_a),
+            "x": [float(v) for v in x], "y": [float(v) for v in y],
+            "two_theta": [float(v) for v in np.degrees(two_theta)]}
 
 
-def percent_crystallinity(two_theta, intensity, crystalline_regions, amorphous_regions):
+def percent_crystallinity(two_theta, intensity, crystalline_regions, amorphous_regions, linear_baseline=False):
     """
     Approximate % crystallinity via area-under-curve method:
     %Xc = Area(crystalline peaks) / [Area(crystalline peaks) + Area(amorphous halo)] * 100
@@ -214,6 +355,8 @@ def percent_crystallinity(two_theta, intensity, crystalline_regions, amorphous_r
 
     two_theta = np.asarray(two_theta, dtype=float)
     intensity = np.asarray(intensity, dtype=float)
+    if linear_baseline:
+        intensity = intensity - span_baseline(two_theta, intensity, list(crystalline_regions) + list(amorphous_regions))
 
     def region_area(regions):
         total = 0.0
@@ -234,16 +377,61 @@ def percent_crystallinity(two_theta, intensity, crystalline_regions, amorphous_r
     return float(100 * crys_area / denom)
 
 
+def span_baseline(two_theta, intensity, regions, edge_points=5):
+    """Straight line through the pattern at the outer ends of all regions (each end averaged
+    over a few points), so instrument background is not counted as crystalline or amorphous."""
+    two_theta = np.asarray(two_theta, dtype=float)
+    intensity = np.asarray(intensity, dtype=float)
+    lo = min(min(r) for r in regions)
+    hi = max(max(r) for r in regions)
+    order = np.argsort(two_theta)
+    xs, ys = two_theta[order], intensity[order]
+    i_lo = int(np.searchsorted(xs, lo))
+    i_hi = int(np.searchsorted(xs, hi))
+    y_lo = float(np.mean(ys[max(i_lo - edge_points // 2, 0):i_lo + edge_points // 2 + 1]))
+    y_hi = float(np.mean(ys[max(i_hi - edge_points // 2, 0):i_hi + edge_points // 2 + 1]))
+    base = np.interp(two_theta, [lo, hi], [y_lo, y_hi])
+    return np.where((two_theta >= lo) & (two_theta <= hi), base, 0.0)
+
+
+def snip_iterations(two_theta, window_deg):
+    """SNIP clipping half-width in data points for a window given in degrees 2theta, so the
+    result does not depend on the step size."""
+    x = np.sort(np.asarray(two_theta, dtype=float))
+    step = float(np.median(np.diff(x))) if len(x) > 1 else 1.0
+    return max(1, int(np.ceil(float(window_deg) / max(step, 1e-9))))
+
+
+def d_spacing_uncertainty(two_theta_deg, wavelength_a, sigma_two_theta_deg):
+    """sigma_d = d * cot(theta) * sigma_theta, with sigma_theta = sigma(2theta)/2 in radians."""
+    d = float(bragg_d_spacing(two_theta_deg, wavelength_a))
+    theta = np.radians(float(two_theta_deg) / 2.0)
+    return float(d / np.tan(theta) * np.radians(float(sigma_two_theta_deg) / 2.0))
+
+
 def cubic_lattice_parameter(d_spacing_a, h, k, l):
     """
     For a cubic crystal system: 1/d^2 = (h^2+k^2+l^2)/a^2  ->  a = d * sqrt(h^2+k^2+l^2)
     Only valid for cubic systems -- for other symmetries (tetragonal, hexagonal,
     etc.) a different formula is required.
     """
+    if any(float(v) != int(v) for v in (h, k, l)):
+        raise ValueError("h, k and l must be whole numbers.")
     hkl_sum = h**2 + k**2 + l**2
     if hkl_sum == 0:
         raise ValueError("h, k, l cannot all be zero.")
     return float(d_spacing_a * np.sqrt(hkl_sum))
+
+
+def cubic_extinction_note(h, k, l):
+    """Which cubic lattices allow this reflection (simple rules for P, I, F)."""
+    h, k, l = int(h), int(k), int(l)
+    allowed = ["primitive (P)"]
+    if (h + k + l) % 2 == 0:
+        allowed.append("body-centred (I)")
+    if len({h % 2, k % 2, l % 2}) == 1:
+        allowed.append("face-centred (F)")
+    return "allowed for " + ", ".join(allowed)
 
 
 def smooth_pattern(intensity, window_length=11, polyorder=3):

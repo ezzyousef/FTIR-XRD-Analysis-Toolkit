@@ -122,9 +122,11 @@ def peak_columns(kind: str, trace, wavelength: float | None = None) -> dict[str,
     return {
         "2θ (°)": [_num(p["two_theta"]) for p in trace.peaks],
         "Intensity": [_num(p["intensity"]) for p in trace.peaks],
-        "FWHM (°)": [_num(p.get("fwhm_deg")) for p in trace.peaks],
+        "FWHM measured (°)": [_num(p.get("width_used_deg", p.get("fwhm_deg"))) for p in trace.peaks],
+        "Sample β (°)": [_num(p.get("beta_deg")) for p in trace.peaks],
         "d-spacing (Å)": [_num(p.get("d_A")) for p in trace.peaks],
-        "Crystallite size (nm)": [_num(p.get("size_nm")) for p in trace.peaks],
+        "Apparent size, Scherrer (nm)": [_num(p.get("size_nm")) for p in trace.peaks],
+        "Used (1 = yes)": [1.0 if p.get("use", True) and p.get("usable", True) else 0.0 for p in trace.peaks],
     }
 
 
@@ -218,17 +220,28 @@ def results(kind: str, trace, *, mode: str = "absorbance", wavelength: float | N
     else:
         if wavelength:
             rows.append(("X-ray wavelength", float(wavelength), "Å", ""))
+        params = trace.metadata.get("xrd_params") or {}
+        inst = (params.get("instrument") or {}).get("source", "none")
+        if params:
+            rows.append(("Scherrer K", float(params.get("K", 0.9)), "", ""))
+            rows.append(("Instrument profile", inst, "", "" if inst != "none" else "sizes not corrected"))
         sizes = [p["size_nm"] for p in trace.peaks if p.get("size_nm")]
         if sizes:
-            rows.append(("Mean Scherrer crystallite size", float(np.mean(sizes)), "nm",
-                         f"{len(sizes)} peaks; not corrected for instrumental broadening"))
+            note = f"{len(sizes)} peaks; " + ("instrument-corrected" if inst != "none"
+                                              else "not corrected for instrumental broadening")
+            rows.append(("Mean Scherrer crystallite size", float(np.mean(sizes)), "nm", note))
         wh = trace.metadata.get("wh_result")
         if wh:
             if wh.get("crystallite_size_nm"):
+                se = wh.get("crystallite_size_se_nm")
                 rows.append(("Williamson–Hall crystallite size", float(wh["crystallite_size_nm"]), "nm",
-                             f"{wh.get('n_peaks', '')} peaks"))
+                             f"{wh.get('n_peaks', '')} peaks" + (f", ± {se:.2g} nm (1 SE)" if se is not None else "")))
+            se_e = wh.get("microstrain_se")
             rows.append(("Williamson–Hall microstrain", float(wh["microstrain"]), "",
-                         "" if wh.get("strain_physical", True) else "negative fit: treat as ~0"))
+                         ("" if wh.get("strain_physical", True) else "negative fit: treat as ~0")
+                         + (f" ± {se_e:.2g} (1 SE)" if se_e is not None else "")))
+            if wh.get("r_squared") is not None:
+                rows.append(("Williamson–Hall R²", float(wh["r_squared"]), "", ""))
         pct = trace.metadata.get("crystallinity_pct")
         if pct is not None:
             regions = trace.metadata.get("crystallinity_regions", {})

@@ -39,15 +39,23 @@ WILLIAMSON_HALL = (
     "crystallite size D) from strain broadening (from the slope, giving "
     "microstrain ε) -- unlike the single-peak Scherrer equation, which "
     "conflates the two.\n\n"
+    "Uses the sample widths β (after instrument correction) of the ticked "
+    "peaks; reports D and ε with their standard errors from the "
+    "least-squares line, and R² (low R² is normal when the line is flat, "
+    "i.e. no strain). Strip Kα2 first: an unresolved doublet mimics strain.\n\n"
     "Source: Williamson, G.K. & Hall, W.H., Acta Metallurgica, 1953, 1(1), "
     "22-31. Needs 3+ peaks for a meaningful fit; a non-positive intercept "
-    "means size isn't resolvable from this data (reported as such)."
+    "means size isn't resolvable from this data (reported as such). Assumes "
+    "uniform strain and isotropic broadening."
 )
 
 PERCENT_CRYSTALLINITY = (
     "%Xc = Area(crystalline peaks) / [Area(crystalline) + Area(amorphous halo)] × 100\n\n"
     "Area-under-curve method: you choose which 2θ regions are "
-    "'crystalline' and which are the 'amorphous halo'.\n\n"
+    "'crystalline' and which are the 'amorphous halo'. The app integrates "
+    "the RAW pattern minus a straight baseline drawn across the outer ends "
+    "of all regions (so instrument background is not counted), and draws "
+    "the regions on the plot.\n\n"
     "Source: standard XRD crystallinity methodology (e.g. Cullity & Stock, "
     "2001). This is inherently method- and region-choice-dependent -- "
     "different software/analysts will get different numbers on the same "
@@ -216,9 +224,45 @@ XRD_BACKGROUND_SUBTRACTION = (
     "background survives. The result is inverse-transformed and subtracted.\n\n"
     "Works directly on the raw pattern -- no need to manually pick "
     "'background-only' 2θ regions.\n\n"
+    "The clipping window is given in degrees 2θ (converted to points from "
+    "the step size), so the result does not depend on the step. About 2-3x "
+    "the widest peak's FWHM: narrower eats into broad peaks, wider leaves "
+    "background under them. SNIP also removes an amorphous halo, so % "
+    "crystallinity always works on the raw pattern.\n\n"
     "Source: Ryan et al., Nucl. Instrum. Methods B 34 (1988) 396; Morháč "
-    "et al., Nucl. Instrum. Methods A 401 (1997) 113. Used by PANalytical "
-    "HighScore and Bruker DIFFRAC.EVA."
+    "et al., Nucl. Instrum. Methods A 401 (1997) 113."
+)
+
+XRD_KALPHA2_STRIPPING = (
+    "A Cu tube emits Kα1 and Kα2; every reflection is a doublet separated by\n"
+    "Δ2θ = 2·tanθ·(λ2 − λ1)/λ1 (radians), growing with angle. Left in, the\n"
+    "unresolved doublet widens peaks more at high angle, which shrinks Scherrer\n"
+    "sizes and mimics strain in Williamson–Hall.\n\n"
+    "Rachinger correction, applied point by point from low angle:\n"
+    "  I1(2θ) = I(2θ) − R · I1(2θ − Δ2θ),  R = I(Kα2)/I(Kα1) ≈ 0.5\n"
+    "Subtract the background first; use Cu Ka1 as the wavelength afterwards.\n"
+    "Only Cu values are pre-filled; for other anodes enter Kα2 from your\n"
+    "instrument documentation. Leaves small residues where the doublet ratio\n"
+    "deviates from R.\n\n"
+    "Source: Rachinger, W.A., J. Sci. Instrum. 25 (1948) 254."
+)
+
+XRD_INSTRUMENT_PROFILE = (
+    "Every diffractometer adds its own width b to each peak. The sample's\n"
+    "width β is recovered from the measured width B:\n"
+    "  Gaussian profiles:   β = √(B² − b²)\n"
+    "  Lorentzian profiles: β = B − b\n"
+    "Peaks not measurably broader than the instrument (B ≤ 1.05 b) get no\n"
+    "size; peaks narrower than b are flagged as probable noise.\n\n"
+    "The instrument width varies with angle (Caglioti):\n"
+    "  b² = U·tan²θ + V·tanθ + W\n"
+    "Measure a line-profile standard (e.g. LaB6 or Si) with the same optics,\n"
+    "fit its peaks, and use 'Refine profile from this pattern', or type a\n"
+    "constant FWHM. Without it, sizes are lower bounds and errors are largest\n"
+    "for large crystallites (> ~100 nm).\n\n"
+    "Source: Caglioti, G., Paoletti, A. & Ricci, F.P., Nucl. Instrum. 3 (1958)\n"
+    "223; quadrature/linear subtraction as in Klug & Alexander and Cullity &\n"
+    "Stock (textbook treatments)."
 )
 
 XRD_UNIT_CONVERTER = (
