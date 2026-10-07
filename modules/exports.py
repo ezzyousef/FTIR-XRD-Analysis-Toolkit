@@ -136,12 +136,28 @@ def fit_rows(trace) -> list[list]:
              _num(f["area"]), _num(f["r_squared"]), f["shape"]] for f in trace.fits]
 
 
-MATCH_HEADERS = ["Material", "Category", "Score (%)", "Matched peaks", "Reference peaks", "Source"]
+MATCH_HEADERS = ["Rank", "Material", "Category", "Confidence tier", "Score (%)", "Matched peaks", "Reference peaks",
+                 "Weighted coverage (%)", "Sample explained (%)", "Chance p (whole search)",
+                 "Missing strong bands (cm-1)", "Method", "Source"]
+
+
+def _pct(match, key):
+    value = match.get(key)
+    return round(value * 100, 1) if isinstance(value, (int, float)) else ""
 
 
 def match_rows(trace) -> list[list]:
-    return [[m["name"], m["category"], round(m["score"] * 100, 1), m["matched_count"],
-             m["total_reference_peaks"], m.get("source", "")] for m in trace.matches]
+    """One row per candidate. Results from the legacy coverage method, or from sessions saved
+    by older versions, leave the weighted-evidence columns empty."""
+    rows = []
+    for rank, m in enumerate(trace.matches, 1):
+        p = m.get("family_chance_probability")
+        missing = ", ".join(f"{(r['range'][0] + r['range'][1]) / 2:.0f}" for r in m.get("missing_strong") or [])
+        rows.append([rank, m["name"], m["category"], m.get("tier", ""), round(m["score"] * 100, 1),
+                     m["matched_count"], m["total_reference_peaks"], _pct(m, "forward_score"),
+                     _pct(m, "reverse_score"), float(p) if isinstance(p, (int, float)) else "", missing,
+                     m.get("method", "coverage"), m.get("source", "")])
+    return rows
 
 
 def results(kind: str, trace, *, mode: str = "absorbance", wavelength: float | None = None) -> list[tuple]:
@@ -151,9 +167,14 @@ def results(kind: str, trace, *, mode: str = "absorbance", wavelength: float | N
         rows.append(("Mode", mode, "", ""))
         if trace.matches:
             best = trace.matches[0]
+            tier = f"{best['tier']} confidence, " if best.get("tier") else ""
             rows.append(("Best database match", best["name"], "",
-                         f"score {best['score'] * 100:.0f}%, {best['matched_count']}/"
+                         f"{tier}score {best['score'] * 100:.0f}%, {best['matched_count']}/"
                          f"{best['total_reference_peaks']} reference peaks — screening, not identification"))
+        mixture = trace.metadata.get("mixture") or {}
+        if mixture.get("components"):
+            rows.append(("Mixture screening", " + ".join(c["name"] for c in mixture["components"]), "",
+                         f"{mixture.get('explained_share', 0) * 100:.0f}% of peak prominence explained"))
         if trace.fg_hits:
             rows.append(("Functional-group hits", len(trace.fg_hits), "", ""))
     else:

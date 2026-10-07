@@ -8,16 +8,39 @@ import csv
 import os
 import tempfile
 
+import numpy as np
+from PySide6.QtGui import QBrush, QColor
 from PySide6.QtWidgets import (QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox, QHBoxLayout, QLabel,
-                               QPlainTextEdit, QPushButton, QRadioButton, QVBoxLayout, QWidget)
+                               QLineEdit, QPlainTextEdit, QPushButton, QRadioButton, QSplitter, QVBoxLayout,
+                               QWidget)
+from PySide6.QtCore import Qt
 
 import file_readers
 import formula_sources as fs
 import ftir_analysis
+import ftir_matching
 import peak_fitting
 import report_export
 import ui_common
+from labkit.qt.theme import colours
 from ui_common import AnalysisTabBase, DataTable, parse_float
+
+# Tier -> (theme foreground token, background token) for the confidence cell. The tier is
+# also written in the cell, so colour is never the only signal.
+TIER_TOKENS = {"High": ("good", "good_bg"), "Medium": ("warn", "warn_bg"), "Low": (None, None),
+               "Weak": ("muted", None)}
+BAND_COLOURS = {"matched": "#2B8A3E", "edge": "#F59F00", "missing": "#E03131"}
+BAND_MARKS = {"matched": "✓", "edge": "≈", "missing": "✗"}
+
+
+def format_probability(p):
+    if p is None:
+        return "—"
+    return "<0.001" if p < 0.001 else f"{p:.3f}"
+
+
+def is_weighted(match):
+    return match.get("method") == ftir_matching.METHOD_WEIGHTED and "confidence" in match
 
 
 class FTIRTab(AnalysisTabBase):
@@ -32,6 +55,7 @@ class FTIRTab(AnalysisTabBase):
         self.database = app.ftir_db
         self._current_match = None
         self._current_match_entry = None
+        self._shown_matches = []
         self._build_controls()
         self._build_results_tabs()
         self._on_traces_changed()
@@ -97,6 +121,23 @@ class FTIRTab(AnalysisTabBase):
         self.tolerance_spin.setValue(float(self.app.cfg.get("ftir_tolerance_cm1", 10.0)))
         self.tolerance_spin.setSuffix(" cm⁻¹")
         card.body.addWidget(self.labelled("Tolerance (±)", self.tolerance_spin))
+        self.method_combo = QComboBox()
+        for key, label in ftir_matching.METHOD_LABELS.items():
+            self.method_combo.addItem(label, key)
+        self.method_combo.setToolTip("Weighted evidence uses band intensities, position accuracy, how much of "
+                                     "your spectrum a material explains, and the chance of a coincidental "
+                                     "match. Coverage is the original fraction-of-bands score.")
+        card.body.addWidget(self.labelled("Scoring", self.method_combo))
+        self.min_conf_spin = QDoubleSpinBox()
+        self.min_conf_spin.setRange(0.0, 95.0)
+        self.min_conf_spin.setSingleStep(5.0)
+        self.min_conf_spin.setDecimals(0)
+        self.min_conf_spin.setValue(float(self.app.cfg.get("ftir_min_confidence_pct", 5.0)))
+        self.min_conf_spin.setSuffix(" %")
+        self.min_conf_spin.setToolTip("Hide candidates scoring below this. Nothing is recomputed — "
+                                      "change it at any time.")
+        self.min_conf_spin.valueChanged.connect(lambda _v: self._refresh_matches_table())
+        card.body.addWidget(self.labelled("Hide matches below", self.min_conf_spin))
         self.category_combo = QComboBox()
         self.category_combo.addItems([ftir_analysis.ALL_CATEGORIES_LABEL] +
                                      [ftir_analysis.CATEGORY_LABELS[k] for k in ftir_analysis.MATERIAL_CATEGORIES])
@@ -105,6 +146,9 @@ class FTIRTab(AnalysisTabBase):
         card.body.addWidget(self.action_button(f"Match to database ({total} materials)", self.match_database,
                                                primary=True, info=("FTIR database matching method",
                                                                    fs.FTIR_DATABASE_MATCHING)))
+        card.body.addWidget(self.action_button("Analyse as mixture (up to 3 components)", self.analyse_mixture,
+                                               info=("FTIR database matching method",
+                                                     fs.FTIR_DATABASE_MATCHING)))
 
         card = self.add_card("Peak fitting")
         self.shape_combo = QComboBox()
@@ -144,9 +188,15 @@ class FTIRTab(AnalysisTabBase):
         ml = QVBoxLayout(matches)
         ml.setContentsMargins(6, 8, 6, 6)
         bar = QHBoxLayout()
-        hint = QLabel("Click a row to overlay its reference bands on the plot.")
-        hint.setObjectName("Hint")
-        bar.addWidget(hint, 1)
+        self.match_filter = QLineEdit()
+        self.match_filter.setPlaceholderText("Filter materials…")
+        self.match_filter.setClearButtonEnabled(True)
+        self.match_filter.setMaximumWidth(220)
+        self.match_filter.textChanged.connect(lambda _t: self._refresh_matches_table())
+        bar.addWidget(self.match_filter)
+        self.match_summary = QLabel("Click a row to overlay its reference bands on the plot.")
+        self.match_summary.setObjectName("Hint")
+        bar.addWidget(self.match_summary, 1)
         export_refs = QPushButton("Export reference peaks (CSV)…")
         export_refs.clicked.connect(lambda _c=False: self.export_reference_peaks_csv())
         clear = QPushButton("Clear overlay")
@@ -154,14 +204,40 @@ class FTIRTab(AnalysisTabBase):
         bar.addWidget(export_refs)
         bar.addWidget(clear)
         ml.addLayout(bar)
-        self.matches_table = DataTable(["Material", "Category", "Score", "Matched / total", "Source"])
+        self.matches_table = DataTable(["#", "Material", "Confidence", "Bands found", "Sample explained",
+                                        "Chance p", "Missing strong bands", "Category"])
         self.matches_table.on_select = self._show_match_detail
-        ml.addWidget(self.matches_table, 3)
         self.match_detail = QPlainTextEdit()
         self.match_detail.setReadOnly(True)
         self.match_detail.setObjectName("Mono")
-        ml.addWidget(self.match_detail, 2)
+        self.match_detail.setPlaceholderText("Select a candidate to see the evidence band by band.")
+        split = QSplitter(Qt.Horizontal)
+        split.addWidget(self.matches_table)
+        split.addWidget(self.match_detail)
+        split.setStretchFactor(0, 3)
+        split.setStretchFactor(1, 2)
+        split.setChildrenCollapsible(False)
+        ml.addWidget(split, 1)
+        self.matches_page = matches
         self.results_tabs.addTab(matches, "Database matches")
+
+        mixture = QWidget()
+        xl = QVBoxLayout(mixture)
+        xl.setContentsMargins(6, 8, 6, 6)
+        self.mixture_summary = QLabel("Analyse as mixture to look for up to three components.")
+        self.mixture_summary.setObjectName("Hint")
+        self.mixture_summary.setWordWrap(True)
+        xl.addWidget(self.mixture_summary)
+        self.mixture_table = DataTable(["Component", "Confidence", "Peaks explained", "Share of sample",
+                                        "Missing strong bands", "Category"])
+        self.mixture_table.on_select = self._show_match_detail
+        xl.addWidget(self.mixture_table, 2)
+        self.unexplained_label = QLabel("")
+        self.unexplained_label.setObjectName("Hint")
+        self.unexplained_label.setWordWrap(True)
+        xl.addWidget(self.unexplained_label)
+        self.mixture_page = mixture
+        self.results_tabs.addTab(mixture, "Mixture")
 
         self.fg_table = DataTable(["Wavenumber", "Functional group", "Expected range", "Source"])
         self.results_tabs.addTab(self.fg_table, "Functional groups")
@@ -177,7 +253,8 @@ class FTIRTab(AnalysisTabBase):
 
     def session_settings(self):
         return {"mode": self.mode(), "prominence": self.prom_spin.value(), "tolerance": self.tolerance_spin.value(),
-                "category": self.category_combo.currentText()}
+                "category": self.category_combo.currentText(), "match_method": self.match_method(),
+                "min_confidence_pct": self.min_conf_spin.value()}
 
     def apply_session_settings(self, state):
         (self.rb_transmittance if state.get("mode") == "transmittance" else self.rb_absorbance).setChecked(True)
@@ -185,6 +262,12 @@ class FTIRTab(AnalysisTabBase):
         self.tolerance_spin.setValue(float(state.get("tolerance", 10.0)))
         index = self.category_combo.findText(state.get("category", ftir_analysis.ALL_CATEGORIES_LABEL))
         self.category_combo.setCurrentIndex(max(0, index))
+        method_index = self.method_combo.findData(state.get("match_method", ftir_matching.METHOD_WEIGHTED))
+        self.method_combo.setCurrentIndex(max(0, method_index))
+        self.min_conf_spin.setValue(float(state.get("min_confidence_pct", 5.0)))
+
+    def match_method(self):
+        return self.method_combo.currentData() or ftir_matching.METHOD_WEIGHTED
 
     # ---------------------------------------------------------------- plotting
     def _plot_active_extras(self, ax, trace, theme):
@@ -197,32 +280,65 @@ class FTIRTab(AnalysisTabBase):
                             va="bottom", color=fg)
 
     def _draw_reference_overlay(self, ax, theme):
-        label = self.reference_overlay.get("label", "Reference")
-        for p in self.reference_overlay.get("peaks", []):
+        overlay = self.reference_overlay
+        label = overlay.get("label", "Reference")
+        status_by_range = {tuple(b["reference"]["range"]): b["status"] for b in overlay.get("bands", [])}
+        for p in overlay.get("peaks", []):
             lo, hi = p["range"]
             if lo == 0 and hi == 0:
                 continue                            # IR-inactive placeholder (e.g. NaCl)
-            ax.axvspan(lo, hi, color="#F59F00", alpha=0.20, lw=0, zorder=0)
-            ax.axvline((lo + hi) / 2, color="#F59F00", alpha=0.6, lw=0.8, linestyle=":")
+            status = status_by_range.get(tuple(p["range"]))
+            centre = (lo + hi) / 2
+            if status is None:                      # legacy overlay: no per-band status
+                ax.axvspan(lo, hi, color="#F59F00", alpha=0.20, lw=0, zorder=0)
+                ax.axvline(centre, color="#F59F00", alpha=0.6, lw=0.8, linestyle=":")
+                continue
+            colour = BAND_COLOURS[status]
+            if status == "missing":
+                weight, _broad = ftir_matching.parse_intensity(p.get("intensity"))
+                strong = weight >= ftir_matching.STRONG_WEIGHT
+                ax.axvline(centre, color=colour, alpha=0.75 if strong else 0.45, lw=1.6 if strong else 0.9,
+                           linestyle="--", zorder=0)
+            else:
+                ax.axvspan(lo, hi, color=colour, alpha=0.22, lw=0, zorder=0)
+                ax.axvline(centre, color=colour, alpha=0.7, lw=0.8, linestyle="-" if status == "matched" else ":")
+        synthetic = overlay.get("synthetic")
+        active = self.get_active()
+        if synthetic is not None and active is not None and len(active.y):
+            sx, sy = synthetic
+            top = float(np.max(sy)) if len(sy) else 0.0
+            if top > 0:
+                y_lo, y_hi = float(np.min(active.y)), float(np.max(active.y))
+                scaled = sy / top * (y_hi - y_lo) * 0.9
+                curve = (y_hi - scaled) if self.mode() == "transmittance" else (y_lo + scaled)
+                ax.plot(sx, curve, color="#D9480F", alpha=0.45, lw=1.0, linestyle=(0, (4, 2)), zorder=1)
+        tier = overlay.get("tier")
+        suffix = f"  ·  {tier} confidence" if tier else ""
+        legend = "   (✓ shaded green = found, ≈ amber = edge, ✗ red dashed = missing)" if status_by_range else ""
         # In the title row, where it cannot collide with the legend or the data.
-        ax.set_title(f"Reference bands: {label}", loc="left", fontsize=9, color="#D9480F")
+        ax.set_title(f"Reference bands: {label}{suffix}{legend}", loc="left", fontsize=9, color="#D9480F")
 
     # ---------------------------------------------------------------- results refresh
+    def on_theme_changed(self, theme):
+        super().on_theme_changed(theme)
+        self._refresh_matches_table()
+        self._refresh_mixture()
+
     def on_active_trace_changed(self):
         if self.reference_overlay is not None and self._current_match_trace != self.active_id:
             self.reference_overlay = None
             self.redraw()
         t = self.get_active()
         if t is None:
-            for table in (self.peaks_table, self.matches_table, self.fg_table, self.fits_table):
+            for table in (self.peaks_table, self.matches_table, self.fg_table, self.fits_table, self.mixture_table):
                 table.clear_rows()
             self.match_detail.clear()
+            self._refresh_mixture()
             return
         self.peaks_table.set_rows(list(enumerate(t.peaks, 1)), lambda ip: (
             ip[0], f"{ip[1]['x']:.1f}", f"{ip[1]['y']:.4f}", f"{ip[1]['prominence']:.4f}"))
-        self.matches_table.set_rows(t.matches, lambda m: (
-            m["name"], m["category"], f"{m['score'] * 100:.0f}%",
-            f"{m['matched_count']}/{m['total_reference_peaks']}", m.get("source", "")))
+        self._refresh_matches_table()
+        self._refresh_mixture()
         self.fg_table.set_rows(t.fg_hits, lambda h: (
             f"{h['peak_x']:.1f}", h["group"], f"{h['range'][0]}–{h['range'][1]}", h.get("source", "")))
         self.fits_table.set_rows(t.fits, lambda f: (
@@ -231,17 +347,148 @@ class FTIRTab(AnalysisTabBase):
         if not t.matches:
             self.match_detail.clear()
 
+    def visible_matches(self, trace=None):
+        """The active trace's matches after the confidence threshold and the name filter."""
+        t = trace or self.get_active()
+        if t is None:
+            return []
+        threshold = self.min_conf_spin.value() / 100.0
+        needle = self.match_filter.text().strip().lower()
+        shown = []
+        for m in t.matches:
+            if is_weighted(m) and m["confidence"] < threshold:
+                continue
+            if needle and needle not in m["name"].lower():
+                continue
+            shown.append(m)
+        return shown
+
+    def _tint(self, table, row, column, tier):
+        fg_token, bg_token = TIER_TOKENS.get(tier, (None, None))
+        item = table.item(row, column)
+        if item is None:
+            return
+        c = colours(self.theme)
+        if fg_token:
+            item.setForeground(QBrush(QColor(c[fg_token])))
+        if bg_token:
+            item.setBackground(QBrush(QColor(c[bg_token])))
+        if tier in ("High", "Medium"):
+            font = item.font()
+            font.setBold(True)
+            item.setFont(font)
+
+    @staticmethod
+    def _missing_text(match):
+        missing = match.get("missing_strong") or []
+        return ", ".join(f"{(r['range'][0] + r['range'][1]) / 2:.0f}" for r in missing) or "—"
+
+    def _refresh_matches_table(self):
+        t = self.get_active()
+        shown = self.visible_matches(t)
+        self._shown_matches = shown
+        rank = {id(m): i for i, m in enumerate(t.matches, 1)} if t else {}
+
+        def row(m):
+            if is_weighted(m):
+                return (rank.get(id(m), ""), m["name"], f"{m['tier']} · {m['confidence'] * 100:.0f}%",
+                        f"{m['matched_count']}/{m['total_reference_peaks']}  ({m['forward_score'] * 100:.0f}% wt.)",
+                        f"{m['reverse_score'] * 100:.0f}%",
+                        format_probability(m.get("family_chance_probability")),
+                        self._missing_text(m), m["category"])
+            return (rank.get(id(m), ""), m["name"], "— (coverage)",
+                    f"{m['matched_count']}/{m['total_reference_peaks']}  ({m['score'] * 100:.0f}%)",
+                    "—", "—", "—", m["category"])
+
+        self.matches_table.set_rows(shown, row)
+        for r, m in enumerate(shown):
+            if is_weighted(m):
+                self._tint(self.matches_table, r, 2, m["tier"])
+        if t is None or not t.matches:
+            self.match_summary.setText("Click a row to overlay its reference bands on the plot.")
+            return
+        hidden = len(t.matches) - len(shown)
+        best = t.matches[0]
+        text = f"{len(shown)} shown"
+        if hidden:
+            text += f", {hidden} hidden by the filters"
+        if is_weighted(best):
+            text += f"  ·  best: {best['name']} ({best['tier']}, {best['confidence'] * 100:.0f}%)"
+        self.match_summary.setText(text + "  ·  click a row for the evidence")
+
+    def _refresh_mixture(self):
+        t = self.get_active()
+        mix = t.metadata.get("mixture") if t is not None else None
+        if not mix:
+            self.mixture_table.clear_rows()
+            self.mixture_summary.setText("Analyse as mixture to look for up to three components — useful for "
+                                         "blends, composites and contaminated samples.")
+            self.unexplained_label.setText("")
+            return
+        comps = mix.get("components", [])
+        self.mixture_table.set_rows(comps, lambda c: (
+            c["name"], f"{c['tier']} · {c['confidence'] * 100:.0f}%", len(c.get("explained_peaks", [])),
+            f"{c.get('share', 0) * 100:.0f}%", self._missing_text(c), c["category"]))
+        for r, c in enumerate(comps):
+            self._tint(self.mixture_table, r, 1, c["tier"])
+        names = " + ".join(c["name"] for c in comps) or "no component reached the 35 % confidence floor"
+        self.mixture_summary.setText(f"Screening result: {names}. Together they account for "
+                                     f"{mix.get('explained_share', 0) * 100:.0f}% of the detected peak "
+                                     "prominence. Click a component to see its bands.")
+        unexplained = mix.get("unexplained", [])
+        if unexplained:
+            xs = ", ".join(f"{p['x']:.0f}" for p in sorted(unexplained, key=lambda p: -p.get("prominence", 0))[:15])
+            more = f" (+{len(unexplained) - 15} more)" if len(unexplained) > 15 else ""
+            self.unexplained_label.setText(f"Unexplained peaks, strongest first (cm⁻¹): {xs}{more}. "
+                                           "Check them against the Functional groups tab.")
+        else:
+            self.unexplained_label.setText("Every detected peak is accounted for.")
+
     _current_match_trace = None
 
-    def _show_match_detail(self, match):
-        entry = ftir_analysis.find_entry(self.database, match["name"])
-        self._current_match = match
-        self._current_match_entry = entry
-        self._current_match_trace = self.active_id
+    def _evidence_lines(self, match, entry):
         full_source = match.get("source", "") or "(no source on file)"
         source_short = full_source.split(";")[0].strip()
-        lines = [f"{match['name']} [{match['category']}]  Source: {full_source}"]
-        if entry:
+        lines = [f"{match['name']}  [{match['category']}]"]
+        if is_weighted(match):
+            lines.append(f"Confidence: {match['tier']} ({match['confidence'] * 100:.0f}%)  —  screening, "
+                         "not identification")
+            lines.append("")
+            lines.append("Why it ranks here:")
+            lines.append(f"  • Reference bands found: {match['matched_count']} of {match['total_reference_peaks']} "
+                         f"(intensity-weighted coverage F = {match['forward_score'] * 100:.0f}%)")
+            lines.append(f"  • Share of your peaks in its band window that it explains: "
+                         f"R = {match['reverse_score'] * 100:.0f}%")
+            lines.append(f"  • Chance of a match this good by coincidence: "
+                         f"{format_probability(match.get('chance_probability'))} for this material, "
+                         f"{format_probability(match.get('family_chance_probability'))} across the whole search")
+            if match.get("pattern_r") is not None:
+                lines.append(f"  • Pattern r with a synthetic spectrum of its bands: {match['pattern_r']:+.2f} "
+                             "(informational)")
+            missing = match.get("missing_strong") or []
+            if missing:
+                lines.append(f"  ⚠ Strong band(s) not found: "
+                             + ", ".join(f"{r['range'][0]}–{r['range'][1]} ({r['assignment']})" for r in missing))
+            lines.append("")
+            lines.append("Bands  (✓ found · ≈ at the tolerance edge · ✗ not found):")
+            for b in match.get("bands", []):
+                ref = b["reference"]
+                rng = f"{ref['range'][0]}–{ref['range'][1]} cm-1"
+                intensity = ref.get("intensity", "")
+                mark = BAND_MARKS[b["status"]]
+                if b["match"]:
+                    mm = b["match"]
+                    lines.append(f"  {mark} {rng:<16} {ref['assignment']} [{intensity}]  observed "
+                                 f"{mm['observed']['x']:.1f}, Δ {mm['delta_cm1']:+.1f}")
+                else:
+                    flag = "  ⚠ strong" if b["weight"] >= ftir_matching.STRONG_WEIGHT else ""
+                    lines.append(f"  {mark} {rng:<16} {ref['assignment']} [{intensity}]{flag}")
+            inactive = [r for r in (entry or {}).get("peaks", []) if not ftir_matching.is_matchable(r)]
+            for ref in inactive:
+                lines.append(f"  · (IR-inactive) {ref['assignment']}")
+            lines += ["", f"Source: {full_source}"]
+        elif entry:
+            lines.append(f"Source: {full_source}")
             lines.append(f"Reference peaks ({match['matched_count']}/{len(entry['peaks'])} matched):")
             matched_by_range = {tuple(mm["reference"]["range"]): mm for mm in match["matches"]}
             for ref in entry["peaks"]:
@@ -254,14 +501,31 @@ class FTIRTab(AnalysisTabBase):
                 else:
                     lines.append(f"  [not found] ref {range_txt} ({ref['assignment']})  [ref: {source_short}]")
         else:
+            lines.append(f"Source: {full_source}")
             for mm in match["matches"]:
                 ref = mm["reference"]
                 lines.append(f"  observed {mm['observed']['x']:.1f} cm-1  ~  ref {ref['range'][0]}-{ref['range'][1]} "
                              f"cm-1 ({ref['assignment']}), delta={mm['delta_cm1']:+.1f} cm-1  [ref: {source_short}]")
-        lines += ["", "Full citations: Library > Sources & references."]
-        self.match_detail.setPlainText("\n".join(lines))
+        lines += ["", "Full citations: Library › Sources & references."]
+        return lines
+
+    def _show_match_detail(self, match):
+        entry = ftir_analysis.find_entry(self.database, match["name"])
+        self._current_match = match
+        self._current_match_entry = entry
+        self._current_match_trace = self.active_id
+        t = self.get_active()
+        if entry and t is not None and is_weighted(match) and "pattern_r" not in match:
+            match["pattern_r"] = ftir_matching.pattern_correlation(entry, t.x, t.y, mode=self.mode())
+        self.match_detail.setPlainText("\n".join(self._evidence_lines(match, entry)))
         if entry:
-            self.set_reference_overlay({"label": match["name"], "peaks": entry["peaks"]})
+            overlay = {"label": match["name"], "peaks": entry["peaks"]}
+            if is_weighted(match):
+                overlay["bands"] = match.get("bands", [])
+                overlay["tier"] = match.get("tier")
+                if t is not None and len(t.x):
+                    overlay["synthetic"] = (t.x, ftir_matching.synthetic_reference_spectrum(entry, t.x))
+            self.set_reference_overlay(overlay)
         else:
             self.clear_reference_overlay()
 
@@ -276,9 +540,10 @@ class FTIRTab(AnalysisTabBase):
         else:
             t.peaks = ftir_analysis.detect_peaks(t.x, t.y, prominence_frac=prom_frac, mode=self.mode())
         t.fits = []
+        t.metadata.pop("mixture", None)
         self.redraw()
         self.on_active_trace_changed()
-        self.results_tabs.setCurrentIndex(0)
+        self.results_tabs.setCurrentWidget(self.peaks_table)
         msg = f"Detected {len(t.peaks)} peaks in {t.label}"
         if len(t.peaks) > 100:
             msg += " — that's a lot; raise the sensitivity for cleaner results"
@@ -286,36 +551,80 @@ class FTIRTab(AnalysisTabBase):
         if record:
             self.record("detect peaks")
 
-    def match_database(self):
+    def _match_inputs(self):
+        """(trace, peaks, tolerance, categories, scope label, spectral range) or None."""
         t = self.require_active("Load a spectrum first.")
         if t is None:
-            return
+            return None
         if not t.peaks:
             self.detect_peaks(record=False)
             if not t.peaks:
-                return
+                return None
         tol = self.tolerance_spin.value()
         self.app.cfg["ftir_tolerance_cm1"] = tol
-        peaks_snapshot = list(t.peaks)
+        self.app.cfg["ftir_min_confidence_pct"] = self.min_conf_spin.value()
         label_to_key = {v: k for k, v in ftir_analysis.CATEGORY_LABELS.items()}
         selected = self.category_combo.currentText()
         categories = None if selected == ftir_analysis.ALL_CATEGORIES_LABEL else [label_to_key[selected]]
-        database = self.database
+        scope = "all categories" if categories is None else selected
+        spectral_range = (float(np.min(t.x)), float(np.max(t.x))) if len(t.x) else None
+        return t, list(t.peaks), tol, categories, scope, spectral_range
+
+    def match_database(self):
+        inputs = self._match_inputs()
+        if inputs is None:
+            return
+        t, peaks_snapshot, tol, categories, scope, spectral_range = inputs
+        database, method = self.database, self.match_method()
 
         def compute():
-            return (ftir_analysis.match_peaks_to_database(peaks_snapshot, database, tolerance=tol, categories=categories),
+            return (ftir_analysis.match_peaks_to_database(peaks_snapshot, database, tolerance=tol, categories=categories,
+                                                          method=method, spectral_range=spectral_range),
                     ftir_analysis.match_functional_groups(peaks_snapshot, database, tolerance=tol))
 
         def on_done(result):
             t.matches, t.fg_hits = result
+            self.match_filter.clear()
             self.on_active_trace_changed()
-            self.results_tabs.setCurrentIndex(1)
-            scope = "all categories" if categories is None else selected
-            self.app.notify(f"{len(t.matches)} candidate material(s) in {scope}, "
-                            f"{len(t.fg_hits)} functional-group hit(s)", "success")
+            self.results_tabs.setCurrentWidget(self.matches_page)
+            msg = f"{len(t.matches)} candidate material(s) in {scope}, {len(t.fg_hits)} functional-group hit(s)"
+            level = "success"
+            if t.matches and is_weighted(t.matches[0]):
+                best = t.matches[0]
+                msg += f" — best: {best['name']} ({best['tier']}, {best['confidence'] * 100:.0f}%)"
+                if best["tier"] in ("Low", "Weak"):
+                    msg += "; no confident match, try Analyse as mixture or a category"
+                    level = "warning"
+            self.app.notify(msg, level)
             self.record("match database")
 
         self.run_background(compute, on_done, busy_text="Matching against the FTIR database…")
+
+    def analyse_mixture(self):
+        inputs = self._match_inputs()
+        if inputs is None:
+            return
+        t, peaks_snapshot, tol, categories, scope, spectral_range = inputs
+        database = self.database
+
+        def compute():
+            return ftir_analysis.analyse_mixture(peaks_snapshot, database, tolerance=tol, categories=categories,
+                                                 spectral_range=spectral_range)
+
+        def on_done(result):
+            t.metadata["mixture"] = result
+            self.on_active_trace_changed()
+            self.results_tabs.setCurrentWidget(self.mixture_page)
+            comps = result["components"]
+            if comps:
+                self.app.notify(f"Mixture screening in {scope}: " + " + ".join(c["name"] for c in comps)
+                                + f" ({result['explained_share'] * 100:.0f}% of peak prominence explained)", "success")
+            else:
+                self.app.notify("No component reached the confidence floor — the sample may not be in the "
+                                "database", "warning")
+            self.record("mixture analysis")
+
+        self.run_background(compute, on_done, busy_text="Screening for mixture components…")
 
     def _apply_to_active(self, title, fields, apply, done_message, help_text=None):
         t = self.require_active("Load a spectrum first.")
@@ -330,6 +639,7 @@ class FTIRTab(AnalysisTabBase):
             ui_common.show_message(self, f"{title} failed", str(exc), "error")
             return
         t.peaks, t.fits = [], []
+        t.metadata.pop("mixture", None)
         self.redraw()
         self.on_active_trace_changed()
         self.app.notify(done_message(t, values), "success")
@@ -403,7 +713,7 @@ class FTIRTab(AnalysisTabBase):
             t.fits = fits
             self.redraw()
             self.on_active_trace_changed()
-            self.results_tabs.setCurrentIndex(3)
+            self.results_tabs.setCurrentWidget(self.fits_table)
             msg = f"Fitted {len(fits)}/{len(peaks_snap)} peaks"
             if errors:
                 msg += f"; {len(errors)} did not converge"
@@ -489,12 +799,14 @@ class FTIRTab(AnalysisTabBase):
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(["material", "range_low_cm-1", "range_high_cm-1", "assignment", "intensity",
-                        "matched_in_your_spectrum", "observed_cm-1", "delta_cm-1", "source"])
+                        "matched_in_your_spectrum", "observed_cm-1", "delta_cm-1", "position_score", "source"])
             for ref in entry["peaks"]:
                 mm = matched_by_range.get(tuple(ref["range"]))
+                score = mm.get("position_score") if mm else None
                 w.writerow([entry["name"], ref["range"][0], ref["range"][1], ref["assignment"], ref.get("intensity", ""),
                             "yes" if mm else "no", f"{mm['observed']['x']:.2f}" if mm else "",
-                            f"{mm['delta_cm1']:+.2f}" if mm else "", entry.get("source", "")])
+                            f"{mm['delta_cm1']:+.2f}" if mm else "", f"{score:.3f}" if score is not None else "",
+                            entry.get("source", "")])
         self.app.notify(f"Saved {len(entry['peaks'])} reference peak(s) for {entry['name']}", "success")
 
     def export_peaks_csv(self):
@@ -529,10 +841,19 @@ class FTIRTab(AnalysisTabBase):
             rows += [[str(i), f"{p['x']:.1f}", f"{p['y']:.4f}", f"{p['prominence']:.4f}"] for i, p in enumerate(t.peaks, 1)]
             sections.append(("Detected Peaks", rows, None))
         if t.matches:
-            rows = [["Material", "Category", "Score", "Matched/Total", "Source"]]
-            rows += [[m["name"], m["category"], f"{m['score'] * 100:.0f}%", f"{m['matched_count']}/{m['total_reference_peaks']}",
-                      m.get("source", "")] for m in t.matches[:12]]
+            rows = [["Material", "Category", "Confidence", "Matched/Total", "Explained", "Chance p"]]
+            for m in t.matches[:12]:
+                conf = f"{m['tier']} {m['score'] * 100:.0f}%" if is_weighted(m) else f"{m['score'] * 100:.0f}% (coverage)"
+                explained = f"{m['reverse_score'] * 100:.0f}%" if is_weighted(m) else "-"
+                rows.append([m["name"], m["category"], conf, f"{m['matched_count']}/{m['total_reference_peaks']}",
+                             explained, format_probability(m.get("family_chance_probability")).replace("—", "-")])
             sections.append(("Database Matches (heuristic screening)", rows, None))
+        mixture = t.metadata.get("mixture") or {}
+        if mixture.get("components"):
+            rows = [["Component", "Confidence", "Peaks explained", "Share of sample"]]
+            rows += [[c["name"], f"{c['tier']} {c['confidence'] * 100:.0f}%", str(len(c.get("explained_peaks", []))),
+                      f"{c.get('share', 0) * 100:.0f}%"] for c in mixture["components"]]
+            sections.append(("Mixture screening (heuristic)", rows, None))
         if t.fg_hits:
             rows = [["Wavenumber", "Functional Group", "Expected Range"]]
             rows += [[f"{h['peak_x']:.1f}", h["group"], f"{h['range'][0]}-{h['range'][1]}"] for h in t.fg_hits[:20]]

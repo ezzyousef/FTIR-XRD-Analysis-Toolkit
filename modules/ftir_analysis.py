@@ -15,8 +15,10 @@ import numpy as np
 
 try:
     from signal_utils import smooth_savgol
+    import ftir_matching
 except ImportError:
     from modules.signal_utils import smooth_savgol
+    from modules import ftir_matching
 
 # Material categories screened by match_peaks_to_database (functional_groups is
 # handled separately by match_functional_groups since it's a flat list, not
@@ -179,31 +181,50 @@ def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02
     return peaks
 
 
-def match_peaks_to_database(peaks, database, tolerance=10.0, categories=None):
-    """
-    Match detected peaks against the reference database within +/- tolerance (cm-1)
-    of each reference range. Returns a scored list of candidate matches per material.
+def _entries_for(database, categories):
+    search_categories = [c for c in (categories or MATERIAL_CATEGORIES) if c in MATERIAL_CATEGORIES]
+    if not search_categories:
+        search_categories = MATERIAL_CATEGORIES
+    return [entry for group in search_categories for entry in database.get(group, [])]
 
-    categories: optional list of category keys (from MATERIAL_CATEGORIES) to
-    restrict the search to -- e.g. ["organics_biomolecules"] if you already
-    know the sample isn't a polymer/salt/mineral. None or empty searches
-    every category. Restricting the search reduces cross-category false
-    positives and is faster.
+
+def match_peaks_to_database(peaks, database, tolerance=10.0, categories=None, method="weighted",
+                            spectral_range=None):
+    """
+    Rank database materials against a detected peak list.
+
+    method="weighted" (default): intensity-weighted, one-to-one, forward + reverse evidence
+    with a chance-coincidence correction -- see ftir_matching and docs/FTIR_MATCHING_PLAN.md.
+    "score" is then the confidence (0-1). method="coverage": the original fraction-of-bands
+    screening, kept for comparison and reproducibility of older results.
+
+    categories: optional list of MATERIAL_CATEGORIES keys to restrict the search to; None,
+    empty or only unknown keys search every category. spectral_range: (low, high) cm-1 of the
+    measured spectrum, used to estimate how crowded the peak list is.
+    """
+    entries = _entries_for(database, categories)
+    if method == ftir_matching.METHOD_COVERAGE:
+        return _match_coverage(peaks, entries, tolerance)
+    return ftir_matching.match_weighted(peaks, entries, tolerance=tolerance, spectral_range=spectral_range)
+
+
+def analyse_mixture(peaks, database, tolerance=10.0, categories=None, spectral_range=None,
+                    max_components=3, min_confidence=0.35):
+    """Multi-component screening (see ftir_matching.analyse_mixture)."""
+    return ftir_matching.analyse_mixture(peaks, _entries_for(database, categories), tolerance=tolerance,
+                                         spectral_range=spectral_range, max_components=max_components,
+                                         min_confidence=min_confidence)
+
+
+def _match_coverage(peaks, all_entries, tolerance=10.0):
+    """
+    Legacy screening: match detected peaks against each reference range +/- tolerance (cm-1).
 
     Scoring is a simple coverage fraction: (# reference peaks matched) / (# reference peaks total)
     for each material entry. This is a heuristic screening tool, not definitive
     identification -- always confirm with a domain expert / reference spectrum
     for anything consequential.
     """
-    search_categories = [c for c in (categories or MATERIAL_CATEGORIES) if c in MATERIAL_CATEGORIES]
-    if not search_categories:
-        search_categories = MATERIAL_CATEGORIES
-
-    all_entries = []
-    for group in search_categories:
-        for entry in database.get(group, []):
-            all_entries.append(entry)
-
     results = []
     for entry in all_entries:
         # peaks with range [0,0] are placeholders for IR-inactive materials
@@ -231,7 +252,9 @@ def match_peaks_to_database(peaks, database, tolerance=10.0, categories=None):
                 "name": entry["name"],
                 "category": entry["category"],
                 "source": entry.get("source", ""),
+                "method": ftir_matching.METHOD_COVERAGE,
                 "score": score,
+                "coverage": score,
                 "matched_count": len(matched),
                 "total_reference_peaks": len(matchable_peaks),
                 "matches": matched,

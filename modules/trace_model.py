@@ -46,3 +46,4 @@ class Trace:
         self.fits = []
         self.matches = []
         self.fg_hits = []
+        self.metadata.pop("mixture", None)

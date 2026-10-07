@@ -8,7 +8,7 @@
 from PyInstaller.utils.hooks import collect_submodules
 
 hiddenimports = [
-    'app_info', 'app_window', 'exports', 'file_readers', 'ftir_analysis', 'xrd_analysis',
+    'app_info', 'app_window', 'exports', 'file_readers', 'ftir_analysis', 'ftir_matching', 'xrd_analysis',
     'signal_utils', 'peak_fitting', 'report_export', 'session_io', 'app_config', 'ui_common',
     'trace_model', 'workers', 'formula_sources', 'ftir_tab', 'xrd_tab', 'selftest',
     'scipy.signal', 'scipy.integrate', 'scipy.optimize',

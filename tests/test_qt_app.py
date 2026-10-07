@@ -156,7 +156,13 @@ def test_ftir_matching_and_fitting_run_in_the_background(window, qapp, ftir_csv)
     assert ftir.is_busy
     assert pump(qapp, lambda: not ftir.is_busy)
     t = ftir.get_active()
-    assert ftir.matches_table.rowCount() == len(t.matches)
+    assert ftir.matches_table.rowCount() == len(ftir.visible_matches(t))
+    if t.matches:
+        ftir.matches_table.selectRow(0)
+        assert ftir.match_detail.toPlainText()
+    ftir.analyse_mixture()
+    assert pump(qapp, lambda: not ftir.is_busy)
+    assert "mixture" in t.metadata
     ftir.fit_peaks()
     assert pump(qapp, lambda: not ftir.is_busy)
     assert len(t.fits) >= 3 and ftir.fits_table.rowCount() == len(t.fits)
