@@ -39,6 +39,32 @@ CATEGORY_LABELS = {
 }
 ALL_CATEGORIES_LABEL = "All Categories"
 
+# Atmospheric CO2 asymmetric stretch: background-subtraction residue here is the most common
+# artefact in routine FTIR spectra, so peak picking can skip it.
+CO2_REGION = ftir_matching.CO2_REGION
+NOISE_FLOOR_SIGMAS = 5.0
+
+
+def estimate_noise_sigma(y):
+    """Robust noise standard deviation from point-to-point differences (median absolute
+    deviation, scaled for Gaussian noise; differencing removes slow baseline and band shape)."""
+    d = np.diff(np.asarray(y, dtype=float))
+    d = d[np.isfinite(d)]
+    if len(d) < 3:
+        return 0.0
+    return float(1.4826 * np.median(np.abs(d - np.median(d))) / np.sqrt(2.0))
+
+
+def _fwhm_cm1(x, index, width_pts):
+    """Peak width in cm-1 from scipy's width in points and the local point spacing."""
+    x = np.asarray(x, dtype=float)
+    j = min(max(int(index), 1), len(x) - 1)
+    return float(abs(width_pts) * abs(x[j] - x[j - 1]))
+
+
+def _outside_regions(x_value, regions):
+    return not any(min(r) <= x_value <= max(r) for r in (regions or ()))
+
 
 def load_database(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -94,11 +120,15 @@ def smooth_spectrum(y, window_length=11, polyorder=3):
     return smooth_savgol(y, window_length=window_length, polyorder=polyorder)
 
 
-def detect_peaks(x, y, prominence_frac=0.02, min_distance_pts=3, mode="absorbance"):
+def detect_peaks(x, y, prominence_frac=0.02, min_distance_pts=3, mode="absorbance", noise_floor=False,
+                 exclude_regions=None):
     """
     Detect peaks in a spectrum.
     mode: "absorbance" (peaks point up) or "transmittance" (peaks point down -> invert first).
     prominence_frac: required peak prominence as a fraction of the y-range.
+    noise_floor: also require prominence >= NOISE_FLOOR_SIGMAS x the estimated noise, so
+    baseline noise is not reported as peaks.
+    exclude_regions: (low, high) cm-1 ranges whose peaks are dropped (e.g. CO2_REGION).
     Returns list of dicts: {index, x, y, prominence, fwhm}
     """
     from scipy.signal import find_peaks, peak_widths
@@ -109,18 +139,23 @@ def detect_peaks(x, y, prominence_frac=0.02, min_distance_pts=3, mode="absorbanc
 
     y_range = y_work.max() - y_work.min()
     prominence = max(prominence_frac * y_range, 1e-9)
+    if noise_floor:
+        prominence = max(prominence, NOISE_FLOOR_SIGMAS * estimate_noise_sigma(y_work))
 
     idx, props = find_peaks(y_work, prominence=prominence, distance=min_distance_pts)
     widths_result = peak_widths(y_work, idx, rel_height=0.5)
 
     peaks = []
     for i, pk in enumerate(idx):
+        if not _outside_regions(float(x[pk]), exclude_regions):
+            continue
         peaks.append({
             "index": int(pk),
             "x": float(x[pk]),
             "y": float(y[pk]),
             "prominence": float(props["prominences"][i]),
             "fwhm_pts": float(widths_result[0][i]),
+            "fwhm_cm1": _fwhm_cm1(x, pk, widths_result[0][i] if len(widths_result[0]) else 0.0),
         })
     # sort by x for readability
     peaks.sort(key=lambda p: p["x"])
@@ -128,7 +163,8 @@ def detect_peaks(x, y, prominence_frac=0.02, min_distance_pts=3, mode="absorbanc
 
 
 def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02,
-                                    smooth_window=15, smooth_polyorder=3, min_distance_pts=3):
+                                    smooth_window=15, smooth_polyorder=3, min_distance_pts=3,
+                                    noise_floor=False, exclude_regions=None):
     """
     Second-derivative-assisted peak detection: resolves overlapping/shouldered
     bands that blend into a single broad hump in the raw spectrum and are
@@ -165,17 +201,22 @@ def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02
 
     d2_range = neg_d2.max() - neg_d2.min()
     prominence = max(prominence_frac * d2_range, 1e-12)
+    if noise_floor:
+        prominence = max(prominence, NOISE_FLOOR_SIGMAS * estimate_noise_sigma(neg_d2))
     idx, props = find_peaks(neg_d2, prominence=prominence, distance=min_distance_pts)
     widths_result = peak_widths(neg_d2, idx, rel_height=0.5) if len(idx) else (np.array([]),)
 
     peaks = []
     for i, pk in enumerate(idx):
+        if not _outside_regions(float(x[pk]), exclude_regions):
+            continue
         peaks.append({
             "index": int(pk),
             "x": float(x[pk]),
             "y": float(y[pk]),  # report the ORIGINAL spectrum's intensity for display/overlay
             "prominence": float(props["prominences"][i]),
             "fwhm_pts": float(widths_result[0][i]) if len(widths_result[0]) else 0.0,
+            "fwhm_cm1": _fwhm_cm1(x, pk, widths_result[0][i] if len(widths_result[0]) else 0.0),
         })
     peaks.sort(key=lambda p: p["x"])
     return peaks
@@ -205,7 +246,8 @@ def match_peaks_to_database(peaks, database, tolerance=10.0, categories=None, me
     entries = _entries_for(database, categories)
     if method == ftir_matching.METHOD_COVERAGE:
         return _match_coverage(peaks, entries, tolerance)
-    return ftir_matching.match_weighted(peaks, entries, tolerance=tolerance, spectral_range=spectral_range)
+    return ftir_matching.match_weighted(peaks, entries, tolerance=tolerance, spectral_range=spectral_range,
+                                        all_entries=_entries_for(database, None))
 
 
 def analyse_mixture(peaks, database, tolerance=10.0, categories=None, spectral_range=None,

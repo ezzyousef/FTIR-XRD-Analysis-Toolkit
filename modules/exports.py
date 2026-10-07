@@ -136,9 +136,10 @@ def fit_rows(trace) -> list[list]:
              _num(f["area"]), _num(f["r_squared"]), f["shape"]] for f in trace.fits]
 
 
-MATCH_HEADERS = ["Rank", "Material", "Category", "Confidence tier", "Score (%)", "Matched peaks", "Reference peaks",
-                 "Weighted coverage (%)", "Sample explained (%)", "Chance p (whole search)",
-                 "Missing strong bands (cm-1)", "Method", "Source"]
+MATCH_HEADERS = ["Rank", "Material", "Category", "Tier", "Match score", "Bands found", "Bands in range",
+                 "Weighted coverage (%)", "Peaks explained (%)", "Chance p (whole search)",
+                 "Missing strong bands (cm-1)", "Close call with", "Database look-alikes", "Listed in app", "Verdict", "Verdict note",
+                 "Method", "Source"]
 
 
 def _pct(match, key):
@@ -150,13 +151,49 @@ def match_rows(trace) -> list[list]:
     """One row per candidate. Results from the legacy coverage method, or from sessions saved
     by older versions, leave the weighted-evidence columns empty."""
     rows = []
+    params = trace.metadata.get("match_params") or {}
+    threshold = params.get("hide_below", 0.0)
+    verdicts = trace.metadata.get("verdicts") or {}
     for rank, m in enumerate(trace.matches, 1):
         p = m.get("family_chance_probability")
         missing = ", ".join(f"{(r['range'][0] + r['range'][1]) / 2:.0f}" for r in m.get("missing_strong") or [])
-        rows.append([rank, m["name"], m["category"], m.get("tier", ""), round(m["score"] * 100, 1),
+        weighted = "confidence" in m
+        listed = "yes" if not weighted or m["confidence"] >= threshold else f"no (below {threshold:.2f})"
+        verdict = verdicts.get(m["name"], {})
+        rows.append([rank, m["name"], m["category"], m.get("tier", ""), round(float(m["score"]), 3),
                      m["matched_count"], m["total_reference_peaks"], _pct(m, "forward_score"),
                      _pct(m, "reverse_score"), float(p) if isinstance(p, (int, float)) else "", missing,
-                     m.get("method", "coverage"), m.get("source", "")])
+                     ", ".join(m.get("ambiguous_with") or []), ", ".join(m.get("look_alikes") or []), listed, verdict.get("status", ""),
+                     verdict.get("note", ""), m.get("method", "coverage"), m.get("source", "")])
+    return rows
+
+
+def match_parameter_rows(trace) -> list[tuple]:
+    """(parameter, value) rows recording how the matches on this trace were produced, taken
+    from the moment matching ran -- not from the controls at export time."""
+    params = trace.metadata.get("match_params") or {}
+    if not params:
+        return []
+    det = params.get("detection") or {}
+    rng = params.get("spectral_range")
+    rows = [("Scoring method", params.get("method", "")),
+            ("Tolerance (cm-1)", params.get("tolerance_cm1", "")),
+            ("Search scope", params.get("category", "")),
+            ("Materials searched", params.get("materials_searched", "")),
+            ("Measured range (cm-1)", f"{min(rng):.0f}-{max(rng):.0f}" if rng else ""),
+            ("Peaks used", params.get("peaks_used", "")),
+            ("Peak sensitivity (%)", det.get("prominence_pct", "")),
+            ("Noise floor (5 sigma)", "on" if det.get("noise_floor") else "off"),
+            ("CO2 region skipped", "yes" if det.get("skip_co2") else "no"),
+            ("Shoulder (2nd derivative) detection", "on" if det.get("shoulders") else "off"),
+            ("Processing applied", "; ".join(params.get("processing") or []) or "none"),
+            ("Hide scores below", params.get("hide_below", "")),
+            ("Database version", params.get("database_version", "")),
+            ("App version", params.get("app_version", "")),
+            ("Matched at", params.get("run_at", ""))]
+    mix = trace.metadata.get("mixture_params") or {}
+    if mix:
+        rows.append(("Mixture score floor", mix.get("mixture_floor", "")))
     return rows
 
 
@@ -167,10 +204,11 @@ def results(kind: str, trace, *, mode: str = "absorbance", wavelength: float | N
         rows.append(("Mode", mode, "", ""))
         if trace.matches:
             best = trace.matches[0]
-            tier = f"{best['tier']} confidence, " if best.get("tier") else ""
+            tier = f"{best['tier'].lower()} match, score {best['score']:.2f}" if best.get("tier") \
+                else f"coverage {best['score'] * 100:.0f}%"
             rows.append(("Best database match", best["name"], "",
-                         f"{tier}score {best['score'] * 100:.0f}%, {best['matched_count']}/"
-                         f"{best['total_reference_peaks']} reference peaks — screening, not identification"))
+                         f"{tier}, {best['matched_count']}/{best['total_reference_peaks']} reference bands — "
+                         "screening, not identification"))
         mixture = trace.metadata.get("mixture") or {}
         if mixture.get("components"):
             rows.append(("Mixture screening", " + ".join(c["name"] for c in mixture["components"]), "",
@@ -231,7 +269,12 @@ def excel_report(kind: str, traces, active_id=None, *, version: str = "", author
             settings=dict(settings or {}), source=str(t.metadata.get("path", ""))))
         if t.matches:
             tables.append(ExcelTable(f"Matches {t.label}", MATCH_HEADERS, match_rows(t),
-                                     subtitle="Heuristic screening against the built-in reference database"))
+                                     subtitle="Heuristic screening against the built-in reference database — "
+                                              "match scores are not probabilities of being right"))
+            params = match_parameter_rows(t)
+            if params:
+                tables.append(ExcelTable(f"Match settings {t.label}", ["Parameter", "Value"],
+                                         [[k, v if isinstance(v, (int, float)) else str(v)] for k, v in params]))
         if t.fits:
             tables.append(ExcelTable(f"Fits {t.label}", FIT_HEADERS, fit_rows(t)))
     provenance = {"Method": "Peak detection, fitting and calculations as cited by the ⓘ buttons in the app"}

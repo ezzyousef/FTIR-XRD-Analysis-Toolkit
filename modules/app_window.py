@@ -173,6 +173,18 @@ class MainWindow(AppShell):
         self.history.reset("empty session")
         self.set_status("Ready", "")
 
+    def notify(self, message: str, level: str = "info") -> None:
+        """Routine confirmations go to the status bar only; toasts are kept for warnings and
+        errors, so they do not stack over the results the user is reading."""
+        if level in ("warning", "error"):
+            super().notify(message, level)
+        else:
+            self.set_status(message)
+
+    def _match_ftir(self):
+        self.go_to("ftir")
+        self.page("ftir").match_database()
+
     # ------------------------------------------------------------------ menus
     def _build_menus(self):
         f = "&File"
@@ -194,6 +206,7 @@ class MainWindow(AppShell):
                              "Ctrl+Shift+E")
         self.add_menu_separator(f)
         self.add_menu_action(f, "E&xit", self.close, "Ctrl+Q")
+        self.add_menu_action("&Tools", "&Match FTIR spectrum to database", self._match_ftir, "Ctrl+M")
         self.add_menu_action("&Tools", "FTIR reference &database", lambda: self.go_to("database"), "Ctrl+D")
         self.add_menu_action("&Tools", "Sources && references", lambda: self.go_to("sources"))
         for name, group, fn in (

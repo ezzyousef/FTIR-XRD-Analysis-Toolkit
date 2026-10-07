@@ -1,5 +1,6 @@
 """The Qt application: exports, both analysis pages, undo/redo, sessions, reports (offscreen)."""
 import csv
+import os
 import time
 from pathlib import Path
 
@@ -157,9 +158,6 @@ def test_ftir_matching_and_fitting_run_in_the_background(window, qapp, ftir_csv)
     assert pump(qapp, lambda: not ftir.is_busy)
     t = ftir.get_active()
     assert ftir.matches_table.rowCount() == len(ftir.visible_matches(t))
-    if t.matches:
-        ftir.matches_table.selectRow(0)
-        assert ftir.match_detail.toPlainText()
     ftir.analyse_mixture()
     assert pump(qapp, lambda: not ftir.is_busy)
     assert "mixture" in t.metadata
@@ -271,3 +269,113 @@ def test_database_page_filters(window, qapp):
     assert 0 < page.materials.rowCount() < total
     page.materials.selectRow(0)
     assert page.peaks.rowCount() > 0
+
+
+# ------------------------------------------------------------------ FTIR screening workflow
+PET = "Polyethylene Terephthalate (PET)"
+
+
+@pytest.fixture
+def pet_csv(tmp_path):
+    import json
+    import ftir_analysis
+    import ftir_matching
+    db = json.load(open(os.path.join(os.path.dirname(__file__), "..", "database", "ftir_reference_db.json"),
+                        encoding="utf-8"))
+    x = np.linspace(4000, 600, 1701)
+    y = 0.02 + 0.8 * ftir_matching.synthetic_reference_spectrum(ftir_analysis.find_entry(db, PET), x)
+    y = y + np.random.default_rng(3).normal(0, 0.004, len(x))
+    path = tmp_path / "pet.csv"
+    path.write_text("wavenumber,absorbance\n" + "".join(f"{a:.2f},{b:.5f}\n" for a, b in zip(x, y)))
+    return str(path)
+
+
+def _matched(window, qapp, path):
+    ftir = window.page("ftir")
+    ftir.load_paths([path])
+    ftir.detect_peaks()
+    ftir.match_database()
+    assert pump(qapp, lambda: not ftir.is_busy)
+    return ftir, ftir.get_active()
+
+
+def test_pet_spectrum_is_screened_with_evidence_and_parameters(window, qapp, pet_csv):
+    ftir, t = _matched(window, qapp, pet_csv)
+    assert t.matches[0]["name"] == PET and t.matches[0]["tier"] == "Strong"
+    assert ftir.matches_table.rowCount() == len([m for m in t.matches if m["confidence"] >= ftir.min_conf_spin.value()])
+    ftir.matches_table.selectRow(0)
+    text = ftir.match_detail.toPlainText()
+    assert PET in text and "screening" in text and "✓" in text
+    assert ftir.reference_overlay and ftir.reference_overlay["bands"]
+    params = t.metadata["match_params"]
+    assert params["tolerance_cm1"] == ftir.tolerance_spin.value() and params["materials_searched"] > 200
+    ftir.match_filter.setText("terephthal")
+    assert all("terephthal" in m["name"].lower() for m in ftir.visible_matches())
+
+
+def test_processing_or_redetection_clears_stale_matches(window, qapp, pet_csv, monkeypatch):
+    import ui_common
+    ftir, t = _matched(window, qapp, pet_csv)
+    ftir.matches_table.selectRow(0)
+    monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: {"wl": "11", "po": "3"})
+    ftir.smooth_active()
+    t = ftir.get_active()
+    assert t.matches == [] and t.fg_hits == [] and "match_params" not in t.metadata
+    assert ftir.reference_overlay is None and ftir._current_match is None
+    assert t.metadata["processing"][-1].startswith("Smooth")
+    ftir.detect_peaks()
+    ftir.match_database()
+    assert pump(qapp, lambda: not ftir.is_busy)
+    ftir.detect_peaks()
+    assert ftir.get_active().matches == []
+
+
+def test_undo_while_matching_discards_the_result(window, qapp, pet_csv):
+    ftir = window.page("ftir")
+    ftir.load_paths([pet_csv])
+    ftir.detect_peaks()
+    before = window.history.undo_label() if hasattr(window.history, "undo_label") else None
+    ftir.analyse_mixture()
+    window.undo()                                   # back to "load"
+    assert pump(qapp, lambda: not ftir.is_busy)
+    assert "mixture" not in ftir.get_active().metadata
+    if before is not None:
+        assert "mixture" not in (window.history.undo_label() or "")
+
+
+def test_verdict_session_round_trip_and_exports(window, qapp, pet_csv, tmp_path, monkeypatch):
+    import openpyxl
+    import ui_common
+    from labkit.excel import write_workbook
+    import exports
+    ftir, t = _matched(window, qapp, pet_csv)
+    ftir.matches_table.selectRow(0)
+    monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: {"note": "SDBS no. 1234"})
+    ftir.set_verdict("confirmed")
+    assert t.metadata["verdicts"][PET]["status"] == "confirmed"
+    assert ftir.matches_table.cell_text(0, 7) == "confirmed"
+
+    pdf = ftir.export_pdf_report(str(tmp_path / "r.pdf"))
+    assert pdf and os.path.getsize(pdf) > 10_000
+    book = openpyxl.load_workbook(write_workbook(exports.excel_report("ftir", [t], t.id), tmp_path / "r.xlsx"))
+    assert any(n.startswith("Match settings") for n in book.sheetnames)
+
+    session = ftir.save_session(str(tmp_path / "s.ftirxrd"))
+    assert os.path.getsize(session) < 1_500_000
+    assert ftir.load_session(session)
+    t2 = ftir.get_active()
+    assert t2.matches[0]["name"] == PET and t2.metadata["verdicts"][PET]["note"] == "SDBS no. 1234"
+    low = t2.matches[-1]                            # summary-only result: detail rebuilt on demand
+    ftir.match_filter.setText(low["name"][:12])
+    ftir._show_match_detail(low)
+    assert low["name"] in ftir.match_detail.toPlainText()
+
+
+def test_legacy_coverage_results_are_listed_without_scores(window, qapp, pet_csv):
+    ftir = window.page("ftir")
+    ftir.method_combo.setCurrentIndex(ftir.method_combo.findData("coverage"))
+    assert not ftir.min_conf_spin.isEnabled()
+    ftir, t = _matched(window, qapp, pet_csv)
+    assert t.matches[0]["method"] == "coverage"
+    assert ftir.matches_table.rowCount() == len(t.matches)
+    assert "coverage" in ftir.matches_table.cell_text(0, 2)

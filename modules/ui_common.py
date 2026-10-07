@@ -337,6 +337,7 @@ class AnalysisTabBase(QWidget):
         left = scrollable(controls_host)
         left.setMinimumWidth(310)
         splitter.addWidget(left)
+        self.controls_host, self.controls_scroll, self.main_splitter = controls_host, left, splitter
 
         right = QSplitter(Qt.Vertical)
         plot_card = Card()
@@ -360,6 +361,7 @@ class AnalysisTabBase(QWidget):
         right.setStretchFactor(1, 2)
         right.setChildrenCollapsible(False)             # neither the plot nor the results may vanish
         right.setSizes([640, 260])
+        self.right_splitter = right
         splitter.addWidget(right)
         splitter.setStretchFactor(0, 0)
         splitter.setStretchFactor(1, 1)
@@ -380,6 +382,21 @@ class AnalysisTabBase(QWidget):
         self.trace_panel.on_remove = self._on_trace_remove
         self.trace_panel.on_clear = self._on_trace_clear
         card.body.addWidget(self.trace_panel)
+
+    def showEvent(self, event):  # noqa: N802 - Qt naming
+        super().showEvent(event)
+        if not getattr(self, "_controls_fitted", False):
+            # The cards' size hints are only final once the stylesheet has been applied.
+            self._controls_fitted = True
+            self.fit_controls_width()
+
+    def fit_controls_width(self):
+        """Open the controls column at the width its contents need, so cards are not clipped."""
+        need = self.controls_host.sizeHint().width() + self.controls_scroll.verticalScrollBar().sizeHint().width() + 4
+        need = max(310, min(need, 470))
+        self.controls_scroll.setMinimumWidth(need)
+        total = max(sum(self.main_splitter.sizes()), 1400)
+        self.main_splitter.setSizes([need, total - need])
 
     # ---- building helpers ----
     def add_card(self, title, subtitle=""):

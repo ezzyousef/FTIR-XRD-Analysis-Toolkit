@@ -58,18 +58,28 @@ def test_poisson_binomial_tail_matches_binomial():
     assert ftir_matching.poisson_binomial_tail([0.2, 0.5], 0) == 1.0
 
 
-def test_family_wise_correction_grows_with_search_size():
+def test_family_wise_correction_grows_with_search_size_up_to_the_cap():
     assert ftir_matching.family_wise(0.01, 1) == pytest.approx(0.01)
-    assert ftir_matching.family_wise(0.01, 224) > 0.85
+    assert ftir_matching.family_wise(0.01, 10) > ftir_matching.family_wise(0.01, 2)
+    cap = ftir_matching.FAMILY_SIZE_CAP
+    assert ftir_matching.family_wise(0.01, 224) == pytest.approx(ftir_matching.family_wise(0.01, cap))
     assert ftir_matching.chance_significance(1e-6) == 1.0
     assert ftir_matching.chance_significance(1.0) == 0.0
+    assert str(ftir_matching.chance_significance(1.0)) == "0.0"          # never -0.0
+
+
+def test_soft_hits_change_the_chance_smoothly():
+    probs = [0.2] * 6
+    p3, p4 = ftir_matching.poisson_binomial_tail(probs, 3), ftir_matching.poisson_binomial_tail(probs, 4)
+    mid = ftir_matching.soft_tail(probs, 3.5)
+    assert p4 < mid < p3
 
 
 def test_weighted_ranks_pet_first_with_high_confidence(db):
     matches = ftir_analysis.match_peaks_to_database(PET_PEAKS, db, tolerance=8.0)
     best = matches[0]
     assert best["name"] == PET
-    assert best["tier"] == "High" and best["confidence"] > 0.8
+    assert best["tier"] == "Strong" and best["confidence"] > 0.8
     assert best["method"] == ftir_matching.METHOD_WEIGHTED
     # backwards-compatible keys used by exports and sessions
     for key in ("score", "matched_count", "total_reference_peaks", "matches", "source", "category"):
@@ -79,11 +89,15 @@ def test_weighted_ranks_pet_first_with_high_confidence(db):
 
 
 def test_random_peak_lists_never_reach_high_confidence(db):
+    # measured on 300 lists while tuning: never Strong, 2 % Moderate
     rng = random.Random(7)
+    moderate = 0
     for _ in range(40):
         peaks = [_peak(rng.uniform(400, 4000), rng.random()) for _ in range(rng.randint(8, 40))]
         matches = ftir_analysis.match_peaks_to_database(peaks, db)
-        assert not matches or matches[0]["tier"] != "High"
+        assert not matches or matches[0]["tier"] != "Strong"
+        moderate += int(bool(matches) and matches[0]["tier"] == "Moderate")
+    assert moderate <= 3
 
 
 def test_missing_strong_band_costs_more_than_missing_weak_band(db):
@@ -96,6 +110,8 @@ def test_missing_strong_band_costs_more_than_missing_weak_band(db):
     assert no_strong["forward_score"] < no_weak["forward_score"]
     assert strong in no_strong["missing_strong"]
     assert not no_weak["missing_strong"]
+    # a missing strong band also keeps the tier below Strong
+    assert no_strong["tier"] != "Strong" and no_strong["tier_capped_because"] or no_strong["confidence"] < 0.6
 
 
 def test_one_observed_peak_supports_only_one_band():
@@ -143,13 +159,21 @@ def test_mixture_finds_both_components(db):
     assert PET in names and other["name"] in names
     assert result["explained_share"] > 0.8
     assert all(0 < c["share"] <= 1 for c in result["components"])
+    # explained_peak_ids index the FULL peak list, for every component
+    for c in result["components"]:
+        entry = ftir_analysis.find_entry(db, c["name"])
+        for i in c["explained_peak_ids"]:
+            assert any(ftir_matching.position_score(peaks[i]["x"], *rp["range"], 16) > 0
+                       for rp in entry["peaks"] if ftir_matching.is_matchable(rp))
+        for mm in c["matches"]:
+            assert peaks[mm["peak_id"]] is mm["observed"]
 
 
 def test_mixture_on_noise_finds_nothing_confident(db):
     rng = random.Random(3)
     peaks = [_peak(rng.uniform(400, 4000), rng.random()) for _ in range(20)]
     result = ftir_analysis.analyse_mixture(peaks, db)
-    assert len(result["components"]) <= 1
+    assert result["components"] == []
 
 
 def test_synthetic_spectrum_and_pattern_correlation(db):
@@ -174,4 +198,97 @@ def test_old_format_matches_still_export(db):
     assert len(rows[0]) == len(exports.MATCH_HEADERS)
     t.matches = ftir_analysis.match_peaks_to_database(PET_PEAKS, db, tolerance=8.0)[:3]
     rows = exports.match_rows(t)
-    assert rows[0][1] == PET and rows[0][3] == "High"
+    assert rows[0][1] == PET and rows[0][3] == "Strong"
+
+
+def test_bands_outside_the_measured_range_are_not_penalised(db):
+    entry = ftir_analysis.find_entry(db, "Polytetrafluoroethylene (PTFE, Teflon)")
+    measured = [p for p in _from_entry(entry) if p["x"] >= 650]
+    blind = ftir_matching.score_entry(entry, measured)
+    aware = ftir_matching.score_entry(entry, measured, spectral_range=(650, 4000))
+    assert aware["outside_count"] >= 1
+    assert aware["confidence"] > blind["confidence"]
+    assert all(b["status"] != "missing" for b in aware["bands"] if max(b["reference"]["range"]) < 650)
+
+
+def test_nan_and_missing_prominence_do_not_break_ranking(db):
+    peaks = [dict(p) for p in PET_PEAKS]
+    peaks[1]["prominence"] = float("nan")
+    peaks[2]["prominence"] = None
+    matches = ftir_analysis.match_peaks_to_database(peaks, db, tolerance=8.0)
+    assert matches[0]["name"] == PET and matches[0]["confidence"] > 0.5
+
+
+def test_artefact_peaks_are_ignored(db):
+    co2 = [_peak(2350, 1.0), _peak(2340, 0.9)]
+    vapour = [dict(_peak(x, 0.3), fwhm_cm1=2.0) for x in (1507, 1540, 1653, 1700, 3735, 3853)]
+    clean = ftir_analysis.match_peaks_to_database(PET_PEAKS, db, tolerance=8.0)[0]
+    dirty = ftir_analysis.match_peaks_to_database(PET_PEAKS + co2 + vapour, db, tolerance=8.0)[0]
+    assert dirty["name"] == PET
+    assert dirty["confidence"] == pytest.approx(clean["confidence"], abs=0.05)
+    mask = ftir_matching.artefact_mask(co2 + vapour + [_peak(1716)])
+    assert mask.tolist() == [True] * 8 + [False]
+
+
+def test_sharp_peak_is_weak_evidence_for_a_broad_band():
+    entry = {"name": "Acid", "category": "test", "peaks": [
+        {"range": [2500, 3300], "intensity": "broad, strong", "assignment": "O-H"},
+        {"range": [1700, 1710], "intensity": "strong", "assignment": "C=O"},
+        {"range": [1200, 1300], "intensity": "medium", "assignment": "C-O"}]}
+    sharp = [dict(_peak(2850), fwhm_cm1=10.0), _peak(1705), _peak(1250)]
+    broad = [dict(_peak(2950), fwhm_cm1=300.0), _peak(1705), _peak(1250)]
+    assert ftir_matching.score_entry(entry, broad)["forward_score"] > \
+        ftir_matching.score_entry(entry, sharp)["forward_score"]
+
+
+def test_close_calls_are_not_reported_as_strong(db):
+    results = [{"name": n, "confidence": c, "tier": ftir_matching.confidence_tier(c)}
+               for n, c in (("A", 0.86), ("B", 0.83), ("C", 0.40))]
+    ftir_matching._flag_close_calls(results)
+    assert results[0]["ambiguous_with"] == ["B"] and results[0]["tier"] == "Moderate"
+    assert results[1]["ambiguous_with"] == ["A"]
+
+
+def test_look_alikes_find_chemically_near_identical_entries(db):
+    entries = [e for c in ftir_analysis.MATERIAL_CATEGORIES for e in db[c]]
+    twins = ftir_matching.look_alikes(entries)
+    assert "Potassium Carbonate (K2CO3)" in twins["Sodium Carbonate (Na2CO3)"]
+    assert "Polyamide 12 (PA12)" in twins["Polyamide 11 (PA11)"]
+    assert PET not in twins["Polyethylene (PE)"]
+    best = ftir_analysis.match_peaks_to_database(PET_PEAKS, db, tolerance=8.0)[0]
+    assert "look_alikes" in best
+
+
+def test_only_the_top_results_keep_band_detail(db):
+    rng = random.Random(1)
+    peaks = PET_PEAKS + [_peak(rng.uniform(600, 3600), rng.uniform(0.05, 0.3)) for _ in range(25)]
+    matches = ftir_analysis.match_peaks_to_database(peaks, db)
+    top, rest = matches[:ftir_matching.DETAIL_TOP], matches[ftir_matching.DETAIL_TOP:]
+    assert all(m["detail"] and m["bands"] for m in top)
+    assert all(not m["detail"] and "bands" not in m for m in rest)
+    assert all(m["confidence"] > 0 for m in matches)
+
+
+def test_noise_floor_and_co2_exclusion_in_detection():
+    x = np.linspace(4000, 600, 1701)
+    y = 0.8 * np.exp(-0.5 * ((x - 1720) / 8) ** 2) + 0.4 * np.exp(-0.5 * ((x - 2350) / 6) ** 2)
+    y = y + np.random.default_rng(0).normal(0, 0.006, len(x))
+    plain = ftir_analysis.detect_peaks(x, y, prominence_frac=0.005)
+    floored = ftir_analysis.detect_peaks(x, y, prominence_frac=0.005, noise_floor=True,
+                                         exclude_regions=[ftir_analysis.CO2_REGION])
+    assert len(floored) < len(plain)
+    assert any(abs(p["x"] - 1720) < 4 for p in floored)
+    assert not any(2280 <= p["x"] <= 2400 for p in floored)
+    assert ftir_analysis.estimate_noise_sigma(y) == pytest.approx(0.006, rel=0.3)
+    assert all(p["fwhm_cm1"] > 0 for p in floored)
+
+
+def test_weighted_results_survive_a_json_session_round_trip(db, tmp_path):
+    import session_io
+    result = ftir_analysis.analyse_mixture(PET_PEAKS, db, tolerance=8.0)
+    matches = ftir_analysis.match_peaks_to_database(PET_PEAKS, db, tolerance=8.0)
+    path = session_io.save_session(str(tmp_path / "s.ftirxrd"), {"matches": matches, "mixture": result})
+    back = session_io.load_session(path)
+    assert back["matches"][0]["name"] == PET and back["matches"][0]["bands"]
+    assert back["mixture"]["components"][0]["name"] == PET
+    assert os.path.getsize(path) < 400_000
