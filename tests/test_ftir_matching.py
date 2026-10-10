@@ -312,3 +312,12 @@ def test_added_entries_are_flagged_for_verification(db):
     assert all(e["provenance"]["verify"] and e["provenance"]["confidence"] in ("low", "medium") for e in added)
     names = {e["name"] for e in added}
     assert "Graphene Oxide (GO)" in names and "Lithium Hexafluorophosphate (LiPF6)" in names
+
+
+def test_shoulder_peaks_leave_the_band_width_unknown():
+    x = np.arange(1450, 1950, 0.25)
+    y = np.exp(-4 * np.log(2) * ((x - 1700) / 50) ** 2)
+    peaks = ftir_analysis.detect_peaks_second_derivative(x, y)
+    band = min(peaks, key=lambda p: abs(p["x"] - 1700))
+    assert abs(band["x"] - 1700) < 2
+    assert band["fwhm_cm1"] is None          # matching treats it as unknown, not as narrow

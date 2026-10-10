@@ -173,3 +173,27 @@ def test_snip_background_removes_narrow_peak_leaves_slow_background():
     # away from the peak, corrected signal should be close to zero
     far_mask = np.abs(x - 50) > 5
     assert np.mean(np.abs(corrected[far_mask])) < 3.0
+
+
+def test_kalpha2_stripping_is_exact_at_high_angle():
+    l1, l2 = 1.540562, 1.544390
+    x = np.arange(145, 155, 0.001)
+    ka1 = lambda z: 100 * np.exp(-4 * np.log(2) * ((z - 150) / 0.05) ** 2)
+    # the Ka2 line of the same reflection, placed by Bragg's law
+    at_ka1 = 2 * np.degrees(np.arcsin(np.sin(np.radians(x / 2)) * l1 / l2))
+    out = xrd_analysis.strip_kalpha2(x, ka1(x) + 0.5 * ka1(at_ka1), l1, l2, ratio=0.5)
+    assert np.abs(out - ka1(x)).max() < 0.1
+
+
+def test_crystallinity_with_a_linear_baseline_is_never_negative():
+    x = np.arange(10.0, 21.0)
+    y = 10 + 0.5 * (x - 10)
+    y[(x >= 16) & (x <= 19)] += 0.5
+    xc = xrd_analysis.percent_crystallinity(x, y, [(10, 15)], [(15, 20)], linear_baseline=True)
+    assert 0.0 <= xc < 5.0
+
+
+def test_invalid_instrument_profile_is_nan_not_zero():
+    r = xrd_analysis.fit_caglioti([30, 60, 90], [0.1, 0.2, 0.1])
+    assert np.isnan(xrd_analysis.caglioti_fwhm(120, r["U"], r["V"], r["W"]))
+    assert xrd_analysis.caglioti_fwhm(30, r["U"], r["V"], r["W"]) == pytest.approx(0.1)

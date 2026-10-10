@@ -132,9 +132,12 @@ def strip_kalpha2(two_theta, intensity, lambda1, lambda2, ratio=KALPHA2_RATIO):
     order = np.argsort(x)
     xs, ys = x[order], y[order]
     out = np.empty_like(ys)
-    shift = kalpha2_offset_deg(xs, lambda1, lambda2)
+    # The Ka1 angle whose Ka2 line lands on xs[i] (exact Bragg: sin t1 = sin t2 * l1 / l2).
+    # The small-angle offset formula is evaluated at the wrong angle and fails at high 2theta.
+    s1 = np.sin(np.radians(xs / 2.0)) * lambda1 / lambda2
+    targets = 2.0 * np.degrees(np.arcsin(np.clip(s1, -1.0, 1.0)))
     for i in range(len(xs)):
-        target = xs[i] - shift[i]
+        target = targets[i]
         if i == 0 or target <= xs[0]:
             out[i] = ys[i]
             continue
@@ -154,7 +157,7 @@ def caglioti_fwhm(two_theta_deg, U, V, W):
     """Instrument FWHM (degrees 2theta): H^2 = U tan^2(theta) + V tan(theta) + W."""
     t = np.tan(np.radians(np.asarray(two_theta_deg, dtype=float) / 2.0))
     h2 = U * t ** 2 + V * t + W
-    h = np.sqrt(np.clip(h2, 0.0, None))
+    h = np.sqrt(np.where(h2 >= 0.0, h2, np.nan))    # NaN where U, V, W give H^2 < 0
     return float(h) if np.ndim(h) == 0 else h
 
 
@@ -357,6 +360,8 @@ def percent_crystallinity(two_theta, intensity, crystalline_regions, amorphous_r
     intensity = np.asarray(intensity, dtype=float)
     if linear_baseline:
         intensity = intensity - span_baseline(two_theta, intensity, list(crystalline_regions) + list(amorphous_regions))
+        # Only the area above the background counts; a dip below the line is not negative crystallinity.
+        intensity = np.clip(intensity, 0.0, None)
 
     def region_area(regions):
         total = 0.0
@@ -388,9 +393,14 @@ def span_baseline(two_theta, intensity, regions, edge_points=5):
     xs, ys = two_theta[order], intensity[order]
     i_lo = int(np.searchsorted(xs, lo))
     i_hi = int(np.searchsorted(xs, hi))
-    y_lo = float(np.mean(ys[max(i_lo - edge_points // 2, 0):i_lo + edge_points // 2 + 1]))
-    y_hi = float(np.mean(ys[max(i_hi - edge_points // 2, 0):i_hi + edge_points // 2 + 1]))
-    base = np.interp(two_theta, [lo, hi], [y_lo, y_hi])
+    # Near the ends of the pattern the averaging window is one-sided, so each mean is placed
+    # at the mean angle of its own points (not at the region edge) and the line drawn through them.
+    sl_lo = slice(max(i_lo - edge_points // 2, 0), i_lo + edge_points // 2 + 1)
+    sl_hi = slice(max(i_hi - edge_points // 2, 0), i_hi + edge_points // 2 + 1)
+    x_lo, y_lo = float(np.mean(xs[sl_lo])), float(np.mean(ys[sl_lo]))
+    x_hi, y_hi = float(np.mean(xs[sl_hi])), float(np.mean(ys[sl_hi]))
+    slope = (y_hi - y_lo) / (x_hi - x_lo) if x_hi != x_lo else 0.0
+    base = y_lo + slope * (two_theta - x_lo)
     return np.where((two_theta >= lo) & (two_theta <= hi), base, 0.0)
 
 

@@ -689,7 +689,9 @@ class XRDTab(AnalysisTabBase):
             w = p["fwhm_deg"]
             if prefer == "fitted" and t.fits:
                 fit = min(t.fits, key=lambda f: abs(f["center"] - p["two_theta"]))
-                if abs(fit["center"] - p["two_theta"]) < max(p["fwhm_deg"], 0.05) and fit.get("r_squared", 0) > 0.9:
+                owner = min(t.peaks, key=lambda q: abs(q["two_theta"] - fit["center"]))
+                if (owner is p and abs(fit["center"] - p["two_theta"]) < max(p["fwhm_deg"], 0.05)
+                        and fit.get("r_squared", 0) > 0.9):
                     w = fit["fwhm"]
             out.append(w)
         return out
@@ -703,6 +705,9 @@ class XRDTab(AnalysisTabBase):
                 rows.append((p, w, None, "spike (narrower than 3 points)"))
             elif not p.get("use", True):
                 rows.append((p, w, None, "excluded by you"))
+            elif not np.isfinite(b_inst):
+                rows.append((p, w, None, "instrument profile invalid at this angle (H² < 0) — "
+                                         "refine it with standard peaks spanning this range"))
             elif b_inst and w < b_inst:
                 rows.append((p, w, None, "narrower than the instrument — noise?"))
             else:

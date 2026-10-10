@@ -457,9 +457,17 @@ class FTIRTab(AnalysisTabBase):
         self._reset_current_match()
         super().restore(state)
 
-    def _is_live(self, trace):
-        """False when undo, a session load or a removal replaced the trace a job was started on."""
-        return any(t is trace for t in self.traces)
+    def _is_live(self, trace, state=None):
+        """False when undo, a session load or a removal replaced the trace a job was started on,
+        or (given the `_state` taken at the start) when its spectrum or peaks changed since."""
+        return any(t is trace for t in self.traces) and (state is None or self._state(trace) == state)
+
+    @staticmethod
+    def _state(trace):
+        """Cheap fingerprint of what a background job reads: the spectrum and the peak list."""
+        y = np.asarray(trace.y, dtype=float)
+        return (len(trace.x), float(np.nansum(y)), float(np.nansum(y * y)),
+                tuple(round(float(pk["x"]), 6) for pk in (trace.peaks or [])))
 
     def _band_colours(self, theme):
         return BAND_STYLE.get(theme, BAND_STYLE["light"])
@@ -952,7 +960,7 @@ class FTIRTab(AnalysisTabBase):
                 "run_at": datetime.datetime.now().strftime("%Y-%m-%d %H:%M")}
 
     def _discarded(self):
-        self.app.notify("Result discarded — the spectrum changed (undo or a new session) while it was running.",
+        self.app.notify("Result discarded — the spectrum or its peaks changed while it was running.",
                         "warning")
 
     def match_database(self):
@@ -960,6 +968,7 @@ class FTIRTab(AnalysisTabBase):
         if inputs is None:
             return
         t, peaks_snapshot, tol, categories, scope, spectral_range = inputs
+        state = self._state(t)
         database, method = self.database, self.match_method()
         params = self._params(t, tol, categories, scope, spectral_range, method)
 
@@ -969,7 +978,7 @@ class FTIRTab(AnalysisTabBase):
                     ftir_analysis.match_functional_groups(peaks_snapshot, database, tolerance=tol))
 
         def on_done(result):
-            if not self._is_live(t):
+            if not self._is_live(t, state):
                 self._discarded()
                 return
             t.matches, t.fg_hits = result
@@ -1002,6 +1011,7 @@ class FTIRTab(AnalysisTabBase):
         if inputs is None:
             return
         t, peaks_snapshot, tol, categories, scope, spectral_range = inputs
+        state = self._state(t)
         database = self.database
         params = self._params(t, tol, categories, scope, spectral_range, ftir_matching.METHOD_WEIGHTED)
 
@@ -1010,7 +1020,7 @@ class FTIRTab(AnalysisTabBase):
                                                  spectral_range=spectral_range)
 
         def on_done(result):
-            if not self._is_live(t):
+            if not self._is_live(t, state):
                 self._discarded()
                 return
             t.metadata["mixture"] = result
@@ -1114,12 +1124,13 @@ class FTIRTab(AnalysisTabBase):
             return
         window, shape = self.window_spin.value(), self.shape_combo.currentText()
         x_snap, y_snap, peaks_snap = t.x.copy(), t.y.copy(), list(t.peaks)
+        state = self._state(t)
 
         def compute():
             return peak_fitting.fit_peaks_batch(x_snap, y_snap, peaks_snap, window, shape=shape)
 
         def on_done(result):
-            if not self._is_live(t):
+            if not self._is_live(t, state):
                 self._discarded()
                 return
             fits, errors = result

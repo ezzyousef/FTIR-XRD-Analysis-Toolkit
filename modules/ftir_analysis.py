@@ -215,8 +215,10 @@ def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02
             "x": float(x[pk]),
             "y": float(y[pk]),  # report the ORIGINAL spectrum's intensity for display/overlay
             "prominence": float(props["prominences"][i]),
-            "fwhm_pts": float(widths_result[0][i]) if len(widths_result[0]) else 0.0,
-            "fwhm_cm1": _fwhm_cm1(x, pk, widths_result[0][i] if len(widths_result[0]) else 0.0),
+            # The width of a second-derivative lobe is not the band's width (about 2/3 of it for
+            # a Gaussian, depending on shape), so the band width is left unknown for matching.
+            "fwhm_cm1": None,
+            "d2_fwhm_cm1": _fwhm_cm1(x, pk, widths_result[0][i] if len(widths_result[0]) else 0.0),
         })
     peaks.sort(key=lambda p: p["x"])
     return peaks
