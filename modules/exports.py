@@ -149,6 +149,20 @@ def _pct(match, key):
     return round(value * 100, 1) if isinstance(value, (int, float)) else ""
 
 
+def reference_rows(database, traces) -> list[list]:
+    """[id, citation, role, materials] for every reference behind the traces' matches."""
+    import ftir_analysis
+
+    cited: dict[tuple, dict] = {}
+    for t in traces:
+        for m in t.matches or []:
+            for key, citation, role in ftir_analysis.citations_for(database, m.get("source", "")):
+                row = cited.setdefault((key, role), {"citation": citation or "", "by": []})
+                if m["name"] not in row["by"]:
+                    row["by"].append(m["name"])
+    return [[key, v["citation"], role, "; ".join(v["by"])] for (key, role), v in sorted(cited.items())]
+
+
 def match_rows(trace) -> list[list]:
     """One row per candidate. Results from the legacy coverage method, or from sessions saved
     by older versions, leave the weighted-evidence columns empty."""
@@ -271,8 +285,9 @@ def origin_books(kind: str, traces, active_id=None, *, mode: str = "absorbance",
 
 def excel_report(kind: str, traces, active_id=None, *, version: str = "", author: str = "",
                  settings: dict | None = None, mode: str = "absorbance",
-                 wavelength: float | None = None, project: str = "") -> ExcelReport | None:
-    """One analysis sheet and chart per trace, plus match and fit tables."""
+                 wavelength: float | None = None, project: str = "", database: dict | None = None) -> ExcelReport | None:
+    """One analysis sheet and chart per trace, plus match and fit tables, and (given the FTIR
+    database) the full references of every matched material."""
     if not traces:
         return None
     analyses, tables = [], []
@@ -293,6 +308,11 @@ def excel_report(kind: str, traces, active_id=None, *, version: str = "", author
                                          [[k, v if isinstance(v, (int, float)) else str(v)] for k, v in params]))
         if t.fits:
             tables.append(ExcelTable(f"Fits {t.label}", FIT_HEADERS, fit_rows(t)))
+    if database is not None:
+        refs = reference_rows(database, traces)
+        if refs:
+            tables.append(ExcelTable("References", ["Reference", "Citation", "Role", "Cited by"], refs,
+                                     subtitle="Sources of the reference bands of every matched material"))
     provenance = {"Method": "Peak detection, fitting and calculations as cited by the ⓘ buttons in the app"}
     if wavelength:
         provenance["X-ray wavelength (Å)"] = f"{wavelength:.6f}"

@@ -391,3 +391,22 @@ def test_every_card_cites_resolvable_references(db):
         for entry in db[cat]:
             cites = ftir_analysis.citations_for(db, entry["source"])
             assert cites and all(c[1] for c in cites), (entry["name"], entry["source"])
+
+
+def test_card_groups_cover_every_card_once(db):
+    groups = [k for k, _label in ftir_analysis.CARD_GROUPS if k != "all"]
+    names = [n for g in groups for n in ftir_analysis.cards_in_group(db, g)]
+    assert sorted(names) == sorted(ftir_analysis.cards_in_group(db, "all"))
+    oxides = ftir_analysis.cards_in_group(db, "metal_oxide")
+    assert "Zinc Oxide (ZnO)" in oxides and "Silicon Dioxide / Silica (SiO2, amorphous or quartz)" not in oxides
+    assert "Polyethylene (PE)" in ftir_analysis.cards_in_group(db, "polymers")
+
+
+def test_excel_report_lists_the_references_of_matched_materials(db):
+    import exports
+    from trace_model import Trace
+    t = Trace("s", np.arange(3.0), np.arange(3.0), "#000")
+    t.matches = [{"name": "Polyethylene (PE)", "source": "socrates2001, coates2000; cross-check: sdbs"}]
+    rows = exports.reference_rows(db, [t])
+    assert {r[0] for r in rows} == {"socrates2001", "coates2000", "sdbs"}
+    assert all(r[1] and r[3] == "Polyethylene (PE)" for r in rows)

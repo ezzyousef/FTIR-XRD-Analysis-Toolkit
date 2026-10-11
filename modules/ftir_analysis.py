@@ -41,6 +41,33 @@ CATEGORY_LABELS = {
 }
 ALL_CATEGORIES_LABEL = "All Categories"
 
+# Groups for browsing the reference cards. Metal oxides and (oxy)hydroxides are a subset of
+# "inorganics_minerals", tagged "group": "metal_oxide" in the database.
+CARD_GROUPS = [
+    ("all", "All materials"),
+    ("polymers", "Polymers"),
+    ("metal_oxide", "Metal oxides & hydroxides"),
+    ("hydrogels", "Hydrogels"),
+    ("salts_inorganic", "Salts"),
+    ("minerals", "Minerals & silicates"),
+    ("organics_biomolecules", "Organics & biomolecules"),
+    ("elements_allotropes", "Elements & carbons"),
+]
+
+
+def card_group(entry, category):
+    """The browsing group of a material entry found under database key `category`."""
+    if category == "inorganics_minerals":
+        return "metal_oxide" if entry.get("group") == "metal_oxide" else "minerals"
+    return category
+
+
+def cards_in_group(database, group):
+    """Material names in a browsing group ("all" for every card), sorted case-insensitively."""
+    names = [e["name"] for cat in MATERIAL_CATEGORIES for e in database.get(cat, [])
+             if group == "all" or card_group(e, cat) == group]
+    return sorted(names, key=str.lower)
+
 # Atmospheric CO2 asymmetric stretch: background-subtraction residue here is the most common
 # artefact in routine FTIR spectra, so peak picking can skip it.
 CO2_REGION = ftir_matching.CO2_REGION

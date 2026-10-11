@@ -284,7 +284,7 @@
     ],
     "schema": {
       "categories": "polymers, hydrogels, salts_inorganic, inorganics_minerals, organics_biomolecules, elements_allotropes: lists of materials; functional_groups: flat list of generic correlations",
-      "material": "{name (unique), category, source (reference ids from _meta.references, ';'-separated notes allowed), peaks: [band]}",
+      "material": "{name (unique), category, [group: \"metal_oxide\" for oxides/hydroxides under inorganics_minerals], source (reference ids from _meta.references, ';'-separated notes allowed), peaks: [band]}",
       "band": "{range: [low, high] cm-1 ([0, 0] = IR-inactive placeholder), assignment, intensity}",
       "intensity": "strength first (very strong | strong | medium-strong | medium | weak-medium | weak | n/a), then shape words in alphabetical order (broad, doublet, sharp, very broad), comma-separated",
       "checks": "python tools/audit_ftir_database.py -- schema, label vocabulary, citations, band/assignment plausibility, look-alike entries"
@@ -9450,6 +9450,7 @@
     {
       "name": "Aluminum Oxide (Al2O3)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -9489,6 +9490,7 @@
     {
       "name": "Titanium Dioxide (TiO2)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -9528,6 +9530,7 @@
     {
       "name": "Iron Oxide (Fe2O3 / Fe3O4)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -9622,6 +9625,7 @@
     {
       "name": "Zinc Oxide (ZnO)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -9661,6 +9665,7 @@
     {
       "name": "Magnesium Oxide (MgO)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -9692,6 +9697,7 @@
     {
       "name": "Copper(II) Oxide (CuO)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -9715,6 +9721,7 @@
     {
       "name": "Nickel(II) Oxide (NiO)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -9738,6 +9745,7 @@
     {
       "name": "Zirconium Dioxide (ZrO2)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10599,6 +10607,7 @@
     {
       "name": "Chromium(III) Oxide (Cr2O3)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10622,6 +10631,7 @@
     {
       "name": "Manganese Dioxide (MnO2)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10653,6 +10663,7 @@
     {
       "name": "Tin(IV) Oxide (SnO2)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10676,6 +10687,7 @@
     {
       "name": "Cerium(IV) Oxide (CeO2)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10707,6 +10719,7 @@
     {
       "name": "Antimony Trioxide (Sb2O3)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10738,6 +10751,7 @@
     {
       "name": "Bismuth(III) Oxide (Bi2O3)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10761,6 +10775,7 @@
     {
       "name": "Vanadium Pentoxide (V2O5)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10800,6 +10815,7 @@
     {
       "name": "Molybdenum Trioxide (MoO3)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10839,6 +10855,7 @@
     {
       "name": "Tungsten Trioxide (WO3)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10878,6 +10895,7 @@
     {
       "name": "Barium Titanate (BaTiO3, perovskite)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10909,6 +10927,7 @@
     {
       "name": "Lead Zirconate Titanate (PZT, Pb(Zr,Ti)O3)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {
@@ -10940,6 +10959,7 @@
     {
       "name": "Spinel (MgAl2O4)",
       "category": "inorganic",
+      "group": "metal_oxide",
       "source": "nakamoto2009, socrates2001, farmer1974 (minerals)",
       "peaks": [
         {

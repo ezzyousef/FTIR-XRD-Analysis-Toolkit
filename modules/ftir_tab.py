@@ -375,21 +375,21 @@ class FTIRTab(AnalysisTabBase):
     def _build_card_controls(self):
         card = self.add_card("Check a suspected material", "Its reference bands are drawn on the graph and marked "
                                                            "found / not found against your peaks as you add them.")
+        self.card_group_combo = QComboBox()
+        for key, label in ftir_analysis.CARD_GROUPS:
+            n = len(ftir_analysis.cards_in_group(self.database, key))
+            self.card_group_combo.addItem(f"{label} ({n})", key)
+        self.card_group_combo.setToolTip("Browse the reference cards by type, then pick one below.")
+        self.card_group_combo.currentIndexChanged.connect(lambda _i: self._fill_card_list())
+        card.body.addWidget(self.labelled("Show", self.card_group_combo))
         self.card_combo = QComboBox()
         self.card_combo.setEditable(True)
         self.card_combo.setInsertPolicy(QComboBox.NoInsert)
-        names = sorted((e["name"] for cat in ftir_analysis.MATERIAL_CATEGORIES for e in self.database.get(cat, [])),
-                       key=str.lower)
-        self.card_combo.addItems(names)
-        self.card_combo.setCurrentIndex(-1)
-        self.card_combo.lineEdit().setPlaceholderText(f"Type to search {len(names)} materials…")
-        completer = QCompleter(names, self.card_combo)
-        completer.setCaseSensitivity(Qt.CaseInsensitive)
-        completer.setFilterMode(Qt.MatchContains)
-        self.card_combo.setCompleter(completer)
+        self.card_combo.setMaxVisibleItems(20)
         self.card_combo.lineEdit().returnPressed.connect(lambda: self.show_reference_card())
         self.card_combo.setMinimumWidth(200)
         card.body.addWidget(self.card_combo)
+        self._fill_card_list()
         row = QWidget()
         rl = QHBoxLayout(row)
         rl.setContentsMargins(0, 0, 0, 0)
@@ -402,6 +402,23 @@ class FTIRTab(AnalysisTabBase):
         clear.clicked.connect(lambda _c=False: self.clear_card())
         rl.addWidget(clear)
         card.body.addWidget(row)
+
+    def _fill_card_list(self):
+        """The card list for the chosen group (typing searches within it)."""
+        group = self.card_group_combo.currentData() or "all"
+        names = ftir_analysis.cards_in_group(self.database, group)
+        self.card_combo.blockSignals(True)
+        self.card_combo.clear()
+        self.card_combo.addItems(names)
+        self.card_combo.setCurrentIndex(-1)
+        self.card_combo.blockSignals(False)
+        label = self.card_group_combo.currentText().rsplit(" (", 1)[0].lower()
+        self.card_combo.lineEdit().setPlaceholderText(f"Type to search {len(names)} "
+                                                      f"{'materials' if group == 'all' else label}…")
+        completer = QCompleter(names, self.card_combo)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setFilterMode(Qt.MatchContains)
+        self.card_combo.setCompleter(completer)
 
     def _build_results_tabs(self):
         self.peaks_table = DataTable(["#", "Wavenumber (cm⁻¹)", "Intensity", "Prominence", "Source"])

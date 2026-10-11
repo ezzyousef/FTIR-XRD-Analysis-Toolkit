@@ -595,3 +595,13 @@ def test_double_click_does_not_remove_two_peaks(window, qapp, ftir_csv):
                                            MouseEvent("button_press_event", ftir.plot.canvas, px, py, button=3,
                                                       dblclick=dbl))
     assert len(ftir.get_active().peaks) == n - 1
+
+
+def test_card_list_can_be_browsed_by_group(window, qapp):
+    ftir = window.page("ftir")
+    keys = [ftir.card_group_combo.itemData(i) for i in range(ftir.card_group_combo.count())]
+    ftir.card_group_combo.setCurrentIndex(keys.index("metal_oxide"))
+    items = [ftir.card_combo.itemText(i) for i in range(ftir.card_combo.count())]
+    assert "Zinc Oxide (ZnO)" in items and "Polyethylene (PE)" not in items
+    ftir.card_group_combo.setCurrentIndex(keys.index("polymers"))
+    assert "Polyethylene (PE)" in [ftir.card_combo.itemText(i) for i in range(ftir.card_combo.count())]

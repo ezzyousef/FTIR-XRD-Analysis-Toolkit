@@ -94,8 +94,15 @@ class DatabasePage(QWidget):
         self.materials = DataTable(["Material", "Category", "Bands", "Status", "Source"])
         self.materials.on_select = self._show_peaks
         self.peaks = DataTable(["Range (cm⁻¹)", "Assignment", "Intensity"])
+        self.refs = QTextBrowser()
+        self.refs.setOpenExternalLinks(True)
+        self.refs.setPlaceholderText("Select a material to see its references.")
+        right = QSplitter(Qt.Vertical)
+        right.addWidget(self.peaks)
+        right.addWidget(self.refs)
+        right.setSizes([320, 140])
         splitter.addWidget(self.materials)
-        splitter.addWidget(self.peaks)
+        splitter.addWidget(right)
         splitter.setSizes([640, 460])
         layout.addWidget(splitter, 1)
         self.refresh()
@@ -106,6 +113,7 @@ class DatabasePage(QWidget):
             e["name"], ftir_analysis.CATEGORY_LABELS.get(e.get("category"), e.get("category", "")),
             len(e["peaks"]), self.status(e), e.get("source", "")))
         self.peaks.clear_rows()
+        self.refs.clear()
         self.count.setText(f"{len(entries)} of {material_count(self.db)}")
 
     @staticmethod
@@ -116,6 +124,12 @@ class DatabasePage(QWidget):
         return ""
 
     def _show_peaks(self, entry):
+        cites = ftir_analysis.citations_for(self.db, entry.get("source", ""))
+        items = "".join(f"<li>{'<i>Cross-check:</i> ' if role == 'cross-check' else ''}"
+                        f"{html.escape(citation or key)}</li>" for key, citation, role in cites)
+        note = entry.get("reference_note")
+        self.refs.setHtml(f"<b>References — {html.escape(entry['name'])}</b><ol>{items}</ol>"
+                          + (f"<p><i>{html.escape(note)}</i></p>" if note else ""))
         self.peaks.set_rows(entry["peaks"], lambda p: (
             "IR-inactive" if p["range"] == [0, 0] or tuple(p["range"]) == (0, 0) else f"{p['range'][0]}–{p['range'][1]}",
             p["assignment"], p.get("intensity", "")))

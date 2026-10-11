@@ -694,7 +694,7 @@ class AnalysisTabBase(QWidget):
         return exports.excel_report(self.KIND, self.traces, self.active_id,
                                     version=getattr(info, "version", ""), author=getattr(info, "author", ""),
                                     settings=self.session_settings(), project=self.project_name(),
-                                    **self.export_options())
+                                    database=getattr(self, "database", None), **self.export_options())
 
     def export_figures(self):
         return [self.figure_spec(title=exports.AXES[self.KIND]["title"])] if self.traces else []
