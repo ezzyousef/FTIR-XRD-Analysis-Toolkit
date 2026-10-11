@@ -488,3 +488,110 @@ def test_xrd_lattice_parameter_needs_whole_hkl(window, qapp, xrd_xy, monkeypatch
     monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: {"tt": "28.44", "h": "1", "k": "1", "l": "1"})
     xrd.run_lattice_param()
     assert "a = 5.43" in xrd.calc_log[-1]["result"] and "face-centred" in xrd.calc_log[-1]["result"]
+
+
+def test_normalization_replaces_instead_of_stacking_and_can_be_removed(window, qapp, ftir_csv):
+    ftir = window.page("ftir")
+    ftir.load_paths([ftir_csv])
+    raw = ftir.get_active().y.copy()
+    ftir.norm_combo.setCurrentText("minmax")
+    ftir.normalize_active()
+    ftir.norm_combo.setCurrentText("max")
+    ftir.normalize_active()
+    t = ftir.get_active()
+    assert np.allclose(t.y, raw / raw.max())
+    assert t.metadata["processing"] == ["Normalization (max)"]
+    ftir.remove_normalization()
+    assert np.allclose(ftir.get_active().y, raw)
+    window.undo()
+    assert np.allclose(ftir.get_active().y, raw / raw.max())
+
+
+def test_peaks_can_be_picked_and_removed_by_hand(window, qapp, ftir_csv):
+    ftir = window.page("ftir")
+    ftir.load_paths([ftir_csv])
+    ftir.detect_peaks()
+    t = ftir.get_active()
+    n, x0 = len(t.peaks), t.peaks[0]["x"]
+    assert ftir.remove_peak_near(x0 + 3)["x"] == x0
+    assert abs(ftir.add_manual_peak(x0 + 4)["x"] - x0) < 3
+    assert len(ftir.get_active().peaks) == n
+    ftir.clear_peaks()
+    assert ftir.get_active().peaks == []
+    window.undo()
+    assert len(ftir.get_active().peaks) == n
+
+
+def test_reference_card_overlay_with_and_without_peaks(window, qapp, ftir_csv):
+    ftir = window.page("ftir")
+    ftir.load_paths([ftir_csv])
+    ftir.card_combo.setCurrentText("Polyethylene (PE)")
+    assert ftir.show_reference_card() is None
+    assert ftir.reference_overlay["plain"] and "References" in ftir.match_detail.toHtml()
+    assert "Polyethylene" in ftir.evidence_text()
+    ftir.detect_peaks()
+    ftir.card_combo.setCurrentText("Polyethylene (PE)")
+    ftir.show_reference_card()
+    assert ftir.reference_overlay["label"] == "Polyethylene (PE)"
+    assert not ftir.reference_overlay.get("plain") or not ftir.get_active().peaks
+
+
+def test_processing_log_keeps_a_normalization_baked_into_later_steps(window, qapp, ftir_csv, monkeypatch):
+    import ui_common
+    monkeypatch.setattr(ui_common, "ask_fields", lambda *a, **k: {"wl": "11", "po": "3"})
+    ftir = window.page("ftir")
+    ftir.load_paths([ftir_csv])
+    ftir.norm_combo.setCurrentText("area")
+    ftir.normalize_active()
+    ftir.smooth_active()
+    ftir.norm_combo.setCurrentText("max")
+    ftir.normalize_active()
+    log = ftir.get_active().metadata["processing"]
+    assert log[0] == "Normalization (area)" and log[-1] == "Normalization (max)" and len(log) == 3
+    ftir.remove_normalization()
+    assert ftir.get_active().metadata["processing"] == log[:2]
+
+
+def test_reference_card_stays_and_updates_as_peaks_are_added(window, qapp, ftir_csv):
+    ftir = window.page("ftir")
+    ftir.load_paths([ftir_csv])
+    ftir.card_combo.setCurrentText("Polyethylene (PE)")
+    ftir.show_reference_card()
+    assert ftir.reference_overlay["plain"]
+    ftir.add_manual_peak(1000)                      # a peak far from every PE band
+    ov = ftir.reference_overlay
+    assert ov is not None and ov["label"] == "Polyethylene (PE)" and not ov.get("plain")
+    assert {b["status"] for b in ov["bands"]} <= {"missing", "outside"}
+    ftir.set_verdict("confirmed")                   # no crash; a card-only match is refused
+    assert "Polyethylene (PE)" not in ftir.verdicts(ftir.get_active())
+
+
+def test_card_on_a_narrow_spectrum_keeps_the_view(window, qapp, tmp_path):
+    path = tmp_path / "narrow.csv"
+    x = np.arange(1500, 1800, 1.0)
+    y = 0.02 + np.exp(-((x - 1650) / 10) ** 2)
+    path.write_text("wavenumber,absorbance\n" + "\n".join(f"{a},{b}" for a, b in zip(x, y)), encoding="utf-8")
+    ftir = window.page("ftir")
+    ftir.load_paths([str(path)])
+    before = ftir.plot.figure.axes[0].get_xlim()
+    ftir.card_combo.setCurrentText("Polyethylene (PE)")
+    ftir.show_reference_card()
+    after = ftir.plot.figure.axes[0].get_xlim()
+    assert max(after) <= max(before) + 1 and min(after) >= min(before) - 1
+
+
+def test_double_click_does_not_remove_two_peaks(window, qapp, ftir_csv):
+    from matplotlib.backend_bases import MouseEvent
+    ftir = window.page("ftir")
+    ftir.load_paths([ftir_csv])
+    ftir.detect_peaks()
+    n = len(ftir.get_active().peaks)
+    ftir.pick_button.setChecked(True)
+    ax = ftir.plot.figure.axes[0]
+    ftir.plot.canvas.draw()
+    px, py = ax.transData.transform((ftir.get_active().peaks[0]["x"], np.mean(ax.get_ylim())))
+    for dbl in (False, True):
+        ftir.plot.canvas.callbacks.process("button_press_event",
+                                           MouseEvent("button_press_event", ftir.plot.canvas, px, py, button=3,
+                                                      dblclick=dbl))
+    assert len(ftir.get_active().peaks) == n - 1

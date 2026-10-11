@@ -59,10 +59,12 @@ def audit(db):
             for key in ("name", "category", "source", "peaks"):
                 if not e.get(key):
                     errors.append(f"{where}: missing '{key}'")
-            cited = re.findall(r"\b[a-z][a-z0-9]*\d{4}\b|\bnist\b|\bsdbs\b|\bicdd\b|\bcod\b", e.get("source", ""))
-            for c in cited:
-                if c not in refs:
-                    errors.append(f"{where}: cites '{c}', which is not in _meta.references")
+            # Every token of the source must resolve to a bibliography entry: this also catches
+            # descriptive placeholders such as "IR literature" that name no citable work.
+            cited = ftir_analysis.citations_for(db, e.get("source", ""))
+            for key, citation, _role in cited:
+                if citation is None:
+                    errors.append(f"{where}: cites '{key}', which is not in _meta.references")
             if not cited:
                 errors.append(f"{where}: source names no reference id")
             seen = set()

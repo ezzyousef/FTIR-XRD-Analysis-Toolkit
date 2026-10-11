@@ -25,6 +25,8 @@ class Trace:
     """One loaded spectrum/pattern, its raw copy, detected peaks, fits, and matches."""
 
     _next_id = itertools.count(1)
+    y_unnorm = None         # the spectrum before the current normalization (None: not normalized)
+    revision = 0            # bumped on every change of the spectrum or its peaks (stale-result guard)
 
     def __init__(self, label, x, y, color, metadata=None):
         self.id = next(Trace._next_id)
@@ -42,6 +44,7 @@ class Trace:
 
     def revert_to_raw(self):
         self.y = self.y_raw.copy()
+        self.y_unnorm = None
         self.peaks = []
         self.fits = []
         self.matches = []

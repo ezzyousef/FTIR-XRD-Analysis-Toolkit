@@ -13,9 +13,9 @@ import tempfile
 import numpy as np
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QBrush, QColor, QKeySequence, QShortcut
-from PySide6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox, QDoubleSpinBox, QHBoxLayout,
-                               QHeaderView, QLabel, QLineEdit, QPushButton, QRadioButton, QSplitter, QTextBrowser,
-                               QVBoxLayout, QWidget)
+from PySide6.QtWidgets import (QApplication, QButtonGroup, QCheckBox, QComboBox, QCompleter, QDoubleSpinBox,
+                               QHBoxLayout, QHeaderView, QLabel, QLineEdit, QPushButton, QRadioButton, QSpinBox,
+                               QSplitter, QTextBrowser, QVBoxLayout, QWidget)
 
 import exports
 import file_readers
@@ -44,6 +44,7 @@ BAND_MARKS = {"matched": "✓", "edge": "≈", "missing": "✗", "outside": "–
 BAND_WORDS = {"matched": "found", "edge": "at the tolerance edge", "missing": "not found",
               "outside": "outside the measured range"}
 COMPONENT_COLOURS = ["#0072B2", "#E69F00", "#009E73"]
+REFERENCE_GREY = "#8a8f98"           # a chosen card's bands before there are peaks to compare
 PEAK_LABEL_LIMIT = 15
 PEAK_LABEL_MIN_GAP = 25.0           # cm-1 between two printed peak labels
 UNEXPLAINED_MIN_REL = 0.10          # unexplained peaks weaker than this are counted, not listed
@@ -78,13 +79,27 @@ def missing_text(match):
     return ", ".join(f"{(r['range'][0] + r['range'][1]) / 2:.0f}" for r in missing) or "—"
 
 
-def evidence_lines(match, entry, verdict=None, pattern_r=None):
-    """Plain-text, band-by-band evidence for one candidate (evidence panel copy, PDF)."""
+def evidence_lines(match, entry, verdict=None, pattern_r=None, references=None):
+    """Plain-text, band-by-band evidence for one candidate (evidence panel copy, PDF).
+    `references`: full citation strings to list under the source ids, when known."""
     full_source = match.get("source", "") or "(no source on file)"
+    if references:
+        full_source += "".join(f"\n  {i}. {r}" for i, r in enumerate(references, 1))
     lines = [f"{match['name']}  [{match['category']}]"]
     if verdict:
         lines.append(f"Verdict: {verdict['status'].upper()} on {verdict['date']}"
                      + (f" — {verdict['note']}" if verdict.get("note") else ""))
+    if match.get("card_only"):
+        lines.append("Reference card (not scored: no peaks near its bands)")
+        for ref in (entry or {}).get("peaks", []):
+            if ftir_matching.is_matchable(ref):
+                lines.append(f"  {ref['range'][0]}–{ref['range'][1]} cm-1  {ref['assignment']}  "
+                             f"[{ref.get('intensity', '')}]")
+        prov = (entry or {}).get("provenance") or {}
+        if prov.get("verify"):
+            lines.append(f"  ⚠ Entry added from literature excerpts ({prov.get('confidence', '?')} confidence) — verify")
+        lines += ["", f"Source: {full_source}"]
+        return lines
     if not is_weighted(match):
         lines.append(f"Coverage score {match['score'] * 100:.0f}% ({match['matched_count']}/"
                      f"{match['total_reference_peaks']} reference bands within tolerance; legacy method)")
@@ -142,6 +157,13 @@ def evidence_lines(match, entry, verdict=None, pattern_r=None):
     return lines
 
 
+def peak_source(peak):
+    """How a peak got into the list, for tables and exports."""
+    if peak.get("manual"):
+        return "manual (shoulder)" if peak.get("shoulder") else "manual"
+    return "detected"
+
+
 class FTIRTab(AnalysisTabBase):
     KIND = "ftir"
     READER = staticmethod(file_readers.read_ftir_any)
@@ -156,6 +178,7 @@ class FTIRTab(AnalysisTabBase):
         self._current_match_entry = None
         self._current_match_trace = None
         self._shown_matches = []
+        self._card_name = None              # the material chosen in "Check a suspected material"
         self._build_controls()
         self._build_results_tabs()
         self._on_traces_changed()
@@ -166,17 +189,32 @@ class FTIRTab(AnalysisTabBase):
     def _build_controls(self):
         card = self.add_card("1 · Processing", "Optional, before detecting peaks: ATR correction, then baseline, "
                                                "then smoothing. Processing clears peaks and matches.")
+        self.applied_label = QLabel("")
+        self.applied_label.setObjectName("Hint")
+        self.applied_label.setWordWrap(True)
+        card.body.addWidget(self.applied_label)
+        convert = self.action_button("Convert %T → absorbance", self.convert_to_absorbance_active,
+                                     info=("%T ↔ absorbance", fs.TRANSMITTANCE_ABSORBANCE))
+        convert.button.setToolTip("A = 2 − log10(%T), the whole spectrum. Normalization, areas and band heights "
+                                  "are only meaningful in absorbance.")
+        card.body.addWidget(convert)
         card.body.addWidget(self.action_button("ATR correction…", self.atr_correct_active,
                                                info=("ATR correction", fs.ATR_CORRECTION)))
-        card.body.addWidget(self.action_button("Baseline correct (linear, from raw)", self.baseline_correct_active))
+        card.body.addWidget(self.action_button("Baseline correct (linear)", self.baseline_correct_active))
         card.body.addWidget(self.action_button("Smooth (Savitzky–Golay)…", self.smooth_active))
         card.body.addWidget(self.action_button("1st / 2nd derivative…", self.derivative_active,
                                                info=("Derivative spectroscopy", fs.DERIVATIVE_SPECTROSCOPY)))
         self.norm_combo = QComboBox()
         self.norm_combo.addItems(["max", "minmax", "area", "vector"])
         card.body.addWidget(self.labelled("Normalization method", self.norm_combo))
-        card.body.addWidget(self.action_button("Apply normalization", self.normalize_active,
-                                               info=("Normalization methods", fs.NORMALIZATION_METHODS)))
+        norm = self.action_button("Apply normalization", self.normalize_active,
+                                  info=("Normalization methods", fs.NORMALIZATION_METHODS))
+        norm.button.setToolTip("Always starts from the spectrum before normalization, so applying it again "
+                               "or with another method replaces the previous one instead of stacking.")
+        card.body.addWidget(norm)
+        remove_norm = self.action_button("Remove normalization", self.remove_normalization)
+        self.remove_norm_button = remove_norm.button
+        card.body.addWidget(remove_norm)
         revert = self.action_button("Revert to raw data", self.revert_active)
         revert.button.setObjectName("Danger")
         card.body.addWidget(revert)
@@ -199,8 +237,23 @@ class FTIRTab(AnalysisTabBase):
         self.prom_spin.setSingleStep(0.2)
         self.prom_spin.setValue(2.0)
         self.prom_spin.setSuffix(" %")
-        self.prom_spin.setToolTip("Minimum peak prominence as a percentage of the spectrum's intensity range.")
-        card.body.addWidget(self.labelled("Sensitivity (prominence)", self.prom_spin))
+        self.prom_spin.setToolTip("Minimum peak prominence as a percentage of the spectrum's intensity range "
+                                  "(formerly \"Sensitivity\"). Higher = fewer, stronger peaks; lower = more peaks.")
+        card.body.addWidget(self.labelled("Minimum peak size (higher = fewer)", self.prom_spin))
+        self.sep_spin = QDoubleSpinBox()
+        self.sep_spin.setRange(0.0, 50.0)
+        self.sep_spin.setSingleStep(1.0)
+        self.sep_spin.setValue(4.0)
+        self.sep_spin.setSuffix(" cm⁻¹")
+        self.sep_spin.setToolTip("Two peaks closer than this count as one (the stronger is kept). About the "
+                                 "instrument resolution, typically 4 cm⁻¹; raise it to merge noise-split peaks.")
+        card.body.addWidget(self.labelled("Minimum separation", self.sep_spin))
+        self.max_peaks_spin = QSpinBox()
+        self.max_peaks_spin.setRange(0, 500)
+        self.max_peaks_spin.setValue(0)
+        self.max_peaks_spin.setSpecialValueText("all")
+        self.max_peaks_spin.setToolTip("Keep only the N most prominent peaks (\"all\" keeps every peak found).")
+        card.body.addWidget(self.labelled("Keep at most", self.max_peaks_spin))
         self.noise_check = QCheckBox("Ignore peaks below the noise floor (5σ)")
         self.noise_check.setChecked(True)
         self.noise_check.setToolTip("Estimates the noise from point-to-point differences and ignores peaks "
@@ -223,6 +276,26 @@ class FTIRTab(AnalysisTabBase):
         sl.addWidget(info)
         card.body.addWidget(shoulder)
         card.body.addWidget(self.action_button("Detect peaks", self.detect_peaks, primary=True))
+        pick = QWidget()
+        pl = QHBoxLayout(pick)
+        pl.setContentsMargins(0, 0, 0, 0)
+        pl.setSpacing(6)
+        self.pick_button = QPushButton("Pick peaks on the graph")
+        self.pick_button.setCheckable(True)
+        self.pick_button.setToolTip("While on: left-click the graph to add a peak (it moves to a real maximum "
+                                    f"within ±{ftir_analysis.MANUAL_SNAP_CM1:g} cm⁻¹, otherwise stays where you "
+                                    "clicked as a shoulder), right-click near a peak to remove it, Esc to stop. "
+                                    "Set Absorbance / %Transmittance correctly first.")
+        self.pick_button.toggled.connect(self._on_pick_toggled)
+        pl.addWidget(self.pick_button, 1)
+        clear = QPushButton("Clear peaks")
+        clear.clicked.connect(lambda _c=False: self.clear_peaks())
+        pl.addWidget(clear)
+        card.body.addWidget(pick)
+        self.plot.canvas.mpl_connect("button_press_event", self._on_plot_click)
+        QShortcut(QKeySequence(Qt.Key_Escape), self.plot, activated=lambda: self.pick_button.setChecked(False),
+                  context=Qt.WidgetWithChildrenShortcut)
+        self._build_card_controls()
 
         self.n_materials = sum(len(self.database.get(cat, [])) for cat in ftir_analysis.MATERIAL_CATEGORIES)
         card = self.add_card("3 · Database screening",
@@ -299,8 +372,39 @@ class FTIRTab(AnalysisTabBase):
                          ("Load session…", self.load_session)):
             card.body.addWidget(self.action_button(text, fn))
 
+    def _build_card_controls(self):
+        card = self.add_card("Check a suspected material", "Its reference bands are drawn on the graph and marked "
+                                                           "found / not found against your peaks as you add them.")
+        self.card_combo = QComboBox()
+        self.card_combo.setEditable(True)
+        self.card_combo.setInsertPolicy(QComboBox.NoInsert)
+        names = sorted((e["name"] for cat in ftir_analysis.MATERIAL_CATEGORIES for e in self.database.get(cat, [])),
+                       key=str.lower)
+        self.card_combo.addItems(names)
+        self.card_combo.setCurrentIndex(-1)
+        self.card_combo.lineEdit().setPlaceholderText(f"Type to search {len(names)} materials…")
+        completer = QCompleter(names, self.card_combo)
+        completer.setCaseSensitivity(Qt.CaseInsensitive)
+        completer.setFilterMode(Qt.MatchContains)
+        self.card_combo.setCompleter(completer)
+        self.card_combo.lineEdit().returnPressed.connect(lambda: self.show_reference_card())
+        self.card_combo.setMinimumWidth(200)
+        card.body.addWidget(self.card_combo)
+        row = QWidget()
+        rl = QHBoxLayout(row)
+        rl.setContentsMargins(0, 0, 0, 0)
+        rl.setSpacing(6)
+        show = QPushButton("Show card on the graph")
+        show.setObjectName("Primary")
+        show.clicked.connect(lambda _c=False: self.show_reference_card())
+        rl.addWidget(show, 1)
+        clear = QPushButton("Clear card")
+        clear.clicked.connect(lambda _c=False: self.clear_card())
+        rl.addWidget(clear)
+        card.body.addWidget(row)
+
     def _build_results_tabs(self):
-        self.peaks_table = DataTable(["#", "Wavenumber (cm⁻¹)", "Intensity", "Prominence"])
+        self.peaks_table = DataTable(["#", "Wavenumber (cm⁻¹)", "Intensity", "Prominence", "Source"])
         self.results_tabs.addTab(self.peaks_table, "Peaks")
 
         # ---- database matches
@@ -466,8 +570,32 @@ class FTIRTab(AnalysisTabBase):
     def _state(trace):
         """Cheap fingerprint of what a background job reads: the spectrum and the peak list."""
         y = np.asarray(trace.y, dtype=float)
-        return (len(trace.x), float(np.nansum(y)), float(np.nansum(y * y)),
+        return (getattr(trace, "revision", 0), len(trace.x), float(np.nansum(y)), float(np.nansum(y * y)),
                 tuple(round(float(pk["x"]), 6) for pk in (trace.peaks or [])))
+
+    def _refresh_processing_status(self, t):
+        if t is None:
+            self.applied_label.setText("")
+            self.remove_norm_button.setEnabled(False)
+            return
+        log = t.metadata.get("processing") or []
+        self.applied_label.setText("Applied: " + (" → ".join(log) if log else "none (data as loaded)"))
+        self.remove_norm_button.setEnabled(t.y_unnorm is not None)
+        self.remove_norm_button.setToolTip(
+            "Back to the spectrum before normalization; later steps are kept." if t.y_unnorm is not None else
+            "Not normalized" + (" separately: later processing was built on the normalized curve (or the session "
+                                "predates this option) — use Undo or Revert to raw data."
+                                if any(s.startswith("Normalization") for s in log) else "."))
+
+    def figure_spec(self, title=""):
+        spec = super().figure_spec(title)
+        t = self.get_active()
+        norm = [s for s in (t.metadata.get("processing") or []) if s.startswith("Normalization")] if t else []
+        if norm and t.visible:
+            method = norm[-1].partition("(")[2].rstrip(")") or "normalized"
+            spec.y_label = f"Normalized {'absorbance' if self.mode() == 'absorbance' else '%T'} ({method})"
+            spec.y_unit = ""
+        return spec
 
     def _band_colours(self, theme):
         return BAND_STYLE.get(theme, BAND_STYLE["light"])
@@ -481,13 +609,20 @@ class FTIRTab(AnalysisTabBase):
         xs = [p["x"] for p in trace.peaks]
         # Short neutral ticks along the bottom edge: never a band-status colour, never full height.
         ax.vlines(xs, 0, 0.035, transform=ax.get_xaxis_transform(), color=fg, alpha=0.55, lw=0.9, zorder=2)
+        manual = [p for p in trace.peaks if p.get("manual")]
+        if manual:
+            # Hand-picked peaks: an open circle on the curve, so they read apart from detected ones.
+            ax.plot([p["x"] for p in manual], [p["y"] for p in manual], linestyle="none", marker="o",
+                    markersize=7, markerfacecolor="none", markeredgecolor=fg, markeredgewidth=1.2, zorder=5)
         if overlay and overlay.get("bands"):
             labelled_x = {round(b["match"]["observed"]["x"], 3) for b in overlay["bands"] if b.get("match")}
             candidates = [p for p in trace.peaks if round(p["x"], 3) in labelled_x]
         else:
             candidates = sorted(trace.peaks, key=lambda p: -float(p.get("prominence", 0) or 0))[:PEAK_LABEL_LIMIT]
+        candidates = candidates + [p for p in manual if p not in candidates]
         placed = []
-        for p in sorted(candidates, key=lambda p: -float(p.get("prominence", 0) or 0)):
+        # Hand-picked peaks are labelled first, so a weak one is never crowded out.
+        for p in sorted(candidates, key=lambda p: (not p.get("manual"), -float(p.get("prominence", 0) or 0))):
             if any(abs(p["x"] - q) < PEAK_LABEL_MIN_GAP for q in placed):
                 continue
             placed.append(p["x"])
@@ -518,11 +653,15 @@ class FTIRTab(AnalysisTabBase):
                 lo, hi = p["range"]
                 if not ftir_matching.is_matchable(p):
                     continue                            # IR-inactive placeholder (e.g. NaCl)
-                status = status_by_range.get(tuple(p["range"]), "matched" if not status_by_range else None)
+                if overlay.get("plain"):
+                    rng = overlay.get("measured")
+                    status = "outside" if rng and (hi < rng[0] or lo > rng[1]) else "reference"
+                else:
+                    status = status_by_range.get(tuple(p["range"]), "matched" if not status_by_range else None)
                 if status in (None, "outside"):
                     continue
                 centre = (lo + hi) / 2
-                c = colour[status]
+                c = REFERENCE_GREY if status == "reference" else colour[status]
                 used.add(status)
                 if status == "missing":
                     strong = ftir_matching.parse_intensity(p.get("intensity"))[0] >= ftir_matching.STRONG_WEIGHT
@@ -530,15 +669,17 @@ class FTIRTab(AnalysisTabBase):
                                linestyle="--", zorder=1)
                 else:
                     ax.axvspan(lo, hi, color=c, alpha=0.22, lw=0, zorder=0)
-                    ax.axvline(centre, color=c, alpha=0.8, lw=1.2, linestyle="-" if status == "matched" else ":")
-                ax.plot([centre], [1.0], marker=BAND_MARKERS[status], color=c, markersize=6, clip_on=False,
+                    ax.axvline(centre, color=c, alpha=0.8, lw=1.2, linestyle="-" if status in ("matched", "reference") else ":")
+                ax.plot([centre], [1.0], marker=BAND_MARKERS.get(status, "v"), color=c, markersize=6, clip_on=False,
                         transform=ax.get_xaxis_transform(), zorder=4, linestyle="none")
-            labels = {"matched": "found", "edge": "at tolerance edge", "missing": "not found"}
-            styles = {"matched": "-", "edge": ":", "missing": "--"}
-            for status in ("matched", "edge", "missing"):
+            labels = {"matched": "found", "edge": "at tolerance edge", "missing": "not found",
+                      "reference": "reference band (detect or pick peaks to compare)"}
+            styles = {"matched": "-", "edge": ":", "missing": "--", "reference": "-"}
+            for status in ("matched", "edge", "missing", "reference"):
                 if status in used:
-                    handles.append(Line2D([], [], color=colour[status], lw=1.6, linestyle=styles[status],
-                                          marker=BAND_MARKERS[status], label=labels[status]))
+                    handles.append(Line2D([], [], color=REFERENCE_GREY if status == "reference" else colour[status], lw=1.6,
+                                          linestyle=styles[status], marker=BAND_MARKERS.get(status, "v"),
+                                          label=labels[status]))
             synthetic = overlay.get("synthetic")
             active = self.get_active()
             if synthetic is not None and active is not None and len(active.y):
@@ -553,6 +694,8 @@ class FTIRTab(AnalysisTabBase):
                                           label="bands as a synthetic spectrum"))
             tier = overlay.get("tier")
             title = f"{overlay.get('label', 'Reference')}" + (f" — {tier.lower()} match (screening)" if tier else "")
+            if overlay.get("found"):
+                title += f" — {overlay['found']}"
         trace_label = overlay.get("trace_label")
         if trace_label:
             title += f"  ·  {trace_label}"
@@ -572,10 +715,13 @@ class FTIRTab(AnalysisTabBase):
             self._render_evidence()
 
     def on_active_trace_changed(self):
-        if self._current_match_trace is not None and self._current_match_trace != self.active_id:
+        if self._current_match is not None and self._current_match_trace != self.active_id:
+            # The shown candidate / card belongs to another spectrum (or to none): drop it.
             self._reset_current_match()
+            self._card_name = None
             self.redraw()
         t = self.get_active()
+        self._refresh_processing_status(t)
         if t is None:
             for table in (self.peaks_table, self.matches_table, self.fg_table, self.fits_table, self.mixture_table):
                 table.clear_rows()
@@ -584,7 +730,7 @@ class FTIRTab(AnalysisTabBase):
             self._refresh_mixture()
             return
         self.peaks_table.set_rows(list(enumerate(t.peaks, 1)), lambda ip: (
-            ip[0], f"{ip[1]['x']:.1f}", f"{ip[1]['y']:.4f}", f"{ip[1]['prominence']:.4f}"))
+            ip[0], f"{ip[1]['x']:.1f}", f"{ip[1]['y']:.4f}", f"{ip[1]['prominence']:.4f}", peak_source(ip[1])))
         self._refresh_matches_table()
         self._refresh_mixture()
         self.fg_table.set_rows(t.fg_hits, lambda h: (
@@ -802,11 +948,51 @@ class FTIRTab(AnalysisTabBase):
                        "<td>Intensity</td><td>Observed (Δ)</td></tr>" + "".join(rows) + "</table>")
             out.append(f"<div style='color:{c['muted']}'>✓ found · ≈ tolerance edge · ✗ not found · – outside the "
                        "measured range</div>")
+        elif match.get("card_only"):
+            active_bands = [p for p in (entry or {}).get("peaks", []) if ftir_matching.is_matchable(p)]
+            if not active_bands:
+                note = "No IR-active bands in the mid-IR for this material (lattice modes only)."
+                for p in (entry or {}).get("peaks", []):
+                    note += " " + p.get("assignment", "")
+            else:
+                note = ("No peaks yet — detect or pick peaks to see which bands are found."
+                        if t is None or not t.peaks else "None of its bands is near one of your peaks.")
+            out.append(f"<div style='color:{c['muted']};margin-top:4px'>{e(note)}</div>")
+            rng = (float(np.nanmin(t.x)), float(np.nanmax(t.x))) if t is not None and len(t.x) else None
+
+            def where(p):
+                lo, hi = sorted(p["range"])
+                return " (outside your data)" if rng and (hi < rng[0] or lo > rng[1]) else ""
+            rows = [f"<tr><td>{p['range'][0]}–{p['range'][1]}</td><td>{e(p['assignment'])}"
+                    f"<span style='color:{c['muted']}'>{where(p)}</span></td>"
+                    f"<td style='color:{c['muted']}'>{e(str(p.get('intensity', '')))}</td></tr>"
+                    for p in active_bands]
+            out.append("<table cellspacing='0' cellpadding='2' style='margin-top:6px'>"
+                       f"<tr style='color:{c['muted']}'><td>Band (cm⁻¹)</td><td>Assignment</td><td>Intensity</td></tr>"
+                       + "".join(rows) + "</table>")
         else:
-            out.append("<pre>" + e("\n".join(evidence_lines(match, entry)[1:])) + "</pre>")
-        out.append(f"<div style='color:{c['muted']};margin-top:6px'>Source: {e(match.get('source', '') or '—')} — "
-                   "full citations under Library › Sources &amp; references.</div>")
+            legacy = [ln for ln in evidence_lines(match, entry)[1:] if not ln.startswith("Source:")]
+            out.append("<pre>" + e("\n".join(legacy).rstrip()) + "</pre>")
+        out.append(self._references_html(match.get("source", ""), c))
         self.match_detail.setHtml("".join(out))
+
+    def _citation_texts(self, source):
+        return [(("Cross-check: " if role == "cross-check" else "") +
+                 (citation or (key if " " in key else f"{key} (not in the bibliography)")))
+                for key, citation, role in ftir_analysis.citations_for(self.database, source)]
+
+    def _references_html(self, source, c):
+        """The entry's sources as full citations (ids not in the bibliography are shown as written)."""
+        e = html.escape
+        cites = ftir_analysis.citations_for(self.database, source)
+        if not cites:
+            return f"<div style='color:{c['muted']};margin-top:6px'>References: none on file.</div>"
+        items = []
+        for key, citation, role in cites:
+            text = citation or (key if " " in key else f"{key} (not in the bibliography)")
+            items.append(f"<li>{'<i>Cross-check:</i> ' if role == 'cross-check' else ''}{e(text)}</li>")
+        return (f"<div style='margin-top:6px'><b>References</b></div>"
+                f"<ol style='margin-top:2px'>{''.join(items)}</ol>")
 
     def evidence_text(self, match=None):
         match = match or self._current_match
@@ -814,7 +1000,8 @@ class FTIRTab(AnalysisTabBase):
             return ""
         t = self.get_active()
         entry = ftir_analysis.find_entry(self.database, match["name"])
-        return "\n".join(evidence_lines(self._ensure_detail(match), entry, self.verdicts(t).get(match["name"])))
+        return "\n".join(evidence_lines(self._ensure_detail(match), entry, self.verdicts(t).get(match["name"]),
+                                        references=self._citation_texts(match.get("source", ""))))
 
     def copy_evidence(self):
         text = self.evidence_text()
@@ -826,7 +1013,7 @@ class FTIRTab(AnalysisTabBase):
 
     _current_pattern_r = None
 
-    def _show_match_detail(self, match):
+    def _show_match_detail(self, match, from_card=False):
         t = self.get_active()
         match = self._ensure_detail(match)
         entry = ftir_analysis.find_entry(self.database, match["name"])
@@ -842,7 +1029,11 @@ class FTIRTab(AnalysisTabBase):
                        "trace_label": t.label if t is not None and len(self.traces) > 1 else ""}
             if is_weighted(match):
                 overlay["bands"] = match.get("bands", [])
-                overlay["tier"] = match.get("tier")
+                if from_card:
+                    # Chosen by the user, not ranked against the database: report the bands, not a tier.
+                    overlay["found"] = f"{match['matched_count']} of {match['total_reference_peaks']} bands found"
+                else:
+                    overlay["tier"] = match.get("tier")
                 if t is not None and len(t.x):
                     overlay["synthetic"] = (t.x, ftir_matching.synthetic_reference_spectrum(entry, t.x))
             self.set_reference_overlay(overlay)
@@ -850,8 +1041,23 @@ class FTIRTab(AnalysisTabBase):
             self.clear_reference_overlay()
 
     def clear_reference_overlay(self):
-        self._current_match_trace = None if self.reference_overlay is None else self._current_match_trace
+        self._card_name = None
         super().clear_reference_overlay()
+
+    def _drop_card(self):
+        """A new card was asked for but not found: the old one must not look like the answer."""
+        if self._current_match is not None and self._current_match.get("from_card"):
+            self._reset_current_match()
+            self._card_name = None
+            self.redraw()
+
+    def clear_card(self):
+        self.card_combo.setCurrentIndex(-1)
+        self.card_combo.clearEditText()
+        if self._current_match is not None and self._current_match.get("from_card"):
+            self._reset_current_match()
+        self._card_name = None
+        self.redraw()
 
     def show_all_components(self):
         t = self.get_active()
@@ -869,6 +1075,10 @@ class FTIRTab(AnalysisTabBase):
         t = self.get_active()
         if t is None or self._current_match is None:
             self.app.notify("Click a candidate first.", "warning")
+            return
+        if self._current_match.get("card_only"):
+            self.app.notify("Detect or pick peaks first — a verdict needs the card compared with your spectrum.",
+                            "warning")
             return
         name = self._current_match["name"]
         verdicts = self.verdicts(t)
@@ -903,25 +1113,41 @@ class FTIRTab(AnalysisTabBase):
         t = self.require_active("Load a spectrum first.")
         if t is None:
             return
+        manual = [p for p in t.peaks if p.get("manual")]
+        keep_manual = bool(manual) and ui_common.ask_yes_no(
+            self, "Keep your peaks?", f"Keep your {len(manual)} hand-picked peak(s) and add the detected ones?\n\n"
+                                      "Yes: keep them.   No: replace them with the detected peaks.")
         prom_frac = self.prom_spin.value() / 100.0
         kwargs = {"prominence_frac": prom_frac, "mode": self.mode(), "noise_floor": self.noise_check.isChecked(),
-                  "exclude_regions": [ftir_analysis.CO2_REGION] if self.co2_check.isChecked() else None}
+                  "exclude_regions": [ftir_analysis.CO2_REGION] if self.co2_check.isChecked() else None,
+                  "min_distance_cm1": self.sep_spin.value() or None, "max_peaks": self.max_peaks_spin.value() or None}
         if self.shoulder_check.isChecked():
-            t.peaks = ftir_analysis.detect_peaks_second_derivative(t.x, t.y, **kwargs)
+            peaks = ftir_analysis.detect_peaks_second_derivative(t.x, t.y, **kwargs)
         else:
-            t.peaks = ftir_analysis.detect_peaks(t.x, t.y, **kwargs)
+            peaks = ftir_analysis.detect_peaks(t.x, t.y, **kwargs)
+        if keep_manual:
+            gap = max(self.sep_spin.value(), 1.0)
+            peaks = [p for p in peaks if all(abs(p["x"] - m["x"]) >= gap for m in manual)] + manual
+            peaks.sort(key=lambda p: p["x"])
+        t.peaks = peaks
         t.fits = []
+        t.revision += 1
         had = self._clear_results(t)
         t.metadata["detection"] = {"prominence_pct": self.prom_spin.value(), "mode": self.mode(),
                                    "noise_floor": self.noise_check.isChecked(), "skip_co2": self.co2_check.isChecked(),
-                                   "shoulders": self.shoulder_check.isChecked()}
+                                   "shoulders": self.shoulder_check.isChecked(),
+                                   "min_separation_cm1": self.sep_spin.value(),
+                                   "max_peaks": self.max_peaks_spin.value() or "all",
+                                   "source": "detected + manual" if keep_manual else "detected"}
         self.redraw()
+        self._refresh_card()
         self.on_active_trace_changed()
         self.results_tabs.setCurrentWidget(self.peaks_table)
         msg = f"Detected {len(t.peaks)} peaks in {t.label}"
         level = "success" if t.peaks else "warning"
         if len(t.peaks) > 60:
-            msg += " — many peaks: smooth the spectrum or lower the sensitivity before matching"
+            msg += (" — many peaks: raise Minimum peak size or Minimum separation, set Keep at most, or smooth "
+                    "first — or pick the peaks by hand")
             level = "warning"
         elif had:
             msg += " — run Match to database again"
@@ -1040,24 +1266,42 @@ class FTIRTab(AnalysisTabBase):
 
         self.run_background(compute, on_done, busy_text="Screening for mixture components…")
 
-    def _apply_to_active(self, title, fields, apply, done_message, help_text=None):
+    def _apply_to_active(self, title, fields, apply, done_message, help_text=None, log_label=None):
         t = self.require_active("Load a spectrum first.")
         if t is None:
             return
         values = ui_common.ask_fields(self, title, fields, help_text) if fields else {}
         if values is None:
             return
+        before = t.y
+        was_separate = t.y_unnorm is not None          # a normalization that can still be replaced
         try:
-            t.y = apply(t, values)
+            new_y = apply(t, values)
         except Exception as exc:  # noqa: BLE001
             ui_common.show_message(self, f"{title} failed", str(exc), "error")
             return
+        log = list(t.metadata.get("processing") or [])
+        if title == "Normalization":
+            if was_separate:
+                # Replace the current normalization (the last one logged), not earlier, baked-in ones.
+                last = max(i for i, s in enumerate(log) if s.startswith("Normalization")) if any(
+                    s.startswith("Normalization") for s in log) else None
+                if last is not None:
+                    del log[last]
+            else:
+                t.y_unnorm = before                     # kept so normalization can be replaced or removed
+        else:
+            t.y_unnorm = None                           # later steps build on the normalized curve
+        t.y = new_y
+        t.revision += 1
         t.peaks, t.fits = [], []
+        t.metadata.pop("detection", None)               # the old detection settings no longer apply
         had = self._clear_results(t)
-        log = [] if title == "Baseline correction" else list(t.metadata.get("processing") or [])
-        log.append(title + (" (" + ", ".join(f"{k}={v}" for k, v in values.items()) + ")" if values else ""))
+        log.append(log_label or (title + (" (" + ", ".join(f"{k}={v}" for k, v in values.items()) + ")"
+                                          if values else "")))
         t.metadata["processing"] = log
         self.redraw()
+        self._refresh_card()
         self.on_active_trace_changed()
         self.app.notify(done_message(t, values) + (" — peaks and matches cleared" if had else ""), "success")
         self.record(title.lower())
@@ -1069,18 +1313,249 @@ class FTIRTab(AnalysisTabBase):
             lambda t, v: f"Smoothed {t.label} (window {v['wl']}, order {v['po']}) — detect peaks again")
 
     def baseline_correct_active(self):
+        # On the current curve, so an ATR correction applied first is kept (the order the card suggests).
         self._apply_to_active(
             "Baseline correction", None,
-            lambda t, v: ftir_analysis.baseline_correct(t.x, t.y_raw)[0],
-            lambda t, v: f"Linear baseline removed from {t.label} (from raw data; earlier processing undone) "
-                         "— detect peaks again")
+            lambda t, v: ftir_analysis.baseline_correct(t.x, t.y)[0],
+            lambda t, v: f"Linear baseline removed from {t.label} — detect peaks again")
+
+    def convert_to_absorbance_active(self):
+        if self.mode() != "transmittance" and not ui_common.ask_yes_no(
+                self, "Convert to absorbance", "The page is set to Absorbance. Convert this spectrum as if it "
+                                               "were %Transmittance anyway?"):
+            return
+        self._apply_to_active(
+            "Converted %T → absorbance", None,
+            lambda t, v: ftir_analysis.absorbance_like(t.y, "transmittance"),
+            lambda t, v: f"{t.label} converted to absorbance (A = 2 − log10 %T)")
+        self.rb_absorbance.setChecked(True)
 
     def normalize_active(self):
         method = self.norm_combo.currentText()
+        t = self.get_active()
+        if t is not None and t.y_unnorm is not None and (t.metadata.get("processing") or [""])[-1] == \
+                f"Normalization ({method})":
+            self.app.notify(f"{t.label} is already normalized ({method}) — nothing changed. The curve keeps its "
+                            "shape; only the y scale changes.", "info")
+            return
+        if self.mode() == "transmittance" and not ui_common.ask_yes_no(
+                self, "Normalize %Transmittance?",
+                f"'{method}' normalization of %T data does not scale the bands themselves (minmax even sends the "
+                "strongest band to 0 %T), so band heights and matching are distorted. Convert %T → absorbance "
+                "first (Processing card).\n\nNormalize anyway?"):
+            return
         self._apply_to_active(
             "Normalization", None,
-            lambda t, v: ftir_analysis.normalize_spectrum(t.y, method=method, x=t.x),
-            lambda t, v: f"Normalized {t.label} ({method})")
+            # From the spectrum before any earlier normalization: re-applying replaces, never stacks.
+            lambda t, v: ftir_analysis.normalize_spectrum(t.y if t.y_unnorm is None else t.y_unnorm,
+                                                          method=method, x=t.x),
+            lambda t, v: f"Normalized {t.label} ({method}) — the curve keeps its shape; the y axis now reads "
+                         "normalized units",
+            log_label=f"Normalization ({method})")
+
+    def remove_normalization(self):
+        t = self.require_active("Load a spectrum first.")
+        if t is None:
+            return
+        log = list(t.metadata.get("processing") or [])
+        if t.y_unnorm is None:
+            if any(s.startswith("Normalization") for s in log):
+                self.app.notify(f"The normalization of {t.label} is part of later processing steps (or the "
+                                "session predates this option) — use Undo, or Revert to raw data.", "info")
+            else:
+                self.app.notify(f"{t.label} is not normalized.", "info")
+            return
+        t.y, t.y_unnorm = t.y_unnorm, None
+        t.revision += 1
+        t.peaks, t.fits = [], []
+        t.metadata.pop("detection", None)
+        had = self._clear_results(t)
+        idx = [i for i, s in enumerate(log) if s.startswith("Normalization")]
+        if idx:
+            del log[idx[-1]]                            # only the normalization that was undone
+        t.metadata["processing"] = log
+        self.redraw()
+        self._refresh_card()
+        self.on_active_trace_changed()
+        self.app.notify(f"Normalization removed from {t.label}" + (" — peaks and matches cleared" if had else ""),
+                        "success")
+        self.record("remove normalization")
+
+    # ---------------------------------------------------------------- manual peaks
+    def _on_pick_toggled(self, on):
+        self.pick_button.setText("Picking — left-click add · right-click remove · Esc stop" if on
+                                 else "Pick peaks on the graph")
+        toolbar = getattr(self.plot, "toolbar", None)
+        if on and toolbar is not None:
+            mode = str(getattr(toolbar, "mode", "") or "")
+            if "zoom" in mode and "pan" not in mode:
+                toolbar.zoom()                          # leave zoom mode, so clicks reach the picker
+            elif "pan" in mode:
+                toolbar.pan()
+        if on:
+            self.plot.canvas.setCursor(Qt.CrossCursor)
+            self.app.notify("Left-click to add a peak, right-click near a peak to remove it, Esc to stop.", "info")
+        else:
+            self.plot.canvas.unsetCursor()
+
+    def _on_plot_click(self, event):
+        if not self.pick_button.isChecked() or event.inaxes is None or event.xdata is None:
+            return
+        if getattr(event, "dblclick", False):
+            return                                      # the first press of a double-click already acted
+        toolbar = getattr(self.plot, "toolbar", None)
+        if toolbar is not None and getattr(toolbar, "mode", ""):
+            self.app.notify("Zoom or pan is on — click its toolbar button again to go back to picking.", "info")
+            return
+        active = self.get_active()
+        if active is not None and not active.visible:
+            self.app.notify(f"{active.label} is hidden — show it (or make a visible spectrum active) to pick "
+                            "its peaks.", "warning")
+            return
+        if event.button == 1:
+            self.add_manual_peak(float(event.xdata))
+        elif event.button == 3:
+            self.remove_peak_near(float(event.xdata))
+
+    def _peaks_edited(self, t, message, history_label):
+        t.peaks.sort(key=lambda p: p["x"])
+        t.fits = []
+        t.revision += 1
+        had = self._clear_results(t)
+        detection = dict(t.metadata.get("detection") or {})
+        detection["manual_edits"] = int(detection.get("manual_edits", 0)) + 1
+        detection["source"] = "detected + manual" if detection.get("prominence_pct") is not None else "manual"
+        t.metadata["detection"] = detection
+        self._redraw_keeping_view()
+        self._refresh_card(keep_view=True)
+        self.on_active_trace_changed()
+        if self._card_name is None:
+            self.results_tabs.setCurrentWidget(self.peaks_table)
+        where = f" in {t.label}" if len(self.traces) > 1 else ""
+        self.app.notify(message + where + (" — run Match to database again" if had else ""), "success")
+        self.record(history_label)
+
+    def _redraw_keeping_view(self):
+        """Redraw without losing the zoom: picking close bands needs it."""
+        axes = self.plot.figure.axes
+        view = (axes[0].get_xlim(), axes[0].get_ylim()) if axes else None
+        self.redraw()
+        axes = self.plot.figure.axes
+        if view and axes:
+            axes[0].set_xlim(view[0])
+            axes[0].set_ylim(view[1])
+            self.plot.canvas.draw_idle()
+
+    def add_manual_peak(self, x_click):
+        t = self.require_active("Load a spectrum first.")
+        if t is None:
+            return None
+        peak = ftir_analysis.peak_at(t.x, t.y, x_click, mode=self.mode())
+        if peak is None:
+            self.app.notify("No data there (outside the spectrum or in a gap).", "warning")
+            return None
+        if any(abs(p["x"] - peak["x"]) < 1e-9 for p in t.peaks):
+            self.app.notify(f"There is already a peak at {peak['x']:.1f} cm⁻¹.", "info")
+            return None
+        t.peaks = list(t.peaks) + [peak]
+        kind = "Shoulder" if peak.get("shoulder") else "Peak"
+        self._peaks_edited(t, f"{kind} added at {peak['x']:.1f} cm⁻¹ ({len(t.peaks)} peaks)",
+                           f"add peak {peak['x']:.0f}")
+        return peak
+
+    def remove_peak_near(self, x_click):
+        t = self.require_active("Load a spectrum first.")
+        if t is None or not t.peaks:
+            return None
+        span = float(np.ptp(t.x)) if len(t.x) else 0.0
+        reach = max(15.0, 0.01 * span)
+        nearest = min(t.peaks, key=lambda p: abs(p["x"] - x_click))
+        if abs(nearest["x"] - x_click) > reach:
+            self.app.notify(f"No peak within {reach:.0f} cm⁻¹ of the click.", "info")
+            return None
+        t.peaks = [p for p in t.peaks if p is not nearest]
+        self._peaks_edited(t, f"Peak at {nearest['x']:.1f} cm⁻¹ removed ({len(t.peaks)} left)",
+                           f"remove peak {nearest['x']:.0f}")
+        return nearest
+
+    def clear_peaks(self):
+        t = self.require_active("Load a spectrum first.")
+        if t is None or not t.peaks:
+            return
+        n = len(t.peaks)
+        t.peaks = []
+        self._peaks_edited(t, f"{n} peaks cleared — detect again or pick them on the graph", "clear peaks")
+
+    # ---------------------------------------------------------------- reference card
+    def _refresh_card(self, keep_view=False):
+        """After the peaks or the spectrum changed, re-score the chosen card so it stays on screen."""
+        if self._card_name is not None and self.get_active() is not None:
+            self.show_reference_card(self._card_name, switch_tab=False, keep_view=keep_view)
+
+    def show_reference_card(self, name=None, switch_tab=True, keep_view=False):
+        name = (name or self.card_combo.currentText()).strip()
+        entry = ftir_analysis.find_entry(self.database, name) if name else None
+        if entry is None and name:
+            # Accept a unique partial name as typed in the box.
+            hits = [e for cat in ftir_analysis.MATERIAL_CATEGORIES for e in self.database.get(cat, [])
+                    if name.lower() in e["name"].lower()]
+            entry = hits[0] if len(hits) == 1 else None
+            if len(hits) > 1:
+                self._drop_card()
+                self.app.notify(f"{len(hits)} materials match '{name}' — choose one from the list.", "warning")
+                return None
+        if entry is None:
+            self._drop_card()
+            self.app.notify("Choose a material from the list first.", "warning")
+            return None
+        t = self.get_active()
+        if t is None:
+            self.app.notify("Load a spectrum first.", "warning")
+            return None
+        self._card_name = entry["name"]
+        spectral_range = (float(np.nanmin(t.x)), float(np.nanmax(t.x))) if len(t.x) else None
+        match = None
+        if t.peaks:
+            match = ftir_matching.score_entry(entry, t.peaks, tolerance=self.tolerance_spin.value(),
+                                              n_searched=1, spectral_range=spectral_range)
+        view = None
+        axes = self.plot.figure.axes
+        if keep_view and axes:
+            view = (axes[0].get_xlim(), axes[0].get_ylim())
+        if match is not None:
+            match["from_card"] = True
+            self._show_match_detail(match, from_card=True)
+        else:
+            # No peaks yet -- or peaks, but none near its bands: show the card itself.
+            self._current_match = {"name": entry["name"], "category": entry.get("category", ""),
+                                   "source": entry.get("source", ""), "card_only": True, "from_card": True}
+            self._current_match_entry = entry
+            self._current_match_trace = self.active_id
+            self._current_pattern_r = None
+            overlay = {"label": entry["name"], "peaks": entry["peaks"],
+                       "trace_label": t.label if len(self.traces) > 1 else ""}
+            if t.peaks:
+                bands = []
+                for p in entry["peaks"]:
+                    if not ftir_matching.is_matchable(p):
+                        continue
+                    lo, hi = sorted(p["range"])
+                    outside = spectral_range is not None and (hi < spectral_range[0] or lo > spectral_range[1])
+                    bands.append({"reference": p, "status": "outside" if outside else "missing", "match": None})
+                overlay["bands"] = bands
+                overlay["found"] = f"0 of {sum(b['status'] != 'outside' for b in bands)} bands found"
+            else:
+                overlay["plain"] = True
+                overlay["measured"] = spectral_range
+            self._render_evidence()
+            self.set_reference_overlay(overlay)
+        if view and self.plot.figure.axes:
+            self.plot.figure.axes[0].set_xlim(view[0])
+            self.plot.figure.axes[0].set_ylim(view[1])
+            self.plot.canvas.draw_idle()
+        if switch_tab:
+            self.results_tabs.setCurrentWidget(self.matches_page)
+        return match
 
     def atr_correct_active(self):
         crystals = list(getattr(ftir_analysis, "ATR_CRYSTAL_REFRACTIVE_INDEX", {"diamond": 2.4}).keys())
@@ -1108,10 +1583,15 @@ class FTIRTab(AnalysisTabBase):
         if t is None:
             return
         t.revert_to_raw()
+        t.revision += 1
         for key in ("processing", "match_params", "mixture_params", "detection"):
             t.metadata.pop(key, None)
+        card = self._card_name
         self._reset_current_match()
         self._on_traces_changed()
+        if card is not None:
+            self._card_name = card
+            self._refresh_card()
         self.app.notify(f"{t.label} reverted to the data as loaded", "info")
         self.record("revert to raw")
 
@@ -1216,21 +1696,23 @@ class FTIRTab(AnalysisTabBase):
             self.app.notify("Click a row in the database matches table first.", "warning")
             return
         entry, match = self._current_match_entry, self._ensure_detail(self._current_match)
-        matched_by_range = {tuple(mm["reference"]["range"]): mm for mm in match["matches"]}
+        matched_by_range = {tuple(mm["reference"]["range"]): mm for mm in match.get("matches", [])}
+        citations = "; ".join(self._citation_texts(entry.get("source", "")))
         path = ui_common.get_save_path(self, "Export reference peaks", f"{entry['name']}_reference_peaks.csv", "CSV (*.csv)")
         if not path:
             return
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
             w.writerow(["material", "range_low_cm-1", "range_high_cm-1", "assignment", "intensity",
-                        "matched_in_your_spectrum", "observed_cm-1", "delta_cm-1", "position_score", "source"])
+                        "matched_in_your_spectrum", "observed_cm-1", "delta_cm-1", "position_score", "source",
+                        "references"])
             for ref in entry["peaks"]:
                 mm = matched_by_range.get(tuple(ref["range"]))
                 score = mm.get("position_score") if mm else None
                 w.writerow([entry["name"], ref["range"][0], ref["range"][1], ref["assignment"], ref.get("intensity", ""),
                             "yes" if mm else "no", f"{mm['observed']['x']:.2f}" if mm else "",
                             f"{mm['delta_cm1']:+.2f}" if mm else "", f"{score:.3f}" if score is not None else "",
-                            entry.get("source", "")])
+                            entry.get("source", ""), citations])
         self.app.notify(f"Saved {len(entry['peaks'])} reference peak(s) for {entry['name']}", "success")
 
     def export_peaks_csv(self):
@@ -1261,9 +1743,10 @@ class FTIRTab(AnalysisTabBase):
         self.snapshot_png(tmp_png)
         sections = []
         if t.peaks:
-            rows = [["#", "Wavenumber (cm-1)", "Intensity", "Prominence"]]
-            rows += [[str(i), f"{p['x']:.1f}", f"{p['y']:.4f}", f"{p['prominence']:.4f}"] for i, p in enumerate(t.peaks, 1)]
-            sections.append(("Detected Peaks", rows, None))
+            rows = [["#", "Wavenumber (cm-1)", "Intensity", "Prominence", "Source"]]
+            rows += [[str(i), f"{p['x']:.1f}", f"{p['y']:.4f}", f"{p['prominence']:.4f}", peak_source(p)]
+                     for i, p in enumerate(t.peaks, 1)]
+            sections.append(("Peaks", rows, None))
         e = html.escape
         params = exports.match_parameter_rows(t)
         if params:
@@ -1281,6 +1764,10 @@ class FTIRTab(AnalysisTabBase):
             chosen = self._current_match if self._current_match_trace == self.active_id and self._current_match else None
             chosen = chosen or t.matches[0]
             sections.append((f"Evidence: {e(chosen['name'])}", None, e(self.evidence_text(chosen))))
+        elif self._current_match is not None and self._current_match_trace == self.active_id:
+            # A card the user chose (no database search on this trace): its evidence and references.
+            sections.append((f"Reference card: {e(self._current_match['name'])}", None,
+                             e(self.evidence_text(self._current_match))))
         mixture = t.metadata.get("mixture") or {}
         if mixture.get("components"):
             rows = [["Component", "Match score", "Peaks explained", "Share of peak intensity*"]]
@@ -1289,7 +1776,8 @@ class FTIRTab(AnalysisTabBase):
             sections.append(("Mixture screening", rows, None))
             notes = ["* Fraction of summed peak prominence, not a concentration."]
             for c in mixture["components"]:
-                notes += ["", *evidence_lines(c, ftir_analysis.find_entry(self.database, c["name"]))]
+                notes += ["", *evidence_lines(c, ftir_analysis.find_entry(self.database, c["name"]),
+                                              references=self._citation_texts(c.get("source", "")))]
             sections.append(("Mixture evidence", None, e("\n".join(notes))))
         verdicts = {k: v for k, v in self.verdicts(t).items()}
         if verdicts:

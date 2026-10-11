@@ -7,7 +7,7 @@ import os
 import sys
 
 APP_NAME = "FTIR & XRD Analysis Toolkit"
-APP_VERSION = "3.1.0"
+APP_VERSION = "3.2.0"
 APP_ID = "EML.FTIRXRDToolkit.Analysis.3"
 AUTHOR_NAME = "Ezzeldien Yousef"
 AUTHOR_EMAIL = "ezzyousef@aucegypt.edu"

@@ -770,7 +770,7 @@ class AnalysisTabBase(QWidget):
             return None
         state = {"tab": self.KIND, **self.session_settings(), "active_id": self.active_id,
                  "traces": [{"label": t.label, "color": t.color, "visible": t.visible, "x": t.x, "y": t.y,
-                             "y_raw": t.y_raw, "peaks": t.peaks, "matches": t.matches, "fg_hits": t.fg_hits,
+                             "y_raw": t.y_raw, "y_unnorm": t.y_unnorm, "peaks": t.peaks, "matches": t.matches, "fg_hits": t.fg_hits,
                              "fits": t.fits, "metadata": t.metadata, "id": t.id} for t in self.traces]}
         try:
             session_io.save_session(path, state)
@@ -800,6 +800,8 @@ class AnalysisTabBase(QWidget):
         for td in state.get("traces", []):
             t = Trace(td["label"], td["x"], td["y"], td["color"], metadata=td.get("metadata"))
             t.y_raw = __import__("numpy").array(td["y_raw"], dtype=float)
+            if td.get("y_unnorm") is not None:
+                t.y_unnorm = __import__("numpy").array(td["y_unnorm"], dtype=float)
             t.visible = td.get("visible", True)
             t.peaks = td.get("peaks", [])
             t.matches = td.get("matches", [])

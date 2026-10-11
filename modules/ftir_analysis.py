@@ -3,6 +3,8 @@ ftir_analysis.py
 FTIR peak detection, reference-database matching, and common calculations.
 """
 import json
+import warnings
+
 import numpy as np
 # scipy is imported lazily, inside the functions that actually need it (see
 # detect_peaks/peak_area/fwhm_from_peak below) rather than here at module
@@ -55,11 +57,45 @@ def estimate_noise_sigma(y):
     return float(1.4826 * np.median(np.abs(d - np.median(d))) / np.sqrt(2.0))
 
 
-def _fwhm_cm1(x, index, width_pts):
-    """Peak width in cm-1 from scipy's width in points and the local point spacing."""
+def absorbance_like(y, mode="absorbance"):
+    """The signal peaks are measured on. Absorbance as is; %transmittance (or a 0-1
+    transmittance) converted to absorbance, A = -log10(T), so band heights and widths mean
+    the same thing in both modes (%T compresses strong bands and widens them)."""
+    y = np.asarray(y, dtype=float)
+    if mode != "transmittance":
+        return y.copy()
+    finite = y[np.isfinite(y)]
+    scale = 100.0 if finite.size and np.nanmax(finite) > 1.5 else 1.0
+    return -np.log10(np.clip(y / scale, 1e-4, None))
+
+
+def _widths_cm1(x, widths_result):
+    """FWHM in cm-1 per peak from scipy.signal.peak_widths, using the interpolated
+    half-height crossings (correct on uneven grids and in either x direction)."""
     x = np.asarray(x, dtype=float)
-    j = min(max(int(index), 1), len(x) - 1)
-    return float(abs(width_pts) * abs(x[j] - x[j - 1]))
+    if not len(widths_result[0]):
+        return []
+    idx = np.arange(len(x))
+    left = np.interp(widths_result[2], idx, x)
+    right = np.interp(widths_result[3], idx, x)
+    return [float(w) for w in np.abs(right - left)]
+
+
+def _distance_pts(x, min_distance_pts, min_distance_cm1):
+    """Minimum peak separation in points, from a separation in cm-1 when one is given."""
+    if not min_distance_cm1 or len(x) < 2:
+        return max(1, int(min_distance_pts))
+    step = float(np.nanmedian(np.abs(np.diff(np.asarray(x, dtype=float)))))
+    if not np.isfinite(step) or step <= 0:
+        return max(1, int(min_distance_pts))
+    return max(int(min_distance_pts), int(round(float(min_distance_cm1) / step)))
+
+
+def _keep_strongest(peaks, max_peaks):
+    """At most `max_peaks` peaks, the most prominent ones, in wavenumber order."""
+    if max_peaks and len(peaks) > int(max_peaks):
+        peaks = sorted(peaks, key=lambda p: -p["prominence"])[:int(max_peaks)]
+    return sorted(peaks, key=lambda p: p["x"])
 
 
 def _outside_regions(x_value, regions):
@@ -74,6 +110,30 @@ def load_database(path):
 def get_references(database):
     """Return the bibliography list ({id, citation}) embedded in the database's _meta."""
     return database.get("_meta", {}).get("references", [])
+
+
+def citations_for(database, source):
+    """
+    The full citations behind an entry's `source` string ("socrates2001, coates2000;
+    cross-check: sdbs"), in order: (id, citation, role) with role "source" or "cross-check".
+    A token that is not in the bibliography comes back with citation None, so it is shown
+    as written rather than hidden.
+    """
+    import re
+
+    by_id = {r["id"]: r["citation"] for r in get_references(database)}
+    out, seen = [], set()
+    marker = re.compile(r"cross-?check\s*:?", re.IGNORECASE)
+    for part in re.split(r";", "" if source is None else str(source)):
+        role = "cross-check" if marker.search(part) else "source"
+        part = re.sub(r"\([^)]*\)", "", marker.sub(",", part))     # drop "(minerals)"-style annotations
+        for token in part.split(","):
+            key = token.strip()
+            if not key or (key, role) in seen:
+                continue
+            seen.add((key, role))
+            out.append((key, by_id.get(key), role))
+    return out
 
 
 def search_database(database, query="", category=None):
@@ -121,7 +181,7 @@ def smooth_spectrum(y, window_length=11, polyorder=3):
 
 
 def detect_peaks(x, y, prominence_frac=0.02, min_distance_pts=3, mode="absorbance", noise_floor=False,
-                 exclude_regions=None):
+                 exclude_regions=None, min_distance_cm1=None, max_peaks=None):
     """
     Detect peaks in a spectrum.
     mode: "absorbance" (peaks point up) or "transmittance" (peaks point down -> invert first).
@@ -129,21 +189,24 @@ def detect_peaks(x, y, prominence_frac=0.02, min_distance_pts=3, mode="absorbanc
     noise_floor: also require prominence >= NOISE_FLOOR_SIGMAS x the estimated noise, so
     baseline noise is not reported as peaks.
     exclude_regions: (low, high) cm-1 ranges whose peaks are dropped (e.g. CO2_REGION).
+    min_distance_cm1: minimum separation of two peaks in cm-1 (instead of points only).
+    max_peaks: keep at most this many, the most prominent.
+    In transmittance mode prominence and width are measured on absorbance (A = -log10 T).
     Returns list of dicts: {index, x, y, prominence, fwhm}
     """
     from scipy.signal import find_peaks, peak_widths
 
-    y_work = np.asarray(y, dtype=float)
-    if mode == "transmittance":
-        y_work = y_work.max() - y_work  # invert so absorption dips become peaks
+    y_work = absorbance_like(y, mode)
 
     y_range = y_work.max() - y_work.min()
     prominence = max(prominence_frac * y_range, 1e-9)
     if noise_floor:
         prominence = max(prominence, NOISE_FLOOR_SIGMAS * estimate_noise_sigma(y_work))
 
-    idx, props = find_peaks(y_work, prominence=prominence, distance=min_distance_pts)
+    idx, props = find_peaks(y_work, prominence=prominence,
+                            distance=_distance_pts(x, min_distance_pts, min_distance_cm1))
     widths_result = peak_widths(y_work, idx, rel_height=0.5)
+    widths = _widths_cm1(x, widths_result)
 
     peaks = []
     for i, pk in enumerate(idx):
@@ -155,16 +218,89 @@ def detect_peaks(x, y, prominence_frac=0.02, min_distance_pts=3, mode="absorbanc
             "y": float(y[pk]),
             "prominence": float(props["prominences"][i]),
             "fwhm_pts": float(widths_result[0][i]),
-            "fwhm_cm1": _fwhm_cm1(x, pk, widths_result[0][i] if len(widths_result[0]) else 0.0),
+            "fwhm_cm1": widths[i],
         })
-    # sort by x for readability
-    peaks.sort(key=lambda p: p["x"])
-    return peaks
+    return _keep_strongest(peaks, max_peaks)
+
+
+MANUAL_SNAP_CM1 = 10.0               # a click snaps to the strongest point within this distance
+
+
+def peak_at(x, y, x_click, mode="absorbance", snap_cm1=MANUAL_SNAP_CM1):
+    """
+    A peak placed by hand at `x_click`, with the same fields as detect_peaks plus
+    "manual": True. It snaps to the nearest true local maximum (in absorbance) within
+    `snap_cm1`; when there is none -- a shoulder, or the flank of a broad band -- the clicked
+    point is kept, marked "shoulder": True, its prominence measured above the chord between
+    the lowest points on either side and its width left unknown. Returns None when the click
+    is outside the spectrum.
+    """
+    from scipy.signal import peak_prominences, peak_widths
+
+    x = np.asarray(x, dtype=float)
+    y = np.asarray(y, dtype=float)
+    finite = np.isfinite(x) & np.isfinite(y)
+    if finite.sum() < 3:
+        return None
+    clicked = int(np.nanargmin(np.where(finite, np.abs(x - x_click), np.inf)))
+    if abs(x[clicked] - x_click) > snap_cm1:
+        return None                                     # outside the spectrum, or inside a data gap
+    y_work = absorbance_like(y, mode)
+    y_work = np.where(np.isfinite(y_work), y_work, np.nanmin(y_work[finite]))
+    n = len(x)
+    # Locate the top on a lightly smoothed copy (about half the snap distance), so noise on a
+    # band top does not pull the peak off its centre; the reported intensity stays the raw one.
+    y_find = y_work
+    step = float(np.nanmedian(np.abs(np.diff(x[finite]))))
+    win = int(round(0.5 * snap_cm1 / step)) if step > 0 else 0
+    win += 1 - win % 2
+    if win >= 5 and n > win + 2:
+        from scipy.signal import savgol_filter
+        y_find = savgol_filter(y_work, win, 3)
+    near = np.flatnonzero(finite & (np.abs(x - x_click) <= snap_cm1))
+    maxima = [i for i in near if 0 < i < n - 1 and y_find[i] >= y_find[i - 1] and y_find[i] >= y_find[i + 1]
+              and (y_find[i] > y_find[i - 1] or y_find[i] > y_find[i + 1])]
+    proms = []
+    if maxima:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            proms = list(peak_prominences(y_find, maxima)[0])
+    # A real band top stands well above the noise; a wiggle on a flank does not. (The noise
+    # estimate needs a real spectrum; on a handful of points it is meaningless.)
+    floor = 3.0 * estimate_noise_sigma(y_work[finite]) if finite.sum() >= 50 else 0.0
+    real = [(p, i) for p, i in zip(proms, maxima) if p > floor]
+    shoulder = not real
+    pk = clicked if shoulder else int(max(real)[1])     # the most prominent maximum in the window
+    width = None
+    width_pts = 0.0
+    prominence = 0.0
+    if not shoulder:
+        prominence = float(max(real)[0])
+        res = peak_widths(y_find, [pk], rel_height=0.5)
+        if prominence > 0 and len(res[0]):
+            width_pts = float(res[0][0])
+            width = _widths_cm1(x, res)[0]
+    if prominence <= 0:
+        # Height above the chord joining the lowest points within 5 snap widths on each side.
+        around = np.abs(x - x[pk]) <= 5 * snap_cm1
+        left = np.flatnonzero(around & (np.arange(n) < pk))
+        right = np.flatnonzero(around & (np.arange(n) > pk))
+        if left.size and right.size:
+            i_l = int(left[np.argmin(y_work[left])])
+            i_r = int(right[np.argmin(y_work[right])])
+            chord = np.interp(x[pk], sorted([x[i_l], x[i_r]]),
+                              [y_work[i_l], y_work[i_r]] if x[i_l] <= x[i_r] else [y_work[i_r], y_work[i_l]])
+            prominence = max(float(y_work[pk] - chord), 0.0)
+        else:
+            prominence = max(float(y_work[pk] - y_work[around].min()), 0.0)
+    return {"index": pk, "x": float(x[pk]), "y": float(y[pk]), "prominence": prominence,
+            "fwhm_pts": width_pts, "fwhm_cm1": width, "manual": True, "shoulder": shoulder}
 
 
 def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02,
                                     smooth_window=15, smooth_polyorder=3, min_distance_pts=3,
-                                    noise_floor=False, exclude_regions=None):
+                                    noise_floor=False, exclude_regions=None, min_distance_cm1=None,
+                                    max_peaks=None):
     """
     Second-derivative-assisted peak detection: resolves overlapping/shouldered
     bands that blend into a single broad hump in the raw spectrum and are
@@ -192,9 +328,7 @@ def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02
     """
     from scipy.signal import find_peaks, peak_widths
 
-    y_work = np.asarray(y, dtype=float)
-    if mode == "transmittance":
-        y_work = y_work.max() - y_work
+    y_work = absorbance_like(y, mode)
 
     d2 = derivative_spectrum(x, y_work, order=2, window_length=smooth_window, polyorder=smooth_polyorder)
     neg_d2 = -d2  # bands in the original spectrum -> minima of d2 -> maxima of -d2
@@ -203,8 +337,14 @@ def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02
     prominence = max(prominence_frac * d2_range, 1e-12)
     if noise_floor:
         prominence = max(prominence, NOISE_FLOOR_SIGMAS * estimate_noise_sigma(neg_d2))
-    idx, props = find_peaks(neg_d2, prominence=prominence, distance=min_distance_pts)
-    widths_result = peak_widths(neg_d2, idx, rel_height=0.5) if len(idx) else (np.array([]),)
+    idx, props = find_peaks(neg_d2, prominence=prominence,
+                            distance=_distance_pts(x, min_distance_pts, min_distance_cm1))
+    # A maximum of -d2 that is not above zero lies between two side lobes, not on a band.
+    keep = neg_d2[idx] > 0 if len(idx) else np.array([], dtype=bool)
+    idx = idx[keep]
+    props = {k: v[keep] for k, v in props.items()}
+    widths_result = peak_widths(neg_d2, idx, rel_height=0.5) if len(idx) else (np.array([]),) * 4
+    d2_widths = _widths_cm1(x, widths_result) if len(idx) else []
 
     peaks = []
     for i, pk in enumerate(idx):
@@ -218,10 +358,9 @@ def detect_peaks_second_derivative(x, y, mode="absorbance", prominence_frac=0.02
             # The width of a second-derivative lobe is not the band's width (about 2/3 of it for
             # a Gaussian, depending on shape), so the band width is left unknown for matching.
             "fwhm_cm1": None,
-            "d2_fwhm_cm1": _fwhm_cm1(x, pk, widths_result[0][i] if len(widths_result[0]) else 0.0),
+            "d2_fwhm_cm1": d2_widths[i] if d2_widths else 0.0,
         })
-    peaks.sort(key=lambda p: p["x"])
-    return peaks
+    return _keep_strongest(peaks, max_peaks)
 
 
 def _entries_for(database, categories):
@@ -385,18 +524,9 @@ def fwhm_from_peak(x, y, peak_index, rel_height=0.5, mode="absorbance"):
     """
     from scipy.signal import peak_widths
 
-    y_work = np.asarray(y, dtype=float)
-    if mode == "transmittance":
-        y_work = y_work.max() - y_work
-
+    y_work = absorbance_like(y, mode)        # %T is converted to absorbance, not just flipped
     widths_result = peak_widths(y_work, [peak_index], rel_height=rel_height)
-    width_pts = widths_result[0][0]
-    # convert points to x-units using local spacing
-    if peak_index + 1 < len(x):
-        dx = abs(x[peak_index + 1] - x[peak_index])
-    else:
-        dx = abs(x[peak_index] - x[peak_index - 1])
-    return float(width_pts * dx)
+    return _widths_cm1(x, widths_result)[0]
 
 
 def beer_lambert_concentration(absorbance, molar_absorptivity, path_length_cm):
@@ -416,24 +546,29 @@ def normalize_spectrum(y, method="max", x=None):
     spectroscopy software).
     """
     y = np.asarray(y, dtype=float)
+    finite = np.isfinite(y)
+    if not finite.any():
+        raise ValueError("The spectrum has no finite values to normalize.")
+
+    def scaled(offset, divisor, what):
+        if not np.isfinite(divisor) or divisor == 0:
+            raise ValueError(f"Cannot {what}-normalize this spectrum: it is flat or zero.")
+        return (y - offset) / divisor
+
     if method == "max":
-        return y / np.max(np.abs(y))
+        return scaled(0.0, np.nanmax(np.abs(y)), "max")
     elif method == "minmax":
-        return (y - y.min()) / (y.max() - y.min())
+        return scaled(np.nanmin(y), np.nanmax(y) - np.nanmin(y), "minmax")
     elif method == "area":
         if x is None:
             raise ValueError("Area normalization requires x-axis values.")
         from scipy.integrate import trapezoid
 
-        area = abs(trapezoid(np.abs(y), np.asarray(x, dtype=float)))
-        if area == 0:
-            raise ValueError("Cannot area-normalize a zero spectrum.")
-        return y / area
+        xs = np.asarray(x, dtype=float)
+        ok = finite & np.isfinite(xs)
+        return scaled(0.0, abs(trapezoid(np.abs(y[ok]), xs[ok])) if ok.sum() > 1 else 0.0, "area")
     elif method == "vector":
-        norm = np.sqrt(np.sum(y ** 2))
-        if norm == 0:
-            raise ValueError("Cannot vector-normalize a zero spectrum.")
-        return y / norm
+        return scaled(0.0, float(np.sqrt(np.nansum(y ** 2))), "vector")
     raise ValueError("method must be 'max', 'minmax', 'area', or 'vector'")
 
 

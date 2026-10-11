@@ -2,7 +2,7 @@
   "_meta": {
     "note": "Peak positions are typical literature ranges (cm-1) compiled from standard FTIR spectroscopy correlation-table references (polymer/materials/biomolecule spectroscopy literature). These are reference/approximate ranges, not certified measurements of a specific sample batch. For publication-grade identification, always cross-check against NIST Chemistry WebBook, SDBS, or a certified reference spectrum. Every entry below carries a 'source' field naming the reference literature its ranges are drawn from -- use it to trace and verify any match.",
     "units": "wavenumber (cm-1)",
-    "version": "4.3",
+    "version": "4.4",
     "categories": [
       "polymers",
       "hydrogels",
@@ -148,6 +148,138 @@
       {
         "id": "waterweb2026",
         "citation": "Web excerpt (accessed 2026-10-07): liquid water bend v2 1644 cm-1 (University of Sydney chemistry teaching material, scilearn.sydney.edu.au)."
+      },
+      {
+        "id": "jayaramudu2019",
+        "citation": "Jayaramudu T, Ko H-U, Kim HC, Kim JW, Kim J. Swelling Behavior of Polyacrylamide-Cellulose Nanocrystal Hydrogels: Swelling Kinetics, Temperature, and pH Effects. Materials 12 (2019) 2080. https://doi.org/10.3390/ma12132080"
+      },
+      {
+        "id": "chopra2022",
+        "citation": "Chopra H, Bibi S, Kumar S, Khan MS, Kumar P, Singh I. Preparation and Evaluation of Chitosan/PVA Based Hydrogel Films Loaded with Honey for Wound Healing Application. Gels 8 (2022) 111. https://doi.org/10.3390/gels8020111"
+      },
+      {
+        "id": "mansur2008",
+        "citation": "Mansur HS, Sadahira CM, Souza AN, Mansur AAP. FTIR spectroscopy characterization of poly (vinyl alcohol) hydrogel with different hydrolysis degree and chemically crosslinked with glutaraldehyde. Materials Science and Engineering: C 28 (2008) 539-548. https://doi.org/10.1016/j.msec.2007.10.088"
+      },
+      {
+        "id": "sabateriserra2020",
+        "citation": "Sabater i Serra R, Molina-Mateo J, Torregrosa-Cabanilles C, Andrio-Balado A, Meseguer Duenas JM, Serrano-Aroca A. Bio-Nanocomposite Hydrogel Based on Zinc Alginate/Graphene Oxide: Morphology, Structural Conformation, Thermal Behavior/Degradation, and Dielectric Properties. Polymers 12 (2020) 702. https://doi.org/10.3390/polym12030702"
+      },
+      {
+        "id": "lawrie2007",
+        "citation": "Lawrie G, Keen I, Drew B, Chandler-Temple A, Rintoul L, Fredericks P, Grondahl L. Interactions between Alginate and Chitosan Biopolymers Characterized Using FTIR and XPS. Biomacromolecules 8 (2007) 2533-2541. https://doi.org/10.1021/bm070014y"
+      },
+      {
+        "id": "kumirska2010",
+        "citation": "Kumirska J, Czerwicka M, Kaczynski Z, Bychowska A, Brzozowski K, Thoming J, Stepnowski P. Application of Spectroscopic Methods for Structural Analysis of Chitin and Chitosan. Marine Drugs 8 (2010) 1567-1636. https://doi.org/10.3390/md8051567"
+      },
+      {
+        "id": "brugnerotto2001",
+        "citation": "Brugnerotto J, Lizardi J, Goycoolea FM, Arguelles-Monal W, Desbrieres J, Rinaudo M. An infrared investigation in relation with chitin and chitosan characterization. Polymer 42 (2001) 3569-3580. https://doi.org/10.1016/S0032-3861(00)00713-8"
+      },
+      {
+        "id": "chen2019",
+        "citation": "Chen J, Li J, Li Z, Yi R, Shi S, Wu K, Li Y, Wu S. Physicochemical and Functional Properties of Type I Collagens in Red Stingray (Dasyatis akajei) Skin. Marine Drugs 17 (2019) 558. https://doi.org/10.3390/md17100558"
+      },
+      {
+        "id": "mirzayeva2021",
+        "citation": "Mirzayeva T, Copikova J, Kvasnicka F, Bleha R, Synytsya A. Screening of the Chemical Composition and Identification of Hyaluronic Acid in Food Supplements by Fractionation and Fourier-Transform Infrared Spectroscopy. Polymers 13 (2021) 4002. https://doi.org/10.3390/polym13224002"
+      },
+      {
+        "id": "haxaire2003",
+        "citation": "Haxaire K, Marechal Y, Milas M, Rinaudo M. Hydration of polysaccharide hyaluronan observed by IR spectrometry. I. Preliminary experiments and band assignments. Biopolymers 72 (2003) 10-20. https://doi.org/10.1002/bip.10245"
+      },
+      {
+        "id": "gu2017",
+        "citation": "Gu Y, Cheong K-L, Du H. Modification and comparison of three Gracilaria spp. agarose with methylation for promotion of its gelling properties. Chemistry Central Journal 11 (2017) 104. https://doi.org/10.1186/s13065-017-0334-9"
+      },
+      {
+        "id": "morenocastellanos2023",
+        "citation": "Moreno-Castellanos N, Cuartas-Gomez E, Vargas-Ceballos O. Functionalized Collagen/Poly(ethylene glycol) Diacrylate Interpenetrating Network Hydrogel Enhances Beta Pancreatic Cell Sustenance. Gels 9 (2023) 496. https://doi.org/10.3390/gels9060496"
+      },
+      {
+        "id": "pelras2017",
+        "citation": "Pelras T, Glass S, Scherzer T, Elsner C, Schulze A, Abel B. Transparent Low Molecular Weight Poly(Ethylene Glycol) Diacrylate-Based Hydrogels as Film Media for Photoswitchable Drugs. Polymers 9 (2017) 639. https://doi.org/10.3390/polym9120639"
+      },
+      {
+        "id": "futscher2017",
+        "citation": "Futscher MH, Philipp M, Muller-Buschbaum P, Schulte A. The Role of Backbone Hydration of Poly(N-isopropyl acrylamide) Across the Volume Phase Transition Compared to its Monomer. Scientific Reports 7 (2017) 17012. https://doi.org/10.1038/s41598-017-17272-7"
+      },
+      {
+        "id": "chouhan2009",
+        "citation": "Chouhan R, Bajpai AK. Real time in vitro studies of doxorubicin release from PHEMA nanoparticles. Journal of Nanobiotechnology 7 (2009) 5. https://doi.org/10.1186/1477-3155-7-5"
+      },
+      {
+        "id": "figueiredo2013",
+        "citation": "Figueiredo AGPR, Figueiredo ARP, Alonso-Varona A, Fernandes SCM, Palomares T, Rubio-Azpeitia E, Barros-Timmons A, Silvestre AJD, Pascoal Neto C, Freire CSR. Biocompatible Bacterial Cellulose-Poly(2-hydroxyethyl methacrylate) Nanocomposite Films. BioMed Research International 2013 (2013) 698141. https://doi.org/10.1155/2013/698141"
+      },
+      {
+        "id": "safo2019",
+        "citation": "Safo IA, Werheid M, Dosche C, Oezaslan M. The role of polyvinylpyrrolidone (PVP) as a capping and structure-directing agent in the formation of Pt nanocubes. Nanoscale Advances 1 (2019) 3095-3106. https://doi.org/10.1039/c9na00186g"
+      },
+      {
+        "id": "malik2020",
+        "citation": "Malik NS, Ahmad M, Minhas MU, Tulain R, Barkat K, Khalid I, Khalid Q. Chitosan/Xanthan Gum Based Hydrogels as Potential Carrier for an Antiviral Drug: Fabrication, Characterization, and Safety Evaluation. Frontiers in Chemistry 8 (2020) 50. https://doi.org/10.3389/fchem.2020.00050"
+      },
+      {
+        "id": "szymanskachargot2013",
+        "citation": "Szymanska-Chargot M, Zdunek A. Use of FT-IR Spectra and PCA to the Bulk Characterization of Cell Wall Residues of Fruits and Vegetables Along a Fraction Process. Food Biophysics 8 (2013) 29-42. https://doi.org/10.1007/s11483-012-9279-7"
+      },
+      {
+        "id": "modrogan2020",
+        "citation": "Modrogan C, Pandele AM, Bobirica C, Dobrota D, Dancila AM, Garleanu G, Orbulet OD, Borda C, Garleanu D, Orbeci C. Synthesis, Characterization and Sorption Capacity Examination for a Novel Hydrogel Composite Based on Gellan Gum and Graphene Oxide (GG/GO). Polymers 12 (2020) 1182. https://doi.org/10.3390/polym12051182"
+      },
+      {
+        "id": "chopin1993",
+        "citation": "Chopin T, Whalen E. A new and rapid method for carrageenan identification by FT IR diffuse reflectance spectroscopy directly on dried, ground algal material. Carbohydrate Research 246 (1993) 51-59. https://doi.org/10.1016/0008-6215(93)84023-Y"
+      },
+      {
+        "id": "hardy1961",
+        "citation": "Hardy JR, Smith SD. Two-phonon infra-red lattice absorption in diamond. Philosophical Magazine 6 (1961) 1163-1172. https://doi.org/10.1080/14786436108239677"
+      },
+      {
+        "id": "nemanich1977",
+        "citation": "Nemanich RJ, Lucovsky G, Solin SA. Infrared active optical vibrations of graphite. Solid State Communications 23 (1977) 117-120. https://doi.org/10.1016/0038-1098(77)90663-9"
+      },
+      {
+        "id": "giura2012",
+        "citation": "Giura P, Bonini N, Creff G, Brubach JB, Roy P, Lazzeri M. Temperature evolution of infrared- and Raman-active phonons in graphite. Physical Review B 86 (2012) 121404(R). https://doi.org/10.1103/PhysRevB.86.121404"
+      },
+      {
+        "id": "phothong2021",
+        "citation": "Phothong K, Tangsathitkulchai C, Lawtae P. The Analysis of Pore Development and Formation of Surface Functional Groups in Bamboo-Based Activated Carbon during CO2 Activation. Molecules 26 (2021) 5641. https://doi.org/10.3390/molecules26185641"
+      },
+      {
+        "id": "ferrari2024",
+        "citation": "Ferrari P, Berden G, Redlich B, Waters LBFM, Bakker JM. Laboratory infrared spectra and fragmentation chemistry of sulfur allotropes. Nature Communications 15 (2024) 5928. https://doi.org/10.1038/s41467-024-50303-2"
+      },
+      {
+        "id": "anderson1969",
+        "citation": "Anderson A, Wong LY. Crystal field splitting in the far infrared spectrum of rhombic sulfur. Canadian Journal of Chemistry 47 (1969) 2713-2715. https://doi.org/10.1139/v69-445"
+      },
+      {
+        "id": "johnson1959",
+        "citation": "Johnson FA. Lattice Absorption Bands in Silicon. Proceedings of the Physical Society 73 (1959) 265-272. https://doi.org/10.1088/0370-1328/73/2/315"
+      },
+      {
+        "id": "kaiser1956",
+        "citation": "Kaiser W, Keck PH, Lange CF. Infrared Absorption and Oxygen Content in Silicon and Germanium. Physical Review 101 (1956) 1264-1268. https://doi.org/10.1103/PhysRev.101.1264"
+      },
+      {
+        "id": "geick1966",
+        "citation": "Geick R, Perry CH, Rupprecht G. Normal Modes in Hexagonal Boron Nitride. Physical Review 146 (1966) 543-547. https://doi.org/10.1103/PhysRev.146.543"
+      },
+      {
+        "id": "wieting1971",
+        "citation": "Wieting TJ, Verble JL. Infrared and Raman Studies of Long-Wavelength Optical Phonons in Hexagonal MoS2. Physical Review B 3 (1971) 4286-4292. https://doi.org/10.1103/PhysRevB.3.4286"
+      },
+      {
+        "id": "kister1998",
+        "citation": "Kister G, Cassanas G, Vert M. Effects of morphology, conformation and configuration on the IR and Raman spectra of various poly(lactic acid)s. Polymer 39 (1998) 267-273. https://doi.org/10.1016/S0032-3861(97)00229-2"
+      },
+      {
+        "id": "peppas1977",
+        "citation": "Peppas NA. Infrared spectroscopy of semicrystalline poly(vinyl alcohol) networks. Die Makromolekulare Chemie 178 (1977) 595-601. https://doi.org/10.1002/macp.1977.021780228"
       }
     ],
     "schema": {
@@ -170,6 +302,13 @@
         "changes": [
           "Added 13 materials relevant to energy-materials labs (water, ethanol, acetone, DMSO, EC, DMC, GO, rGO, oxidized MWCNT, CMC, Nafion, LiPF6, LiFePO4).",
           "Their bands come from quoted excerpts of the cited sources found by literature/web search; each entry carries a 'provenance' block with a confidence level and verify=true. Evidence per band: docs/FTIR_DATABASE_ADDITIONS.md."
+        ]
+      },
+      {
+        "version": "4.4",
+        "changes": [
+          "Real, Crossref-checked references for 22 of the 24 cards that cited a generic 'IR literature' placeholder (16 hydrogels, 6 elements/allotropes); dextran and grey selenium keep general tables with a note.",
+          "Band corrections: PLA alpha-crystal 921 cm-1 added, 955 relabelled amorphous (Kister 1998); PVA 1141 crystallinity band (Peppas 1977); gypsum nu1 1005 and nu2 relabelled; NaHCO3 835 added, 3430 is water; graphite (868, ~1587) and MoS2 (384, 470) IR-active phonons; Si interstitial oxygen 1107; h-BN 1365-1380; six hydrogel ranges widened to the value in their new source."
         ]
       }
     ]
@@ -1419,7 +1558,7 @@
     {
       "name": "Poly(lactic acid) (PLA)",
       "category": "polymer",
-      "source": "socrates2001, coates2000; cross-check: sdbs",
+      "source": "socrates2001, coates2000, kister1998; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -1439,10 +1578,18 @@
         },
         {
           "range": [
+            918,
+            923
+          ],
+          "assignment": "CH3 rock + C-C stretch (alpha-crystal, 10_3 helix marker)",
+          "intensity": "weak"
+        },
+        {
+          "range": [
             955,
             960
           ],
-          "assignment": "C-O-C stretch / C-C stretch (crystalline marker)",
+          "assignment": "CH3 rock / C-C stretch (amorphous phase)",
           "intensity": "medium"
         },
         {
@@ -1514,7 +1661,7 @@
     {
       "name": "Poly(vinyl alcohol) (PVA)",
       "category": "polymer",
-      "source": "socrates2001, coates2000; cross-check: sdbs",
+      "source": "socrates2001, coates2000, peppas1977; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -1545,7 +1692,7 @@
             1140,
             1150
           ],
-          "assignment": "C-O-C stretch (acetal ring, if crosslinked)",
+          "assignment": "C-C / C-O stretch of crystalline regions (crystallinity band)",
           "intensity": "weak-medium"
         },
         {
@@ -6320,7 +6467,7 @@
     {
       "name": "Polyacrylamide Hydrogel (PAAm gel)",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, jayaramudu2019; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6373,7 +6520,7 @@
         {
           "range": [
             1645,
-            1665
+            1670
           ],
           "assignment": "C=O stretch (Amide I)",
           "intensity": "strong"
@@ -6407,7 +6554,7 @@
     {
       "name": "Poly(vinyl alcohol) Hydrogel (PVA gel)",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, mansur2008, chopra2022, peppas1977; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6430,7 +6577,7 @@
             1085,
             1145
           ],
-          "assignment": "C-O-C stretch (acetal ring, if crosslinked)",
+          "assignment": "C-O stretch (with the ~1141 crystallinity shoulder)",
           "intensity": "medium"
         },
         {
@@ -6478,7 +6625,7 @@
     {
       "name": "Alginate Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, sabateriserra2020, lawrie2007; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6557,7 +6704,7 @@
     {
       "name": "Chitosan Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, kumirska2010, brugnerotto2001; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6602,7 +6749,7 @@
         {
           "range": [
             1550,
-            1590
+            1605
           ],
           "assignment": "N-H bend (free amine, Amide II)",
           "intensity": "medium"
@@ -6636,7 +6783,7 @@
     {
       "name": "Gelatin / Collagen Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, chen2019; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6697,7 +6844,7 @@
         {
           "range": [
             3270,
-            3300
+            3330
           ],
           "assignment": "N-H stretch (Amide A) / O-H (water)",
           "intensity": "strong, broad"
@@ -6707,7 +6854,7 @@
     {
       "name": "Hyaluronic Acid Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, mirzayeva2021, haxaire2003; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6778,7 +6925,7 @@
     {
       "name": "Agarose Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, gu2017; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6841,7 +6988,7 @@
     {
       "name": "Poly(ethylene glycol) diacrylate Hydrogel (PEGDA)",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, morenocastellanos2023, pelras2017; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6912,7 +7059,7 @@
     {
       "name": "Poly(N-isopropylacrylamide) Hydrogel (PNIPAM)",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, futscher2017; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -6973,7 +7120,7 @@
         {
           "range": [
             2965,
-            2975
+            2985
           ],
           "assignment": "C-H asymmetric stretch (isopropyl CH3)",
           "intensity": "medium"
@@ -6991,7 +7138,7 @@
     {
       "name": "Poly(HEMA) Hydrogel (2-hydroxyethyl methacrylate)",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, figueiredo2013, chouhan2009; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -7070,7 +7217,7 @@
     {
       "name": "Dextran Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -7136,12 +7283,13 @@
           "assignment": "O-H stretch (broad, hydrogen bonded)",
           "intensity": "strong, broad"
         }
-      ]
+      ],
+      "reference_note": "No material-specific source checked yet; bands from general tables."
     },
     {
       "name": "Poly(vinylpyrrolidone) Hydrogel (PVP gel)",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, safo2019; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -7153,7 +7301,7 @@
         },
         {
           "range": [
-            1280,
+            1265,
             1300
           ],
           "assignment": "C-N stretch",
@@ -7177,7 +7325,7 @@
         },
         {
           "range": [
-            1655,
+            1640,
             1665
           ],
           "assignment": "C=O stretch (lactam, Amide I)",
@@ -7204,7 +7352,7 @@
     {
       "name": "Xanthan Gum Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, malik2020; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -7275,7 +7423,7 @@
     {
       "name": "Pectin Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, szymanskachargot2013; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -7346,7 +7494,7 @@
     {
       "name": "Gellan Gum Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, modrogan2020; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -7409,7 +7557,7 @@
     {
       "name": "Carrageenan Hydrogel",
       "category": "hydrogel",
-      "source": "socrates2001, pavia2015; biopolymer/protein/polysaccharide IR literature; cross-check: sdbs",
+      "source": "socrates2001, pavia2015, chopin1993; cross-check: sdbs",
       "peaks": [
         {
           "range": [
@@ -7578,6 +7726,14 @@
         },
         {
           "range": [
+            830,
+            840
+          ],
+          "assignment": "CO3 out-of-plane bend",
+          "intensity": "medium"
+        },
+        {
+          "range": [
             1030,
             1045
           ],
@@ -7613,7 +7769,7 @@
             3430,
             3440
           ],
-          "assignment": "O-H stretch",
+          "assignment": "O-H stretch (adsorbed water, not bicarbonate)",
           "intensity": "medium, broad"
         }
       ]
@@ -9418,7 +9574,7 @@
             410,
             420
           ],
-          "assignment": "Ca-O stretch",
+          "assignment": "O-S-O bend (sulfate nu2)",
           "intensity": "weak"
         },
         {
@@ -9431,10 +9587,10 @@
         },
         {
           "range": [
-            980,
-            990
+            1000,
+            1010
           ],
-          "assignment": "S-O symmetric stretch (sulfate)",
+          "assignment": "S-O symmetric stretch (sulfate nu1)",
           "intensity": "weak"
         },
         {
@@ -13672,7 +13828,7 @@
     {
       "name": "Diamond (Carbon, cubic allotrope)",
       "category": "element",
-      "source": "socrates2001, nakamoto2009; solid-state/lattice-vibration IR literature; cross-check: nist",
+      "source": "socrates2001, nakamoto2009, hardy1961; cross-check: nist",
       "peaks": [
         {
           "range": [
@@ -13687,22 +13843,30 @@
     {
       "name": "Graphite (Carbon, hexagonal allotrope)",
       "category": "element",
-      "source": "socrates2001, nakamoto2009; solid-state/lattice-vibration IR literature; cross-check: nist",
+      "source": "socrates2001, nakamoto2009, nemanich1977, giura2012; cross-check: nist",
       "peaks": [
         {
           "range": [
-            0,
-            0
+            865,
+            871
           ],
-          "assignment": "Graphite's in-plane sp2 lattice modes are IR-silent by symmetry (centrosymmetric); FTIR features seen in real samples usually indicate oxidation (C-O, C=O) or defects, not pristine graphite itself.",
-          "intensity": "n/a"
+          "assignment": "IR-active out-of-plane lattice phonon (A2u)",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            1582,
+            1592
+          ],
+          "assignment": "IR-active in-plane lattice phonon (E1u)",
+          "intensity": "weak"
         }
       ]
     },
     {
       "name": "Amorphous / Activated Carbon",
       "category": "element",
-      "source": "socrates2001, nakamoto2009; solid-state/lattice-vibration IR literature; cross-check: nist",
+      "source": "socrates2001, nakamoto2009, phothong2021; cross-check: nist",
       "peaks": [
         {
           "range": [
@@ -13741,7 +13905,7 @@
     {
       "name": "Elemental Sulfur (S8 ring, orthorhombic)",
       "category": "element",
-      "source": "socrates2001, nakamoto2009; solid-state/lattice-vibration IR literature; cross-check: nist",
+      "source": "socrates2001, nakamoto2009, ferrari2024, anderson1969; cross-check: nist",
       "peaks": [
         {
           "range": [
@@ -13764,22 +13928,30 @@
     {
       "name": "Elemental Silicon (crystalline)",
       "category": "element",
-      "source": "socrates2001, nakamoto2009; solid-state/lattice-vibration IR literature; cross-check: nist",
+      "source": "socrates2001, nakamoto2009, johnson1959, kaiser1956; cross-check: nist",
       "peaks": [
         {
           "range": [
             0,
             0
           ],
-          "assignment": "Crystalline silicon has no first-order IR-active fundamental (centrosymmetric diamond-cubic lattice); a weak multiphonon absorption exists near 600-1500 cm-1 in thick wafers, and any O-H/Si-O bands seen are from native surface oxide, not bulk Si.",
+          "assignment": "Crystalline silicon has no first-order IR-active fundamental (centrosymmetric diamond-cubic lattice); only weak multiphonon absorption in thick wafers.",
           "intensity": "n/a"
+        },
+        {
+          "range": [
+            1100,
+            1112
+          ],
+          "assignment": "Si-O-Si stretch of interstitial oxygen in bulk Si (also native oxide)",
+          "intensity": "weak"
         }
       ]
     },
     {
       "name": "Hexagonal Boron Nitride (h-BN)",
       "category": "element",
-      "source": "socrates2001, nakamoto2009; solid-state/lattice-vibration IR literature; cross-check: nist",
+      "source": "socrates2001, nakamoto2009, geick1966; cross-check: nist",
       "peaks": [
         {
           "range": [
@@ -13791,7 +13963,7 @@
         },
         {
           "range": [
-            1370,
+            1365,
             1380
           ],
           "assignment": "B-N in-plane stretch",
@@ -13802,22 +13974,30 @@
     {
       "name": "Molybdenum Disulfide (MoS2)",
       "category": "element",
-      "source": "socrates2001, nakamoto2009; solid-state/lattice-vibration IR literature; cross-check: nist",
+      "source": "socrates2001, nakamoto2009, wieting1971; cross-check: nist",
       "peaks": [
         {
           "range": [
-            0,
-            0
+            380,
+            388
           ],
-          "assignment": "MoS2's characteristic Mo-S lattice/phonon modes fall in the far-IR (below ~470 cm-1), largely outside typical benchtop mid-IR FTIR range; Raman is the standard vibrational technique for this material.",
-          "intensity": "n/a"
+          "assignment": "IR-active Mo-S lattice phonon (needs far-IR / CsI optics)",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            466,
+            474
+          ],
+          "assignment": "IR-active Mo-S lattice phonon (just inside a 4000-400 cm-1 KBr range)",
+          "intensity": "weak"
         }
       ]
     },
     {
       "name": "Elemental Selenium (grey, trigonal)",
       "category": "element",
-      "source": "socrates2001, nakamoto2009; solid-state/lattice-vibration IR literature; cross-check: nist",
+      "source": "socrates2001, nakamoto2009; cross-check: nist",
       "peaks": [
         {
           "range": [
@@ -13827,7 +14007,8 @@
           "assignment": "Se-Se chain stretch (near/below typical benchtop FTIR lower limit)",
           "intensity": "weak"
         }
-      ]
+      ],
+      "reference_note": "No material-specific source checked yet; bands from general tables."
     },
     {
       "name": "Graphene Oxide (GO)",

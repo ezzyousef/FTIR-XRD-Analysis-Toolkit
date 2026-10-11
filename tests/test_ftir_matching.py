@@ -321,3 +321,73 @@ def test_shoulder_peaks_leave_the_band_width_unknown():
     band = min(peaks, key=lambda p: abs(p["x"] - 1700))
     assert abs(band["x"] - 1700) < 2
     assert band["fwhm_cm1"] is None          # matching treats it as unknown, not as narrow
+
+
+def test_manual_peak_snaps_to_the_maximum_nearby():
+    x = np.arange(400, 4000, 2.0)
+    y = np.exp(-((x - 1650) / 15) ** 2)
+    pk = ftir_analysis.peak_at(x, y, 1644)
+    assert pk["x"] == pytest.approx(1650) and pk["manual"] and pk["prominence"] > 0.9
+    assert ftir_analysis.peak_at(x, 1 - y, 1656, mode="transmittance")["x"] == pytest.approx(1650)
+    assert ftir_analysis.peak_at(x, y, 5000) is None
+
+
+def test_citations_resolve_ids_and_keep_unknown_tokens(db):
+    cites = ftir_analysis.citations_for(db, "farmer1974 (minerals), madeup2099; cross-check: sdbs")
+    assert [c[0] for c in cites] == ["farmer1974", "madeup2099", "sdbs"]
+    assert cites[0][1].startswith("Farmer") and cites[1][1] is None and cites[2][2] == "cross-check"
+
+
+def test_manual_peak_snaps_to_the_band_top_on_noisy_data():
+    x = np.arange(1400, 1900, 1.0)
+    clean = np.exp(-((x - 1650) / 20) ** 2)
+    for seed in range(10):
+        y = clean + np.random.default_rng(seed).normal(0, 0.01, len(x))
+        assert abs(ftir_analysis.peak_at(x, y, 1644)["x"] - 1650) <= 2
+
+
+def test_manual_peak_on_a_flank_stays_where_clicked():
+    # No local maximum within reach (a pure flank): the clicked point is kept as a shoulder,
+    # not moved towards the big band, and it is not weighted like a strong peak.
+    x = np.arange(1500, 1800, 1.0)
+    y = np.exp(-((x - 1650) / 15) ** 2) + 0.35 * np.exp(-((x - 1628) / 15) ** 2)
+    pk = ftir_analysis.peak_at(x, y, 1620)
+    assert pk["x"] == pytest.approx(1620, abs=1) and pk["shoulder"] and pk["fwhm_cm1"] is None
+    assert pk["prominence"] < 0.6
+
+
+def test_manual_peak_edges_and_gaps():
+    x = np.concatenate([np.arange(400, 2000, 2.0), np.arange(2500, 4000, 2.0)])
+    y = np.exp(-((x - 1000) / 20) ** 2)
+    assert ftir_analysis.peak_at(x, y, 400 - 1e-9) is not None       # a click on the first point
+    assert ftir_analysis.peak_at(x, y, 2250) is None                  # inside the gap
+
+
+def test_manual_peak_width_uses_interpolated_crossings():
+    pk = ftir_analysis.peak_at([0, 1, 2, 12, 22], [0, 0, 1, 0, 0], 2, snap_cm1=0.1)
+    assert pk["fwhm_cm1"] == pytest.approx(5.5)
+
+
+def test_normalization_refuses_flat_data_and_ignores_nan():
+    with pytest.raises(ValueError):
+        ftir_analysis.normalize_spectrum(np.ones(10), "minmax")
+    with pytest.raises(ValueError):
+        ftir_analysis.normalize_spectrum(np.zeros(10), "max")
+    y = np.array([1.0, 2.0, np.nan, 4.0])
+    for method in ("max", "minmax", "area", "vector"):
+        out = ftir_analysis.normalize_spectrum(y, method, x=np.arange(4.0))
+        assert np.isfinite(out[[0, 1, 3]]).all()
+
+
+def test_citations_for_tolerates_odd_source_strings(db):
+    assert [c[2] for c in ftir_analysis.citations_for(db, "Cross-Check: sdbs")] == ["cross-check"]
+    assert ftir_analysis.citations_for(db, 123) == [("123", None, "source")]
+    roles = [(c[0], c[2]) for c in ftir_analysis.citations_for(db, "socrates2001; cross-check: socrates2001")]
+    assert roles == [("socrates2001", "source"), ("socrates2001", "cross-check")]
+
+
+def test_every_card_cites_resolvable_references(db):
+    for cat in ftir_analysis.MATERIAL_CATEGORIES:
+        for entry in db[cat]:
+            cites = ftir_analysis.citations_for(db, entry["source"])
+            assert cites and all(c[1] for c in cites), (entry["name"], entry["source"])

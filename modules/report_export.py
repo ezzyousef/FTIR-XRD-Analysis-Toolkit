@@ -11,6 +11,9 @@ import datetime
 # infrequent user action, not something needed to show the window).
 BRAND_COLOR = None
 ACCENT_COLOR = None
+FONT, FONT_BOLD = "Helvetica", "Helvetica-Bold"
+# Symbols the report fonts lack, written as text so they never print as empty boxes.
+SYMBOL_TEXT = {"✓": "+", "✗": "x", "⚠": "(!)"}
 
 
 def _ensure_imported():
@@ -28,25 +31,61 @@ def _ensure_imported():
                                      Table, TableStyle, PageBreak)
     BRAND_COLOR = colors.HexColor("#2453ff")
     ACCENT_COLOR = colors.HexColor("#eef2ff")
+    _register_fonts()
+
+
+def _register_fonts():
+    """A Unicode TrueType font (Greek, Delta, approx. signs), since the built-in Helvetica
+    only covers Latin-1: Arial on Windows, else the Vera font bundled with reportlab."""
+    global FONT, FONT_BOLD
+    import os
+
+    import reportlab
+    from reportlab.pdfbase import pdfmetrics
+    from reportlab.pdfbase.ttfonts import TTFont
+
+    win = os.path.join(os.environ.get("WINDIR", "C:/Windows"), "Fonts")
+    bundled = os.path.join(os.path.dirname(reportlab.__file__), "fonts")
+    for regular, bold in ((os.path.join(win, "arial.ttf"), os.path.join(win, "arialbd.ttf")),
+                          (os.path.join(bundled, "Vera.ttf"), os.path.join(bundled, "VeraBd.ttf"))):
+        if os.path.exists(regular) and os.path.exists(bold):
+            try:
+                pdfmetrics.registerFont(TTFont("ReportSans", regular))
+                pdfmetrics.registerFont(TTFont("ReportSans-Bold", bold))
+            except Exception:  # noqa: BLE001 - try the next font
+                continue
+            FONT, FONT_BOLD = "ReportSans", "ReportSans-Bold"
+            return
+
+
+def _text(value):
+    s = str(value)
+    for symbol, text in SYMBOL_TEXT.items():
+        s = s.replace(symbol, text)
+    return s
 
 
 def _styles():
     styles = getSampleStyleSheet()
+    styles["Normal"].fontName = FONT
     styles.add(ParagraphStyle(name="ReportTitle", fontSize=20, leading=24,
-                               textColor=BRAND_COLOR, spaceAfter=4, fontName="Helvetica-Bold"))
-    styles.add(ParagraphStyle(name="ReportSubtitle", fontSize=10, textColor=colors.grey, spaceAfter=14))
+                               textColor=BRAND_COLOR, spaceAfter=4, fontName=FONT_BOLD))
+    styles.add(ParagraphStyle(name="ReportSubtitle", fontSize=10, textColor=colors.grey, spaceAfter=14,
+                               fontName=FONT))
     styles.add(ParagraphStyle(name="SectionHeading", fontSize=13, textColor=BRAND_COLOR,
-                               spaceBefore=14, spaceAfter=6, fontName="Helvetica-Bold"))
-    styles.add(ParagraphStyle(name="Disclaimer", fontSize=8, textColor=colors.grey, leading=11))
+                               spaceBefore=14, spaceAfter=6, fontName=FONT_BOLD))
+    styles.add(ParagraphStyle(name="Disclaimer", fontSize=8, textColor=colors.grey, leading=11, fontName=FONT))
     return styles
 
 
 def _table(rows, col_widths=None):
+    rows = [[_text(c) for c in row] for row in rows]
     t = Table(rows, colWidths=col_widths, repeatRows=1)
     t.setStyle(TableStyle([
         ("BACKGROUND", (0, 0), (-1, 0), BRAND_COLOR),
         ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
-        ("FONTNAME", (0, 0), (-1, 0), "Helvetica-Bold"),
+        ("FONTNAME", (0, 0), (-1, -1), FONT),
+        ("FONTNAME", (0, 0), (-1, 0), FONT_BOLD),
         ("FONTSIZE", (0, 0), (-1, -1), 8),
         ("ROWBACKGROUNDS", (0, 1), (-1, -1), [colors.white, ACCENT_COLOR]),
         ("GRID", (0, 0), (-1, -1), 0.4, colors.HexColor("#cccccc")),
@@ -87,11 +126,11 @@ def build_report(path, title, subtitle, plot_image_path, sections, disclaimer, s
         story.append(Spacer(1, 10))
 
     for heading, rows, text in sections:
-        story.append(Paragraph(heading, styles["SectionHeading"]))
+        story.append(Paragraph(_text(heading), styles["SectionHeading"]))
         if rows:
             story.append(_table(rows))
         elif text:
-            story.append(Paragraph(text.replace("\n", "<br/>"), styles["Normal"]))
+            story.append(Paragraph(_text(text).replace("\n", "<br/>"), styles["Normal"]))
         story.append(Spacer(1, 6))
 
     story.append(Spacer(1, 10))
