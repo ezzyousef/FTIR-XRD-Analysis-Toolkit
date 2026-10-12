@@ -33,7 +33,7 @@ from ui_common import AnalysisTabBase, DataTable, parse_float
 CUSTOM_WAVELENGTH = "Custom..."
 WH_PLACEHOLDER = ("Detect peaks (3 or more with a resolvable width), then run Williamson–Hall. Strip Kα2 and set "
                   "the instrument profile first: both change the widths a lot.")
-REGION_COLOURS = {"crystalline": "#E69F00", "amorphous": "#56B4E9"}
+REGION_COLOURS = {"crystalline": "#F2A413", "amorphous": "#17B6C4"}   # Figure Studio "Review"
 WIDTH_SOURCES = {"fitted": "Fitted peak where available", "detected": "Detected (raw points)"}
 PEAK_LABEL_LIMIT = 20
 
@@ -105,7 +105,9 @@ class XRDTab(AnalysisTabBase):
         self.prom_spin.setSingleStep(0.2)
         self.prom_spin.setValue(2.0)
         self.prom_spin.setSuffix(" %")
-        card.body.addWidget(self.labelled("Sensitivity (prominence)", self.prom_spin))
+        self.prom_spin.setToolTip("Minimum peak prominence as a percentage of the pattern's intensity range "
+                                  "(formerly \"Sensitivity\"). Higher = fewer, stronger peaks; lower = more peaks.")
+        card.body.addWidget(self.labelled("Minimum peak size (higher = fewer)", self.prom_spin))
         self.noise_check = QCheckBox("Ignore noise (7σ of the local noise)")
         self.noise_check.setChecked(True)
         self.noise_check.setToolTip("Counting noise grows with intensity, so each peak is judged against the noise "
@@ -409,6 +411,9 @@ class XRDTab(AnalysisTabBase):
             for kind, hatch in (("crystalline", None), ("amorphous", "//")):
                 for lo, hi in regions.get(kind, []):
                     ax.axvspan(lo, hi, color=REGION_COLOURS[kind], alpha=0.18, lw=0, hatch=hatch, zorder=0)
+                    # Opaque edges, so a region is findable even where the fill is faint.
+                    for edge in (lo, hi):
+                        ax.axvline(edge, color=fg, lw=1.2, alpha=0.8, zorder=1)
         if not trace.peaks:
             return
         used = [p for p in trace.peaks if p.get("use", True) and p.get("usable", True)]
@@ -772,6 +777,24 @@ class XRDTab(AnalysisTabBase):
                         "success")
         self.record("Williamson–Hall")
 
+    @staticmethod
+    def _parse_regions(text):
+        regions = []
+        for chunk in text.strip().split(","):
+            if chunk.strip():
+                a, b = chunk.strip().split("-")
+                regions.append((min(float(a), float(b)), max(float(a), float(b))))
+        return regions
+
+    def _check_regions(self, values):
+        for key, what in (("crys", "crystalline"), ("amorph", "amorphous")):
+            try:
+                if not self._parse_regions(values[key]):
+                    return f"Give at least one {what} region, e.g. 18-24.", key
+            except ValueError:
+                return f"The {what} regions should look like 18-24,26-28 (2θ in degrees).", key
+        return None
+
     def run_crystallinity(self):
         t = self.require_active("Load an XRD pattern first.")
         if t is None:
@@ -781,6 +804,7 @@ class XRDTab(AnalysisTabBase):
         v = ui_common.ask_fields(self, "% crystallinity",
                                  [("crys", "Crystalline region(s) 2θ, e.g. 18-24,26-28:", fmt(old.get("crystalline", []))),
                                   ("amorph", "Amorphous region(s) 2θ, e.g. 15-18:", fmt(old.get("amorphous", [])))],
+                                 validate=self._check_regions,
                                  help_text="Area method on the RAW pattern minus a straight baseline across the regions: "
                                            "%Xc = crystalline area / (crystalline + amorphous area). Background "
                                            "subtraction is ignored here because SNIP also removes the amorphous halo.")

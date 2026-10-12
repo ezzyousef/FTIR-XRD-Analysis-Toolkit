@@ -37,7 +37,8 @@ TIER_TOKENS = {"Strong": ("good", "good_bg"), "Moderate": ("warn", "warn_bg"), "
 # line style and the marker above each band, so colour is never the only signal.
 BAND_STYLE = {
     "light": {"matched": "#2E6FD9", "edge": "#F2A413", "missing": "#E04B4B"},
-    "dark": {"matched": "#56B4E9", "edge": "#F0E442", "missing": "#FF7F50"},
+    # Lighter Review blue/red so the markers keep >= 5:1 on the dark plot background.
+    "dark": {"matched": "#5B8FE6", "edge": "#F2A413", "missing": "#F06A6A"},
 }
 BAND_MARKERS = {"matched": "v", "edge": "d", "missing": "x"}
 BAND_MARKS = {"matched": "✓", "edge": "≈", "missing": "✗", "outside": "–"}
@@ -271,6 +272,8 @@ class FTIRTab(AnalysisTabBase):
         info = QPushButton("ⓘ")
         info.setObjectName("Ghost")
         info.setFixedWidth(34)
+        info.setToolTip("Formula and literature source: second-derivative peak resolution")
+        info.setAccessibleName("About second-derivative peak resolution")
         info.clicked.connect(lambda _c=False: self.show_formula("Second-derivative peak resolution",
                                                                  fs.SECOND_DERIVATIVE_PEAK_DETECTION))
         sl.addWidget(info)
@@ -292,13 +295,30 @@ class FTIRTab(AnalysisTabBase):
         clear.clicked.connect(lambda _c=False: self.clear_peaks())
         pl.addWidget(clear)
         card.body.addWidget(pick)
+        by_number = QWidget()
+        bl = QHBoxLayout(by_number)
+        bl.setContentsMargins(0, 0, 0, 0)
+        bl.setSpacing(6)
+        self.peak_at_spin = QDoubleSpinBox()
+        self.peak_at_spin.setRange(0.0, 20000.0)
+        self.peak_at_spin.setDecimals(1)
+        self.peak_at_spin.setValue(1700.0)
+        self.peak_at_spin.setSuffix(" cm⁻¹")
+        self.peak_at_spin.setAccessibleName("Wavenumber of the peak to add")
+        self.peak_at_spin.setToolTip("Type a wavenumber and press Add (or Enter) to add a peak without the mouse.")
+        self.peak_at_spin.lineEdit().returnPressed.connect(lambda: self.add_manual_peak(self.peak_at_spin.value()))
+        add = QPushButton("Add peak")
+        add.clicked.connect(lambda _c=False: self.add_manual_peak(self.peak_at_spin.value()))
+        bl.addWidget(self.peak_at_spin, 1)
+        bl.addWidget(add)
+        card.body.addWidget(by_number)
         self.plot.canvas.mpl_connect("button_press_event", self._on_plot_click)
-        QShortcut(QKeySequence(Qt.Key_Escape), self.plot, activated=lambda: self.pick_button.setChecked(False),
+        QShortcut(QKeySequence(Qt.Key_Escape), self, activated=lambda: self.pick_button.setChecked(False),
                   context=Qt.WidgetWithChildrenShortcut)
         self._build_card_controls()
 
         self.n_materials = sum(len(self.database.get(cat, [])) for cat in ftir_analysis.MATERIAL_CATEGORIES)
-        card = self.add_card("3 · Database screening",
+        card = self.add_card("4 · Database screening",
                              "Screening against literature band tables, not identification — confirm against "
                              "a certified reference spectrum.")
         self.category_combo = QComboBox()
@@ -342,7 +362,7 @@ class FTIRTab(AnalysisTabBase):
                               "removes the peaks it explains and searches again.")
         card.body.addWidget(mix)
 
-        card = self.add_card("Peak fitting")
+        card = self.add_card("5 · Peak fitting")
         self.shape_combo = QComboBox()
         self.shape_combo.addItems(["gaussian", "lorentzian", "pseudo_voigt"])
         card.body.addWidget(self.labelled("Peak shape", self.shape_combo))
@@ -355,7 +375,7 @@ class FTIRTab(AnalysisTabBase):
         card.body.addWidget(self.action_button("Fit all detected peaks", self.fit_peaks,
                                                info=("Peak fitting method", fs.PEAK_FITTING)))
 
-        card = self.add_card("Calculations")
+        card = self.add_card("6 · Calculations")
         card.body.addWidget(self.action_button("%T ↔ absorbance converter…", self.calc_converter,
                                                info=("%T ↔ absorbance", fs.TRANSMITTANCE_ABSORBANCE)))
         card.body.addWidget(self.action_button("Peak area (integrate a range)…", self.calc_peak_area))
@@ -373,7 +393,7 @@ class FTIRTab(AnalysisTabBase):
             card.body.addWidget(self.action_button(text, fn))
 
     def _build_card_controls(self):
-        card = self.add_card("Check a suspected material", "Its reference bands are drawn on the graph and marked "
+        card = self.add_card("3 · Check a suspected material", "Its reference bands are drawn on the graph and marked "
                                                            "found / not found against your peaks as you add them.")
         self.card_group_combo = QComboBox()
         for key, label in ftir_analysis.CARD_GROUPS:
@@ -386,6 +406,7 @@ class FTIRTab(AnalysisTabBase):
         self.card_combo.setEditable(True)
         self.card_combo.setInsertPolicy(QComboBox.NoInsert)
         self.card_combo.setMaxVisibleItems(20)
+        self.card_combo.setAccessibleName("Reference material")
         self.card_combo.lineEdit().returnPressed.connect(lambda: self.show_reference_card())
         self.card_combo.setMinimumWidth(200)
         card.body.addWidget(self.card_combo)
@@ -422,6 +443,10 @@ class FTIRTab(AnalysisTabBase):
 
     def _build_results_tabs(self):
         self.peaks_table = DataTable(["#", "Wavenumber (cm⁻¹)", "Intensity", "Prominence", "Source"])
+        self.peaks_table.setAccessibleName("Peaks of the active spectrum")
+        QShortcut(QKeySequence.Delete, self.peaks_table, activated=self.remove_selected_peak,
+                  context=Qt.WidgetShortcut)
+        self.peaks_table.setToolTip("Select a peak and press Delete to remove it.")
         self.results_tabs.addTab(self.peaks_table, "Peaks")
 
         # ---- database matches
@@ -739,6 +764,9 @@ class FTIRTab(AnalysisTabBase):
             self.redraw()
         t = self.get_active()
         self._refresh_processing_status(t)
+        if t is not None and len(t.x):
+            lo, hi = float(np.nanmin(t.x)), float(np.nanmax(t.x))
+            self.peak_at_spin.setRange(lo, hi)
         if t is None:
             for table in (self.peaks_table, self.matches_table, self.fg_table, self.fits_table, self.mixture_table):
                 table.clear_rows()
@@ -1495,13 +1523,28 @@ class FTIRTab(AnalysisTabBase):
                            f"remove peak {nearest['x']:.0f}")
         return nearest
 
+    def remove_selected_peak(self):
+        """Delete key on the peaks table: remove the selected peak."""
+        t = self.get_active()
+        row = self.peaks_table.currentRow()
+        if t is None or row < 0 or row >= len(t.peaks):
+            return None
+        peak = t.peaks[row]
+        t.peaks = [p for p in t.peaks if p is not peak]
+        self._peaks_edited(t, f"Peak at {peak['x']:.1f} cm⁻¹ removed ({len(t.peaks)} left)",
+                           f"remove peak {peak['x']:.0f}")
+        self.peaks_table.setFocus()
+        if t.peaks:
+            self.peaks_table.selectRow(min(row, len(t.peaks) - 1))
+        return peak
+
     def clear_peaks(self):
         t = self.require_active("Load a spectrum first.")
         if t is None or not t.peaks:
             return
         n = len(t.peaks)
         t.peaks = []
-        self._peaks_edited(t, f"{n} peaks cleared — detect again or pick them on the graph", "clear peaks")
+        self._peaks_edited(t, f"{n} peaks cleared — Ctrl+Z to undo", "clear peaks")
 
     # ---------------------------------------------------------------- reference card
     def _refresh_card(self, keep_view=False):
@@ -1609,7 +1652,7 @@ class FTIRTab(AnalysisTabBase):
         if card is not None:
             self._card_name = card
             self._refresh_card()
-        self.app.notify(f"{t.label} reverted to the data as loaded", "info")
+        self.app.notify(f"{t.label} reverted to the data as loaded — Ctrl+Z to undo", "info")
         self.record("revert to raw")
 
     def fit_peaks(self):

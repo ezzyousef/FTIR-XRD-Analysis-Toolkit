@@ -605,3 +605,40 @@ def test_card_list_can_be_browsed_by_group(window, qapp):
     assert "Zinc Oxide (ZnO)" in items and "Polyethylene (PE)" not in items
     ftir.card_group_combo.setCurrentIndex(keys.index("polymers"))
     assert "Polyethylene (PE)" in [ftir.card_combo.itemText(i) for i in range(ftir.card_combo.count())]
+
+
+def test_peaks_can_be_added_and_removed_from_the_keyboard(window, qapp, ftir_csv):
+    ftir = window.page("ftir")
+    ftir.load_paths([ftir_csv])
+    ftir.detect_peaks()
+    n = len(ftir.get_active().peaks)
+    ftir.peak_at_spin.setValue(1200.0)
+    ftir.peak_at_spin.lineEdit().returnPressed.emit()
+    assert len(ftir.get_active().peaks) == n + 1
+    ftir.peaks_table.selectRow(0)
+    first = ftir.get_active().peaks[0]["x"]
+    assert ftir.remove_selected_peak()["x"] == first
+    assert len(ftir.get_active().peaks) == n
+
+
+def test_dialog_validation_keeps_the_dialog_open(qapp, monkeypatch):
+    import ui_common
+    from PySide6.QtCore import QTimer
+    from PySide6.QtWidgets import QApplication, QDialog, QDialogButtonBox, QLineEdit
+
+    seen = []
+
+    def drive():
+        dlg = next(w for w in QApplication.topLevelWidgets() if isinstance(w, QDialog) and w.isVisible())
+        edit = dlg.findChild(QLineEdit)
+        ok = dlg.findChild(QDialogButtonBox).button(QDialogButtonBox.Ok)
+        edit.setText("nonsense")
+        ok.click()
+        seen.append(dlg.isVisible())                 # still open after a bad value
+        edit.setText("18-24")
+        ok.click()
+
+    QTimer.singleShot(200, drive)
+    values = ui_common.ask_fields(None, "t", [("crys", "Region:", "")],
+                                  validate=lambda v: None if "-" in v["crys"] else ("bad", "crys"))
+    assert seen == [True] and values == {"crys": "18-24"}

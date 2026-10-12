@@ -1,5 +1,24 @@
 # Changelog
 
+## 3.3.0
+
+- **Figures in the lab's house style (Figure Studio's):** the "Review" palette and Figure Studio's Light/Dark colours, DejaVu Sans with bold axis titles and tick labels, an open frame, outward ticks, a horizontal grid only and a frameless legend — on screen and in every PNG/SVG/PDF export.
+- **Accessibility (WCAG 2.2 AA), from a UX/accessibility review:**
+  - Visible keyboard focus on buttons, inputs, check boxes, radio buttons and table items.
+  - Input and check-box outlines that meet 3:1 contrast.
+  - Accent-coloured text (selected tabs, link-style buttons) at 4.5:1 or better in both themes.
+  - Readable section headings in the side bar.
+  - Labels tied to their inputs (Alt+letter focuses the field; screen readers announce it).
+- **Peaks from the keyboard:** type a wavenumber and press Add (or Enter) to add a peak; select a peak in the Peaks table and press Delete to remove it.
+- **Dialogs keep your input:** a mistake (e.g. crystallinity regions that are not "18-24") is shown in the dialog, which stays open with the field selected.
+- **XRD:** crystallinity regions in the house colours, with visible edges.
+- **ⓘ buttons** say what they explain (tooltip and screen-reader name).
+- **FTIR:** dark-theme band markers in Review colours that keep 5:1 on the dark plot.
+- **Keyboard:** Esc ends peak picking wherever the focus is; Tab leaves tables instead of cycling inside them; the plot toolbar (zoom, pan, save) is reachable with Tab; every caption is tied to its input on every page.
+- **Every dialog checks its numbers** before closing and keeps your input on a mistake.
+- **Cards numbered in order** (1 Processing … 6 Calculations); XRD's "Sensitivity" is now "Minimum peak size (higher = fewer)", as on the FTIR page.
+- Revert, Clear peaks and Remove say "Ctrl+Z to undo"; the peak-entry box follows the spectrum's range.
+
 ## 3.2.0
 
 From user testing, then five independent reviews (spectroscopy, usability, state and undo, edge cases, references) and a Codex review; every finding was reproduced before it was fixed.

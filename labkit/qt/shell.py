@@ -142,6 +142,14 @@ class _PageSlot(QWidget):
         else:
             self._layout.addWidget(page)
         self.page = page
+        # Accessibility passes over the finished page: captions tied to their inputs, no
+        # keyboard trap in tables, a keyboard-reachable plot toolbar.
+        try:
+            from .a11y import keyboard_friendly, label_inputs
+            label_inputs(page)
+            keyboard_friendly(page)
+        except Exception:                                   # noqa: BLE001 - never block a page
+            pass
         self.set_density(*self._density)
         hook = getattr(page, "on_theme_changed", None)
         shell = self.window()

@@ -41,9 +41,12 @@ def parse_float(value, field_name):
         raise ValueError(f"'{field_name}' must be a number (got {value!r}).")
 
 
-def ask_fields(parent, title, fields, help_text=None):
+def ask_fields(parent, title, fields, help_text=None, validate=None):
     """A small modal form. `fields`: (key, label, default[, choices]) tuples; a field with
-    choices is a drop-down. Returns {key: text}, or None when cancelled."""
+    choices is a drop-down. Returns {key: text}, or None when cancelled.
+
+    `validate(values)` may return an error message (or (message, key)); the dialog then
+    stays open with the message shown and the offending field selected."""
     dlg = QDialog(parent)
     dlg.setWindowTitle(title)
     layout = QVBoxLayout(dlg)
@@ -72,12 +75,52 @@ def ask_fields(parent, title, fields, help_text=None):
             editor.setMinimumWidth(180)
             if first is None:
                 first = editor
-        form.addRow(label, editor)
+        caption = QLabel(label)
+        caption.setBuddy(editor)
+        editor.setAccessibleName(label.rstrip(":"))
+        form.addRow(caption, editor)
         editors[key] = editor
     layout.addLayout(form)
+    error = QLabel("")
+    error.setObjectName("BadText")
+    error.setWordWrap(True)
+    error.setMaximumWidth(420)
+    error.hide()
+    layout.addWidget(error)
     buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
     buttons.button(QDialogButtonBox.Ok).setObjectName("Primary")
-    buttons.accepted.connect(dlg.accept)
+
+    def values():
+        return {k: (e.currentText() if isinstance(e, QComboBox) else e.text()) for k, e in editors.items()}
+
+    numeric = {f[0]: f[1] for f in fields if len(f) <= 3 or not f[3]}
+    numeric = {k: lab for k, lab in numeric.items()
+               if isinstance(next(f[2] for f in fields if f[0] == k), (int, float))
+               or _looks_numeric(next(f[2] for f in fields if f[0] == k))}
+
+    def numbers_ok(vals):
+        for key, label in numeric.items():
+            try:
+                float(str(vals[key]).strip().replace(",", "."))
+            except ValueError:
+                return f"{label.rstrip(':').strip()} must be a number.", key
+        return None
+
+    def try_accept():
+        problem = validate(values()) if validate else numbers_ok(values())
+        if not problem:
+            dlg.accept()
+            return
+        message, key = problem if isinstance(problem, tuple) else (problem, None)
+        error.setText(str(message))
+        error.show()
+        editor = editors.get(key)
+        if editor is not None:
+            editor.setFocus()
+            if isinstance(editor, QLineEdit):
+                editor.selectAll()
+
+    buttons.accepted.connect(try_accept)
     buttons.rejected.connect(dlg.reject)
     layout.addWidget(buttons)
     if first is not None:
@@ -85,7 +128,15 @@ def ask_fields(parent, title, fields, help_text=None):
         first.selectAll()
     if dlg.exec() != QDialog.Accepted:
         return None
-    return {k: (e.currentText() if isinstance(e, QComboBox) else e.text()) for k, e in editors.items()}
+    return values()
+
+
+def _looks_numeric(default) -> bool:
+    try:
+        float(str(default).strip().replace(",", "."))
+        return str(default).strip() != ""
+    except ValueError:
+        return False
 
 
 def show_message(parent, title, text, level="info"):
@@ -419,7 +470,8 @@ class AnalysisTabBase(QWidget):
             info_btn = QPushButton("ⓘ")
             info_btn.setObjectName("Ghost")
             info_btn.setFixedWidth(34)
-            info_btn.setToolTip("Formula and literature source")
+            info_btn.setToolTip(f"Formula and literature source: {info[0]}")
+            info_btn.setAccessibleName(f"About {info[0]}")
             info_btn.clicked.connect(lambda _c=False: self.show_formula(info[0], info[1]))
             layout.addWidget(info_btn)
         row.button = button
@@ -430,7 +482,10 @@ class AnalysisTabBase(QWidget):
         row = QWidget()
         layout = QHBoxLayout(row)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(QLabel(label))
+        caption = QLabel(label)
+        caption.setBuddy(widget)
+        widget.setAccessibleName(label.replace("&", ""))
+        layout.addWidget(caption)
         layout.addStretch(1)
         layout.addWidget(widget)
         return row
@@ -562,6 +617,7 @@ class AnalysisTabBase(QWidget):
         self._on_traces_changed()
         if removed is not None:
             self.record(f"remove {removed.label}")
+            self.app.notify(f"{removed.label} removed — Ctrl+Z to undo", "info")
 
     def _on_trace_clear(self):
         count = len(self.traces)
