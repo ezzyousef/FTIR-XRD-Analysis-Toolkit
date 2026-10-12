@@ -1,2 +1,2 @@
-Vendored copy of labkit 1.0.0.
+Vendored copy of labkit 1.1.0.
 Do not edit here: change D:\Lab Apps\labkit\labkit, run its tests, then `python sync.py`.

@@ -497,7 +497,7 @@ class XRDTab(AnalysisTabBase):
         ax.tick_params(colors=theme.foreground, labelsize=7)
         if wh and wh.get("x"):
             x, y = np.array(wh["x"]), np.array(wh["y"]) * 1e3
-            ax.plot(x, y, "o", color="#0072B2", markersize=5)
+            ax.plot(x, y, "o", color="#2E6FD9", markersize=5)
             xx = np.linspace(0, max(x) * 1.05, 50)
             ax.plot(xx, (wh["slope"] * xx + wh["intercept"]) * 1e3, "-", color=theme.foreground, lw=1)
             for xi, yi, tt in zip(x, y, wh.get("two_theta", [])):

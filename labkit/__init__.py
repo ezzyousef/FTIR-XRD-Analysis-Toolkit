@@ -12,6 +12,6 @@ Nothing outside `labkit.qt` imports Qt, so the figure, Origin and Excel layers c
 used and tested without a display.
 """
 
-__version__ = "1.0.0"
+__version__ = "1.1.0"
 
 __all__ = ["__version__"]

@@ -212,9 +212,12 @@ def render(spec: FigureSpec, *, theme: str = "light", size: str = "screen", figu
             ax.invert_yaxis()
         if spec.equal_aspect:
             ax.set_aspect("equal", adjustable="datalim")
-        ax.grid(True, which="major", color=t.grid, linewidth=0.7, alpha=0.9)
-        if "log" in (spec.effective_scale("x"), spec.effective_scale("y")):
-            ax.grid(True, which="minor", color=t.grid, linewidth=0.45, alpha=0.5)
+        # Figure Studio's house style: horizontal grid lines only, under the data.
+        ax.xaxis.grid(False)
+        ax.yaxis.grid(True, which="major", color=t.grid, linewidth=rc["grid.linewidth"])
+        if spec.effective_scale("y") == "log":
+            ax.yaxis.grid(True, which="minor", color=t.grid, linewidth=rc["grid.linewidth"] * 0.6,
+                          alpha=0.6)
 
         corners = free_corners(spec)
         if legend and len(drawable) > 1:
@@ -222,11 +225,11 @@ def render(spec: FigureSpec, *, theme: str = "light", size: str = "screen", figu
                 leg = ax.legend(loc="upper left", bbox_to_anchor=(1.02, 1.0), borderaxespad=0.0)
             else:
                 leg = ax.legend(loc=corners[1] if metrics else corners[0])
-            leg.get_frame().set_facecolor(t.background)
-            leg.get_frame().set_edgecolor(t.grid)
-            leg.get_frame().set_linewidth(0.8)
+            leg.set_frame_on(False)                         # frameless, as in Figure Studio
             for text in leg.get_texts():
                 text.set_color(t.foreground)
+        for label in ax.get_xticklabels() + ax.get_yticklabels():
+            label.set_fontweight("bold")
         if metrics:
             annotate(figure, metrics, theme=theme, corner=corners[0])
         if show_note and spec.note:
@@ -244,7 +247,7 @@ def _style_axes(ax, theme: S.Theme) -> None:
     for side in ("top", "right"):
         ax.spines[side].set_visible(False)
     for side in ("left", "bottom"):
-        ax.spines[side].set_color(theme.foreground)
+        ax.spines[side].set_color(S.FRAME_COLOUR.get(theme.name, S.FRAME_COLOUR["light"]))
     ax.tick_params(colors=theme.foreground, which="both")
 
 

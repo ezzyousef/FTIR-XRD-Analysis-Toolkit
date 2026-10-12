@@ -33,17 +33,17 @@ from ui_common import AnalysisTabBase, DataTable, parse_float
 # written in the cell, so colour is never the only signal.
 TIER_TOKENS = {"Strong": ("good", "good_bg"), "Moderate": ("warn", "warn_bg"), "Weak": (None, None),
                "Poor": ("muted", None)}
-# Okabe-Ito colours (safe for red/green colour blindness); the status is also carried by the
-# line style and the marker above each band.
+# Figure Studio "Review" colours (the lab's house style); the status is also carried by the
+# line style and the marker above each band, so colour is never the only signal.
 BAND_STYLE = {
-    "light": {"matched": "#0072B2", "edge": "#E69F00", "missing": "#D55E00"},
+    "light": {"matched": "#2E6FD9", "edge": "#F2A413", "missing": "#E04B4B"},
     "dark": {"matched": "#56B4E9", "edge": "#F0E442", "missing": "#FF7F50"},
 }
 BAND_MARKERS = {"matched": "v", "edge": "d", "missing": "x"}
 BAND_MARKS = {"matched": "✓", "edge": "≈", "missing": "✗", "outside": "–"}
 BAND_WORDS = {"matched": "found", "edge": "at the tolerance edge", "missing": "not found",
               "outside": "outside the measured range"}
-COMPONENT_COLOURS = ["#0072B2", "#E69F00", "#009E73"]
+COMPONENT_COLOURS = ["#2E6FD9", "#F2A413", "#1FA97B"]          # Figure Studio "Review"
 REFERENCE_GREY = "#8a8f98"           # a chosen card's bands before there are peaks to compare
 PEAK_LABEL_LIMIT = 15
 PEAK_LABEL_MIN_GAP = 25.0           # cm-1 between two printed peak labels
