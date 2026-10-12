@@ -308,10 +308,16 @@ def test_database_passes_the_audit(db):
 
 def test_added_entries_are_flagged_for_verification(db):
     added = [e for c in ftir_analysis.MATERIAL_CATEGORIES for e in db[c] if e.get("provenance")]
-    assert len(added) >= 13
-    assert all(e["provenance"]["verify"] and e["provenance"]["confidence"] in ("low", "medium") for e in added)
-    names = {e["name"] for e in added}
+    # v4.3: taken from quoted excerpts only, so every one is to be verified
+    excerpts = [e for e in added if "excerpts" in e["provenance"].get("method", "")]
+    assert len(excerpts) >= 13
+    assert all(e["provenance"]["verify"] and e["provenance"]["confidence"] in ("low", "medium") for e in excerpts)
+    names = {e["name"] for e in excerpts}
     assert "Graphene Oxide (GO)" in names and "Lithium Hexafluorophosphate (LiPF6)" in names
+    # v4.5: read from the cited sources; only low-confidence cards are flagged
+    read = [e for e in added if e not in excerpts]
+    assert len(read) >= 50
+    assert all(e["provenance"]["verify"] == (e["provenance"]["confidence"] == "low") for e in read)
 
 
 def test_shoulder_peaks_leave_the_band_width_unknown():

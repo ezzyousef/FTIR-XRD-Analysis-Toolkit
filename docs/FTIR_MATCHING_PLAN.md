@@ -230,3 +230,19 @@ hit was still Strong 20 % of the time — almost always a chemical relative — 
 tier is a screening statement and look-alikes are shown. All of this is simulation from the
 same band tables; lab validation is still needed.
 
+
+
+### Re-run after database 4.5 (293 materials, 2026-10-11)
+
+Adding 56 cards (metal oxides/hydroxides, battery oxides, spinel ferrites, polymers including three
+PVDF variants) gives the matcher more near-twins. Same benchmark, weighted method:
+
+```
+Precision by tier of the top hit:  Strong 99.6% (731)  Moderate 89.3% (122)  Weak 69.2% (39)  Poor 35.4% (48)
+Leave-one-out null, tier of the top hit:  Poor 34%, Moderate 27%, Weak 20%, Strong 19%
+Confusable pairs: PE, PP, PET, PBT, PMMA, PVAc 5/5 right, not flagged; PA6, PA66, PA11 5/5 and PA12 2/5, all flagged
+Two-material blends (80): both found 66%, one 32%, none 1%; 26 wrong components reported
+```
+
+A small, expected cost of a larger library: a Strong top hit is still almost always right, and
+near-twins (PVDF phases and copolymer, spinel ferrites, polyamides) are flagged as look-alikes.

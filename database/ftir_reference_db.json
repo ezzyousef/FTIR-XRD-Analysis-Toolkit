@@ -2,7 +2,7 @@
   "_meta": {
     "note": "Peak positions are typical literature ranges (cm-1) compiled from standard FTIR spectroscopy correlation-table references (polymer/materials/biomolecule spectroscopy literature). These are reference/approximate ranges, not certified measurements of a specific sample batch. For publication-grade identification, always cross-check against NIST Chemistry WebBook, SDBS, or a certified reference spectrum. Every entry below carries a 'source' field naming the reference literature its ranges are drawn from -- use it to trace and verify any match.",
     "units": "wavenumber (cm-1)",
-    "version": "4.4",
+    "version": "4.5",
     "categories": [
       "polymers",
       "hydrogels",
@@ -280,6 +280,498 @@
       {
         "id": "peppas1977",
         "citation": "Peppas NA. Infrared spectroscopy of semicrystalline poly(vinyl alcohol) networks. Die Makromolekulare Chemie 178 (1977) 595-601. https://doi.org/10.1002/macp.1977.021780228"
+      },
+      {
+        "id": "gong2018",
+        "citation": "Gong Y, Wang Y, Sun G, Jia T, Jia L, Zhang F, Lin L, Zhang B, Cao J, Zhang Z. Carbon Nitride Decorated Ball-Flower like Co3O4 Hybrid Composite: Hydrothermal Synthesis and Ethanol Gas Sensing Application. Nanomaterials 8 (2018) 132. https://doi.org/10.3390/nano8030132"
+      },
+      {
+        "id": "zeljkovic2026",
+        "citation": "Zeljković S, Šuligoj A, Kosić M, Dražić G, Ristić A, Zabukovec Logar N, Novak Tušar N. From Waste to Catalyst: Cobalt-Functionalized Silica as a Photocatalyst for Water Purification. ACS Omega 11 (2026) 43203-43214. https://doi.org/10.1021/acsomega.6c00378"
+      },
+      {
+        "id": "hassanpoor2020",
+        "citation": "Hassanpoor S, Aghely F. Hierarchically self-assembled NiCo2O4 nanopins as a high-performance supercapacitor cathodic material: a morphology controlled study. RSC Advances 10 (2020) 35235-35244. https://doi.org/10.1039/d0ra07620a"
+      },
+      {
+        "id": "patel2025",
+        "citation": "Patel A, Patel SK, Singh RS, Patel RP, Shante NK. Facile binder-free hydrothermal synthesis of NiCo2O4 using different reagents: a study as efficient supercapacitor electrode. Scientific Reports 15 (2025) 37806. https://doi.org/10.1038/s41598-025-21751-7"
+      },
+      {
+        "id": "nguyen2025",
+        "citation": "Nguyen HT, Doan V-D, Nguyen TLH, Nguyen A-T, Tran Q-H, Tran VA, Le VT. Mechanistic pathway and optimization of rhodamine B degradation using Mn3O4/ZnO nanocomposite on microalgae-based carbon. RSC Advances 15 (2025) 6241-6259. https://doi.org/10.1039/d5ra00625b"
+      },
+      {
+        "id": "tonu2024",
+        "citation": "Tonu NT, Ahamed P, Yousuf MA. Rice powder template for hausmannite Mn3O4 nanoparticles and its application to aqueous zinc ion battery. PLOS ONE 19 (2024) e0305611. https://doi.org/10.1371/journal.pone.0305611"
+      },
+      {
+        "id": "ghosh2019",
+        "citation": "Ghosh S, Roy P, Prasad S, Mugesh G. Crystal-facet-dependent denitrosylation: modulation of NO release from S-nitrosothiols by Cu2O polymorphs. Chemical Science 10 (2019) 5308-5318. https://doi.org/10.1039/c9sc01374a"
+      },
+      {
+        "id": "surikanti2019",
+        "citation": "Surikanti GR, Bajaj P, Sunkara MV. g-C3N4-Mediated Synthesis of Cu2O To Obtain Porous Composites with Improved Visible Light Photocatalytic Degradation of Organic Dyes. ACS Omega 4 (2019) 17301-17316. https://doi.org/10.1021/acsomega.9b02031"
+      },
+      {
+        "id": "kuncser2021",
+        "citation": "Kuncser AC, Vlaicu ID, Pavel OD, Zavoianu R, Badea M, Radu D, Culita DC, Rostas AM, Olar R. Soft synthesis and characterization of goethite-based nanocomposites as promising cyclooctene oxidation catalysts. RSC Advances 11 (2021) 27589-27602. https://doi.org/10.1039/d1ra04211d"
+      },
+      {
+        "id": "kubiak2023",
+        "citation": "Kubiak A, Voronkina A, Pajewska-Szmyt M, Kotula M, Leśniewski B, Ereskovsky A, Heimler K, Rogoll A, Vogt C, Rahimi P, Falahi S, Galli R, Langer E, Förste M, Charitos A, Joseph Y, Ehrlich H, Jesionowski T. Creation of a 3D Goethite–Spongin Composite Using an Extreme Biomimetics Approach. Biomimetics 8 (2023) 533. https://doi.org/10.3390/biomimetics8070533"
+      },
+      {
+        "id": "pallela2019",
+        "citation": "Pallela PNVK, Ummey S, Ruddaraju LK, Gadi S, Cherukuri CS, Barla S, Pammi SVN. Antibacterial efficacy of green synthesized α-Fe2O3 nanoparticles using Sida cordifolia plant extract. Heliyon 5 (2019) e02765. https://doi.org/10.1016/j.heliyon.2019.e02765"
+      },
+      {
+        "id": "khoshnam2021",
+        "citation": "Khoshnam M, Farahbakhsh J, Zargar M, Mohammad AW, Benamor A, Ang WL, Mahmoudi E. α-Fe2O3/graphene oxide powder and thin film nanocomposites as peculiar photocatalysts for dye removal from wastewater. Scientific Reports 11 (2021) 20378. https://doi.org/10.1038/s41598-021-99849-x"
+      },
+      {
+        "id": "yew2016",
+        "citation": "Yew YP, Shameli K, Miyake M, Kuwano N, Khairudin NBBA, Mohamad SEB, Lee KX. Green Synthesis of Magnetite (Fe3O4) Nanoparticles Using Seaweed (Kappaphycus alvarezii) Extract. Nanoscale Research Letters 11 (2016) 276. https://doi.org/10.1186/s11671-016-1498-2"
+      },
+      {
+        "id": "morales2018",
+        "citation": "Morales I, Costo R, Mille N, Da Silva GB, Carrey J, Hernando A, De la Presa P. High Frequency Hysteresis Losses on γ-Fe2O3 and Fe3O4: Susceptibility as a Magnetic Stamp for Chain Formation. Nanomaterials 8 (2018) 970. https://doi.org/10.3390/nano8120970"
+      },
+      {
+        "id": "halder2018",
+        "citation": "Halder M, Islam MM, Singh P, Singha Roy A, Islam SM, Sen K. Sustainable Generation of Ni(OH)2 Nanoparticles for the Green Synthesis of 5-Substituted 1H-Tetrazoles: A Competent Turn on Fluorescence Sensing of H2O2. ACS Omega 3 (2018) 8169-8180. https://doi.org/10.1021/acsomega.8b01081"
+      },
+      {
+        "id": "gallenberger2025",
+        "citation": "Gallenberger J, Gohlke C, Neumann M, Mechler AK, Hofmann JP. Water Dissociation on NiOOH in Alkaline Water Electrolysis Improves with Increasing Alkali Metal Cation Size. ChemSusChem 18 (2025) e202402596. https://doi.org/10.1002/cssc.202402596"
+      },
+      {
+        "id": "zhou2018",
+        "citation": "Zhou S, Cui S, Wei W, Chen W, Mi L. Development of high-utilization honeycomb-like α-Ni(OH)2 for asymmetric supercapacitors with excellent capacitance. RSC Advances 8 (2018) 37129-37135. https://doi.org/10.1039/c8ra08019d"
+      },
+      {
+        "id": "zhang2022",
+        "citation": "Zhang R, Tu Q, Li X, Sun X, Liu X, Chen L. Template-Free Preparation of α-Ni(OH)2 Nanosphere as High-Performance Electrode Material for Advanced Supercapacitor. Nanomaterials 12 (2022) 2216. https://doi.org/10.3390/nano12132216"
+      },
+      {
+        "id": "rahimi2018",
+        "citation": "Rahimi SA, Norouzi P, Ganjali MR. One-step cathodic electrodeposition of a cobalt hydroxide–graphene nanocomposite and its use as a high performance supercapacitor electrode material. RSC Advances 8 (2018) 26818-26827. https://doi.org/10.1039/c8ra04105a"
+      },
+      {
+        "id": "aghazadeh2022",
+        "citation": "Aghazadeh M, Forati Rad H, Cheraghali R. Ready-to-use binder-free Co(OH)2 plates@porous rGO layers/Ni foam electrode for high-performance supercapacitors. RSC Advances 12 (2022) 9276-9291. https://doi.org/10.1039/d1ra08683a"
+      },
+      {
+        "id": "wang2020",
+        "citation": "Wang Y, Tao S, Lin H, Han S, Zhong W, Xie Y, Hu J, Yang S. NaBH4 induces a high ratio of Ni3+/Ni2+ boosting OER activity of the NiFe LDH electrocatalyst. RSC Advances 10 (2020) 33475-33482. https://doi.org/10.1039/d0ra06617f"
+      },
+      {
+        "id": "jaskaniec2018",
+        "citation": "Jaśkaniec S, Hobbs C, Seral-Ascaso A, Coelho J, Browne MP, Tyndall D, Sasaki T, Nicolosi V. Low-temperature synthesis and investigation into the formation mechanism of high quality Ni-Fe layered double hydroxides hexagonal platelets. Scientific Reports 8 (2018) 4179. https://doi.org/10.1038/s41598-018-22630-0"
+      },
+      {
+        "id": "yusoff2020",
+        "citation": "Mahamad Yusoff NF, Idris NH, Md Din MF, Majid SR, Harun NA, Rahman MM. Investigation on the Electrochemical Performances of Mn2O3 as a Potential Anode for Na-Ion Batteries. Scientific Reports 10 (2020) 9207. https://doi.org/10.1038/s41598-020-66148-w"
+      },
+      {
+        "id": "taghavifardood2024",
+        "citation": "Taghavi Fardood S, Moradnia F, Yekke Zare F, Heidarzadeh S, Azad Majedi M, Ramazani A, Sillanpää M, Nguyen K. Green synthesis and characterization of α-Mn2O3 nanoparticles for antibacterial activity and efficient visible-light photocatalysis. Scientific Reports 14 (2024) 6755. https://doi.org/10.1038/s41598-024-56666-2"
+      },
+      {
+        "id": "lemine2021",
+        "citation": "Lemine OM, Madkhali N, Alshammari M, Algessair S, Gismelseed A, El Mir L, Hjiri M, Yousif AA, El-Boubbou K. Maghemite (γ-Fe2O3) and γ-Fe2O3-TiO2 Nanoparticles for Magnetic Hyperthermia Applications: Synthesis, Characterization and Heating Efficiency. Materials 14 (2021) 5691. https://doi.org/10.3390/ma14195691"
+      },
+      {
+        "id": "abdullah2022",
+        "citation": "Abdullah JAA, Jiménez-Rosado M, Perez-Puyana V, Guerrero A, Romero A. Green Synthesis of FexOy Nanoparticles with Potential Antioxidant Properties. Nanomaterials 12 (2022) 2449. https://doi.org/10.3390/nano12142449"
+      },
+      {
+        "id": "napruszewska2024",
+        "citation": "Napruszewska BD, Walczyk A, Duraczynska D, Krysciak-Czerwenka J, Karcz R, Gawel A, Nowak P, Serwicka EM. TiO2 Nanoparticles with Adjustable Phase Composition Prepared by an Inverse Microemulsion Method: Physicochemical Characterization and Photocatalytic Properties. Nanomaterials 14 (2024) 1130. https://doi.org/10.3390/nano14131130"
+      },
+      {
+        "id": "li2022",
+        "citation": "Li D, Xu K, Zhang C. Improvement of Photocatalytic Performance by Building Multiple Heterojunction Structures of Anatase-Rutile/BiOI Composite Fibers. Nanomaterials 12 (2022) 3906. https://doi.org/10.3390/nano12213906"
+      },
+      {
+        "id": "nie2016",
+        "citation": "Nie Q, Pang Z, Lu H, Cai Y, Wei Q. Ammonia gas sensors based on In2O3/PANI hetero-nanofibers operating at room temperature. Beilstein Journal of Nanotechnology 7 (2016) 1312-1321. https://doi.org/10.3762/bjnano.7.122"
+      },
+      {
+        "id": "khort2023",
+        "citation": "Khort A, Haiduk Y, Taratyn I, Moskovskikh D, Podbolotov K, Usenka A, Lapchuk N, Pankov V. High-performance selective NO2 gas sensor based on In2O3-graphene-Cu nanocomposites. Scientific Reports 13 (2023) 7834. https://doi.org/10.1038/s41598-023-34697-5"
+      },
+      {
+        "id": "habib2023",
+        "citation": "Habib A, Khan MS, Zubair M, Hasan IU. Ni-Doped In2O3 Nanoparticles and Their Composite with rGO for Efficient Degradation of Organic Pollutants in Wastewater under Visible Light Irradiation. International Journal of Molecular Sciences 24 (2023) 7950. https://doi.org/10.3390/ijms24097950"
+      },
+      {
+        "id": "reddy2015",
+        "citation": "Reddy LS, Ko YH, Yu JS. Hydrothermal Synthesis and Photocatalytic Property of beta-Ga2O3 Nanorods. Nanoscale Research Letters 10 (2015) 364. https://doi.org/10.1186/s11671-015-1070-5"
+      },
+      {
+        "id": "nawaz2021",
+        "citation": "Nawaz M, Naeem N, Kahraman R, Montemor MF, Haider W, Shakoor RA. Effectiveness of Epoxy Coating Modified with Yttrium Oxide Loaded with Imidazole on the Corrosion Protection of Steel. Nanomaterials 11 (2021) 2291. https://doi.org/10.3390/nano11092291"
+      },
+      {
+        "id": "vinayagam2025",
+        "citation": "Vinayagam Y, Vijayarangan DR. Biological applications of yttrium oxide nanocomposites synthesized from Aspergillus penicillioides and their potential role in environmental remediation. Scientific Reports 15 (2025) 37211. https://doi.org/10.1038/s41598-025-21104-4"
+      },
+      {
+        "id": "ismail2024",
+        "citation": "Ismail W, Belal A, Abdo W, El-Shaer A. Investigating the physical and electrical properties of La2O3 via annealing of La(OH)3. Scientific Reports 14 (2024) 7716. https://doi.org/10.1038/s41598-024-57848-8"
+      },
+      {
+        "id": "ravi2019",
+        "citation": "Ravi G, Sarasija M, Ayodhya D, Kumari LS, Ashok D. Facile synthesis, characterization and enhanced catalytic reduction of 4-nitrophenol using NaBH4 by undoped and Sm3+, Gd3+, Hf3+ doped La2O3 nanoparticles. Nano Convergence 6 (2019) 12. https://doi.org/10.1186/s40580-019-0181-6"
+      },
+      {
+        "id": "nagaraju2020",
+        "citation": "Nagaraju P, Vasudevan R, Alsalme A, Alghamdi A, Arivanandhan M, Jayavel R. Surfactant-Free Synthesis of Nb2O5 Nanoparticles Anchored Graphene Nanocomposites with Enhanced Electrochemical Performance for Supercapacitor Electrode Application. Nanomaterials 10 (2020) 160. https://doi.org/10.3390/nano10010160"
+      },
+      {
+        "id": "wang2021",
+        "citation": "Wang L, Li Y, Han P. Electrospinning preparation of g-C3N4/Nb2O5 nanofibers heterojunction for enhanced photocatalytic degradation of organic pollutants in water. Scientific Reports 11 (2021) 22950. https://doi.org/10.1038/s41598-021-02161-x"
+      },
+      {
+        "id": "wang2022",
+        "citation": "Wang Y, Liu Y, Li X, Liu Y, Wang F, Huang Y, Lv L, Chu Y, Qian Y. Preparation of Nano-Mg(OH)2 and Its Flame Retardant and Antibacterial Modification on Polyethylene Terephthalate Fabrics. Polymers 15 (2022) 7. https://doi.org/10.3390/polym15010007"
+      },
+      {
+        "id": "halbus2019",
+        "citation": "Halbus AF, Horozov TS, Paunov VN. Controlling the Antimicrobial Action of Surface Modified Magnesium Hydroxide Nanoparticles. Biomimetics 4 (2019) 41. https://doi.org/10.3390/biomimetics4020041"
+      },
+      {
+        "id": "walling2018",
+        "citation": "Walling SA, Bernal SA, Gardner LJ, Kinoshita H, Provis JL. Blast furnace slag-Mg(OH)2 cements activated by sodium carbonate. RSC Advances 8 (2018) 23101-23118. https://doi.org/10.1039/c8ra03717e"
+      },
+      {
+        "id": "rutkowska2021",
+        "citation": "Rutkowska I, Marchewka J, Jelen P, Odziomek M, Korpys M, Paczkowska J, Sitarz M. Chemical and Structural Characterization of Amorphous and Crystalline Alumina Obtained by Alternative Sol-Gel Preparation Routes. Materials 14 (2021) 1761. https://doi.org/10.3390/ma14071761"
+      },
+      {
+        "id": "fu2022",
+        "citation": "Fu W, Wei C, Zuo J, Zhang J, Zhang J, Xu S. A Facile Temperature-Controlled \"Green\" Method to Prepare Multi-kinds of High-Quality Alumina Hydrates via a Ga-In-Sn-Alloyed Aluminum-Water Interface. ACS Omega 7 (2022) 19775-19783. https://doi.org/10.1021/acsomega.2c01543"
+      },
+      {
+        "id": "sadjadi2022",
+        "citation": "Sadjadi S, Abedian-Dehaghani N, Heravi MM. Pd on cyclotriphosphazen-hexa imine decorated boehmite as an efficient catalyst for hydrogenation of nitro arenes under mild reaction condition. Scientific Reports 12 (2022) 15040. https://doi.org/10.1038/s41598-022-19288-0"
+      },
+      {
+        "id": "mikhaylov2020",
+        "citation": "Mikhaylov VI, Martakov IS, Gerasimov EY, Sitnikov PA. Study of heteroaggregation and properties of sol-gel AlOOH-Fe3O4 composites. Heliyon 6 (2020) e05825. https://doi.org/10.1016/j.heliyon.2020.e05825"
+      },
+      {
+        "id": "farinha2018",
+        "citation": "Farinha C, de Brito J, Veiga R, Fernandez JM, Jimenez JR, Esquinas AR. Wastes as Aggregates, Binders or Additions in Mortars: Selecting Their Role Based on Characterization. Materials 11 (2018) 453. https://doi.org/10.3390/ma11030453"
+      },
+      {
+        "id": "boris2022",
+        "citation": "Boris R, Wilinska I, Pacewska B, Antonovic V. Investigations of the Influence of Nano-Admixtures on Early Hydration and Selected Properties of Calcium Aluminate Cement Paste. Materials 15 (2022) 4958. https://doi.org/10.3390/ma15144958"
+      },
+      {
+        "id": "conroy2017",
+        "citation": "Conroy M, Soltis JA, Wittman RS, Smith FN, Chatterjee S, Zhang X, Ilton ES, Buck EC. Importance of interlayer H bonding structure to the stability of layered minerals. Scientific Reports 7 (2017) 13274. https://doi.org/10.1038/s41598-017-13452-7"
+      },
+      {
+        "id": "silvaholguin2021",
+        "citation": "Silva-Holguin PN, Reyes-Lopez SY. Alumina-Hydroxyapatite-Silver Spheres With Antibacterial Activity. Dose-Response 19 (2021) 15593258211011337. https://doi.org/10.1177/15593258211011337"
+      },
+      {
+        "id": "silvaholguin2022",
+        "citation": "Silva-Holguin PN, Ruiz-Baltazar AJ, Medellin-Castillo NA, Labrada-Delgado GJ, Reyes-Lopez SY. Synthesis and Characterization of alpha-Al2O3/Ba-beta-Al2O3 Spheres for Cadmium Ions Removal from Aqueous Solutions. Materials 15 (2022) 6809. https://doi.org/10.3390/ma15196809"
+      },
+      {
+        "id": "wu2022",
+        "citation": "Wu G, Liu G, Li X, Peng Z, Zhou Q, Qi T. Enhanced phosphate removal with fine activated alumina synthesized from a sodium aluminate solution: performance and mechanism. RSC Advances 12 (2022) 4562-4571. https://doi.org/10.1039/d1ra08474g"
+      },
+      {
+        "id": "bekele2024",
+        "citation": "Bekele EA, Korsa HA, Desalegn YM. Electrolytic synthesis of gamma-Al2O3 nanoparticle from aluminum scrap for enhanced methylene blue adsorption: experimental and RSM modeling. Scientific Reports 14 (2024) 16957. https://doi.org/10.1038/s41598-024-67656-9"
+      },
+      {
+        "id": "peighambardoust2023",
+        "citation": "Peighambardoust NS, Sadigh Akbari S, Lomlu R, Aydemir U, Karadas F. Tunable Photocatalytic Activity of CoFe Prussian Blue Analogue Modified SrTiO3 Core-Shell Structures for Solar-Driven Water Oxidation. ACS Materials Au 4 (2023) 214-223. https://doi.org/10.1021/acsmaterialsau.3c00090"
+      },
+      {
+        "id": "xie2018",
+        "citation": "Xie T, Wang Y, Liu C, Xu L. New Insights into Sensitization Mechanism of the Doped Ce (IV) into Strontium Titanate. Materials 11 (2018) 646. https://doi.org/10.3390/ma11040646"
+      },
+      {
+        "id": "wei2020",
+        "citation": "Wei H, Cai J, Zhang Y, Zhang X, Baranova EA, Cui J, Wang Y, Shu X, Qin Y, Liu J, Wu Y. Synthesis of SrTiO3 submicron cubes with simultaneous and competitive photocatalytic activity for H2O splitting and organic dye degradation. RSC Advances 10 (2020) 42619-42627. https://doi.org/10.1039/d0ra08246e"
+      },
+      {
+        "id": "srilakshmi2018",
+        "citation": "Srilakshmi C, Saraf R, Shivakumara C. Structural Studies of Multifunctional SrTiO3 Nanocatalyst Synthesized by Microwave and Oxalate Methods: Its Catalytic Application for Condensation, Hydrogenation, and Amination Reactions. ACS Omega 3 (2018) 10503-10512. https://doi.org/10.1021/acsomega.8b01255"
+      },
+      {
+        "id": "jain2018",
+        "citation": "Jain A, Fournier PGJ, Mendoza-Lavaniegos V, Sengar P, Guerra-Olvera FM, Iniguez E, Kretzschmar TG, Hirata GA, Juarez P. Functionalized rare earth-doped nanoparticles for breast cancer nanodiagnostic using fluorescence and CT imaging. Journal of Nanobiotechnology 16 (2018) 26. https://doi.org/10.1186/s12951-018-0359-9"
+      },
+      {
+        "id": "mortezazadeh2020",
+        "citation": "Mortezazadeh T, et al. Glucosamine Conjugated Gadolinium (III) Oxide Nanoparticles as a Novel Targeted Contrast Agent for Cancer Diagnosis in MRI. Journal of Biomedical Physics and Engineering 10 (2020). https://doi.org/10.31661/jbpe.v0i0.1018"
+      },
+      {
+        "id": "an2013",
+        "citation": "An YT, Labbe C, Khomenkova L, Morales M, Portier X, Gourbilleau F. Microstructure and optical properties of Pr3+-doped hafnium silicate films. Nanoscale Research Letters 8 (2013) 43. https://doi.org/10.1186/1556-276x-8-43"
+      },
+      {
+        "id": "araiza2023",
+        "citation": "Araiza JJ, Alvarez-Fraga L, Gago R, Sanchez O. Surface Morphology and Optical Properties of Hafnium Oxide Thin Films Produced by Magnetron Sputtering. Materials 16 (2023) 5331. https://doi.org/10.3390/ma16155331"
+      },
+      {
+        "id": "xi2024",
+        "citation": "Xi Z, Yao H, Zhang T, Su Z, Wang B, Feng W, Pu Q, Zhao L. Quantitative Three-Dimensional Imaging Analysis of HfO2 Nanoparticles in Single Cells via Deep Learning Aided X-ray Nano-Computed Tomography. ACS Nano 18 (2024) 22378-22389. https://doi.org/10.1021/acsnano.4c06953"
+      },
+      {
+        "id": "okudur2018",
+        "citation": "F. Ulu Okudur, J. D'Haen, T. Vranken, D. De Sloovere, M. Verheijen, O. M. Karakulina, A. M. Abakumov, J. Hadermann, M. K. Van Bael, A. Hardy. Ti surface doping of LiNi0.5Mn1.5O4−δ positive electrodes for lithium ion batteries. RSC Advances 8 (2018) 7287-7300. https://doi.org/10.1039/c7ra12932g"
+      },
+      {
+        "id": "su2024",
+        "citation": "M. Su, X. Dong, X. Dai, B. Huang, M. Shen, T. Xu, Q. Liu. Enhanced Cycling Performance of Spinel LiNi0.5Mn1.5O4 Cathodes through Mg-Mn Hetero-Valent Doping via Microwave Sol-Gel Method. Materials 17 (2024) 4714. https://doi.org/10.3390/ma17194714"
+      },
+      {
+        "id": "julien2025",
+        "citation": "C. M. Julien, A. Mauger. Raman and Infrared Spectroscopy of Materials for Lithium-Ion Batteries. International Journal of Molecular Sciences 26 (2025) 11879. https://doi.org/10.3390/ijms262411879"
+      },
+      {
+        "id": "pulido2022",
+        "citation": "R. Pulido, N. Naveas, R. J. Martin-Palma, F. Agulló-Rueda, V. R. Ferró, J. Hernández-Montelongo, G. Recio-Sánchez, I. Brito, M. Manso-Silván. Phonon Structure, Infra-Red and Raman Spectra of Li2MnO3 by First-Principles Calculations. Materials 15 (2022) 6237. https://doi.org/10.3390/ma15186237"
+      },
+      {
+        "id": "hashem2019",
+        "citation": "A. M. Hashem, A. E. Abdel-Ghany, M. Scheuermann, S. Indris, H. Ehrenberg, A. Mauger, C. M. Julien. Doped Nanoscale NMC333 as Cathode Materials for Li-Ion Batteries. Materials 12 (2019) 2899. https://doi.org/10.3390/ma12182899"
+      },
+      {
+        "id": "hashemzadeh2025",
+        "citation": "S. M. Hashemzadeh, A. Khorshidi, M. Arvand. Anion engineering in lithium cobalt oxide for application in high-performance supercapacitors. Scientific Reports 15 (2025) 10064. https://doi.org/10.1038/s41598-025-95338-7"
+      },
+      {
+        "id": "balakrishnan2017",
+        "citation": "T. Balakrishnan, N. Sankara Subramanian, A. Kathalingam. Studies on rheological, structural, optical, electrical and surface properties of LiMn2O4 thin films by varied spin rates. Materials Science-Poland 35 (2017) 626-631. https://doi.org/10.1515/msp-2017-0077"
+      },
+      {
+        "id": "zhang2026",
+        "citation": "M. Zhang, J. Du, X. Zheng, A. Ma. The Preparation of ZnFe2O4 from Coal Gangue for Use as a Photocatalytic Reagent in the Purification of Dye Wastewater via the PMS Reaction. Materials 19 (2026) 169. https://doi.org/10.3390/ma19010169"
+      },
+      {
+        "id": "alaizeri2023",
+        "citation": "Z. M. Alaizeri, H. A. Alhadlaq, S. Aldawood, M. J. Akhtar, M. Ahamed. One-step preparation, characterization, and anticancer potential of ZnFe2O4/RGO nanocomposites. Saudi Pharmaceutical Journal 31 (2023) 101735. https://doi.org/10.1016/j.jsps.2023.101735"
+      },
+      {
+        "id": "huyen2026",
+        "citation": "P. T. M. Huyen, N. X. Dung. Green Synthesis and Characterization of ZnO/CoFe2O4 Nanocomposites for Photocatalytic Degradation of Tetracycline Under Visible Light. Molecules 31 (2026) 2772. https://doi.org/10.3390/molecules31162772"
+      },
+      {
+        "id": "muhamad2023",
+        "citation": "S. U. Muhamad, N. H. Idris, H. M. Yusoff, M. F. Md Din, S. R. Majid, L. Noerochim. Molten salt synthesis of disordered spinel CoFe2O4 with improved electrochemical performance for sodium-ion batteries. RSC Advances 13 (2023) 34200-34209. https://doi.org/10.1039/d3ra07050f"
+      },
+      {
+        "id": "alshehri2025",
+        "citation": "A. A. Alshehri, L. M. Alharbi, M. A. Malik. Chitosan-Templated Synthesis of Fe2O3, NiO, and NiFe2O4 Nanoparticles for Efficient Methylene Blue Dye Removal. Polymers 17 (2025) 2750. https://doi.org/10.3390/polym17202750"
+      },
+      {
+        "id": "moradibieranvand2024",
+        "citation": "M. Moradi-Bieranvand, S. Farhadi, A. Zabardasti, F. Mahmoudi. Construction of magnetic MoS2/NiFe2O4/MIL-101(Fe) hybrid nanostructures for separation of dyes and antibiotics from aqueous media. RSC Advances 14 (2024) 11037-11056. https://doi.org/10.1039/d4ra00505h"
+      },
+      {
+        "id": "mirani2022",
+        "citation": "S. Mirani Nezhad, S. A. Pourmousavi, E. Nazarzadeh Zare, G. Heidari, H. Manoochehri, E. Sharifi. Poly(aniline-co-melamine)@MnFe2O4 nanocatalyst for the synthesis of 4,4′-(arylmethylene) bis (1H-pyrazole-5-ol) derivatives, and 1,4- dihydropyrano[2,3-c]pyrazoles and evaluation of their antioxidant, and anticancer activities. Frontiers in Chemistry 10 (2022) 1046120. https://doi.org/10.3389/fchem.2022.1046120"
+      },
+      {
+        "id": "ilosvai2025",
+        "citation": "Á. M. Ilosvai, F. Heydari, L. Forgách, N. Kovács, K. Szigeti, D. Máthé, F. Kristály, L. Daróczi, B. Viskolcz, M. Nagy, M. Németh, T. Ollár, L. Vanyorek. Development of manganese ferrite coated with Prussian blue as an efficient contrast agent for applications in magnetic resonance imaging. Scientific Reports 15 (2025) 14150. https://doi.org/10.1038/s41598-025-98348-7"
+      },
+      {
+        "id": "keykavousamand2021",
+        "citation": "S. Keykavous-Amand, R. Peymanfar. Fabrication of clay soil/CuFe2O4 nanocomposite toward improving energy and shielding efficiency of buildings. Scientific Reports 11 (2021) 20832. https://doi.org/10.1038/s41598-021-00347-x"
+      },
+      {
+        "id": "cherian2025",
+        "citation": "B. Cherian, T. Cherian, T. Merlin, S. Jose. Investigation of antibiosis, anti-diabetic, antioxidant, anti-inflammatory, molecular docking and dye degradation potential of green synthesized copper ferrite (CuFe2O4) nanoparticles using mushroom Pleurotus florida. Discover Nano 20 (2025) 99. https://doi.org/10.1186/s11671-025-04251-5"
+      },
+      {
+        "id": "ren2019",
+        "citation": "Ren Y, Wang Y, Zhang W, Yan X, Huang B. Improved battery performance contributed by the optimized phase ratio of β and α of PVDF. RSC Advances 9 (2019) 29760-29764. https://doi.org/10.1039/c9ra04724g"
+      },
+      {
+        "id": "zhou2021",
+        "citation": "Zhou Y, Liu W, Tan B, Zhu C, Ni Y, Fang L, Lu C, Xu Z. Crystallinity and β Phase Fraction of PVDF in Biaxially Stretched PVDF/PMMA Films. Polymers 13 (2021) 998. https://doi.org/10.3390/polym13070998"
+      },
+      {
+        "id": "kim2019",
+        "citation": "Kim S-H, Park S-J, Cho C-Y, Kang HS, Sohn E-H, Park IJ, Ha J-W, Lee SG. Preparation and electroactive phase adjustment of Ag-doped poly(vinylidene fluoride) (PVDF) films. RSC Advances 9 (2019) 40286-40291. https://doi.org/10.1039/c9ra08763j"
+      },
+      {
+        "id": "yasar2024",
+        "citation": "Yasar M, Hassett P, Murphy N, Ivankovic A. β Phase Optimization of Solvent Cast PVDF as a Function of the Processing Method and Additive Content. ACS Omega 9 (2024) 26020-26029. https://doi.org/10.1021/acsomega.4c01221"
+      },
+      {
+        "id": "kaewon2025",
+        "citation": "Kaew-on C, Yuennan J, Tohluebaji N, Channuie P, Ruangdit S, Samran R, Tochomphoo T, Siri R. Enhanced Hydrophobicity, Thermal Stability, and X-Ray Shielding Efficiency of BaSO4/P(VDF-HFP) Nanocomposites for Advanced Lead-Free Radiation Protection. Polymers 17 (2025) 723. https://doi.org/10.3390/polym17060723"
+      },
+      {
+        "id": "morali2023",
+        "citation": "Morali A, Mandal A, Skorobogatiy M, Bodkhe S. Unleashing the piezoelectric potential of PVDF: a study on phase transformation from gamma (γ) to beta (β) phase through thermal contact poling. RSC Advances 13 (2023) 31234-31242. https://doi.org/10.1039/d3ra05068h"
+      },
+      {
+        "id": "gebreyesus2016",
+        "citation": "Gebreyesus MA, Purushotham Y, Kumar JS. Preparation and characterization of lithium ion conducting polymer electrolytes based on a blend of poly(vinylidene fluoride-co-hexafluoropropylene) and poly(methyl methacrylate). Heliyon 2 (2016) e00134. https://doi.org/10.1016/j.heliyon.2016.e00134"
+      },
+      {
+        "id": "orooji2020",
+        "citation": "Orooji Y, Jaleh B, Homayouni F, Fakhri P, Kashfi M, Torkamany MJ, Yousefi AA. Laser Ablation-Assisted Synthesis of Poly (Vinylidene Fluoride)/Au Nanocomposites: Crystalline Phase and Micromechanical Finite Element Analysis. Polymers 12 (2020) 2630. https://doi.org/10.3390/polym12112630"
+      },
+      {
+        "id": "im2025",
+        "citation": "Im H, Park DU, Lee YJ, Moon J, Lee S, Choi T-M, Lee T, Lee G, Oh J-M, Shin WH, Pyo SG, Seubsai A, Sohn H. The Structural Effect of a Composite Solid Electrolyte on Electrochemical Performance and Fire Safety. Materials 18 (2025) 1536. https://doi.org/10.3390/ma18071536"
+      },
+      {
+        "id": "parker2023",
+        "citation": "Parker SF, Trevelyan JE, Cavaye H. Vibrational spectra of neutral and doped oligothiophenes and polythiophene. RSC Advances 13 (2023) 5419-5427. https://doi.org/10.1039/d2ra07625j"
+      },
+      {
+        "id": "arrigoni2022",
+        "citation": "Arrigoni A, Brambilla L, Castiglioni C, Bertarelli C. Conducting Electrospun Nanofibres: Monitoring of Iodine Doping of P3HT through Infrared (IRAV) and Raman (RaAV) Polaron Spectroscopic Features. Nanomaterials 12 (2022) 4308. https://doi.org/10.3390/nano12234308"
+      },
+      {
+        "id": "socol2023",
+        "citation": "Socol M, Preda N, Breazu C, Petre G, Stanculescu A, Stavarache I, Popescu-Pelin G, Stochioiu A, Socol G, Iftimie S, Thanner C, Rasoga O. Effects of Solvent Additive and Micro-Patterned Substrate on the Properties of Thin Films Based on P3HT:PC70BM Blends Deposited by MAPLE. Materials 16 (2023) 144. https://doi.org/10.3390/ma16010144"
+      },
+      {
+        "id": "baibarac2021",
+        "citation": "Baibarac M, Arzumanyan G, Daescu M, Udrescu A, Mamatkulov K. Anisotropic Photoluminescence of Poly(3-hexyl thiophene) and Their Composites with Single-Walled Carbon Nanotubes Highly Separated in Metallic and Semiconducting Tubes. Molecules 26 (2021) 294. https://doi.org/10.3390/molecules26020294"
+      },
+      {
+        "id": "benbow2018",
+        "citation": "Benbow NL, Webber JL, Pawliszak P, Sebben DA, Ho TTM, Vongsvivut J, Tobin MJ, Krasowska M, Beattie DA. A Novel Soft Contact Piezo-Controlled Liquid Cell for Probing Polymer Films under Confinement using Synchrotron FTIR Microspectroscopy. Scientific Reports 8 (2018) 17804. https://doi.org/10.1038/s41598-018-34673-4"
+      },
+      {
+        "id": "tzoumani2019",
+        "citation": "Tzoumani I, Lainioti GCh, Aletras AJ, Zainescu G, Stefan S, Meghea A, Kallitsis JK. Modification of Collagen Derivatives with Water-Soluble Polymers for the Development of Cross-Linked Hydrogels for Controlled Release. Materials 12 (2019) 4067. https://doi.org/10.3390/ma12244067"
+      },
+      {
+        "id": "hu2026",
+        "citation": "Hu H, Zhou Z, Wang G, Li X, Meng Y, Xu T, Jia X, Yu H, Wang Y, Wang J, Long Y. Dual-Band Modulation of Emissivity and Solar Transmittance Through Chemical Composition-Tuned Asymmetric Layer-by-Layer Assembly. Advanced Science 13 (2026) e74461. https://doi.org/10.1002/advs.74461"
+      },
+      {
+        "id": "arkas2023",
+        "citation": "Arkas M, Giannakopoulos K, Favvas EP, Papageorgiou S, Theodorakopoulos GV, Giannoulatou A, Vardavoulias M, Giannakoudakis DA, Triantafyllidis KS, Georgiou E, Pashalidis I. Comparative Study of the U(VI) Adsorption by Hybrid Silica-Hyperbranched Poly(ethylene imine) Nanoparticles and Xerogels. Nanomaterials 13 (2023) 1794. https://doi.org/10.3390/nano13111794"
+      },
+      {
+        "id": "yang2021",
+        "citation": "Yang L, Fu S, Liu L, Cai Z, Xia C, Song B, Gong Q, Lu Z, Ai H. Tetraphenylethylene-conjugated polycation covered iron oxide nanoparticles for magnetic resonance/optical dual-mode imaging. Regenerative Biomaterials 8 (2021) rbab023. https://doi.org/10.1093/rb/rbab023"
+      },
+      {
+        "id": "smith2022",
+        "citation": "Smith BC. The Infrared Spectra of Polymers IV: Rubbers. Spectroscopy (January 2022) 8-12. https://doi.org/10.56530/spectroscopy.mz6968v1"
+      },
+      {
+        "id": "liu2018",
+        "citation": "Liu J, Fan X, Min X, Zhu X, Zhao N, Wang Z. Synthesis of high cis-1,4 polybutadiene with narrow molecular weight distribution via a neodymium-based binary catalyst. RSC Advances 8 (2018) 21926-21932. https://doi.org/10.1039/c8ra02656d"
+      },
+      {
+        "id": "sun2026",
+        "citation": "Sun H, Liu H, Zhang X, Wang F. Preparation of Low Molecular Weight Liquid Polybutadiene Rubber Featuring High 1,4 Content by Nickel-Based Ziegler-Natta Catalytic System. Polymers 18 (2026) 1051. https://doi.org/10.3390/polym18091051"
+      },
+      {
+        "id": "lyu2026",
+        "citation": "Lyu H, Wang L, Li Y, Yu G, Liu S, Sun D, Liang Y, Huo P, Zhang D, Ning Z, Kong X. Synthesis and UV-Curing Modification of the High cis-1,4-Hydroxyl-Terminated Polybutadiene Binder Suitable for Ultra-Low Temperature Applications. Polymers 18 (2026) 1095. https://doi.org/10.3390/polym18091095"
+      },
+      {
+        "id": "akram2024",
+        "citation": "Akram AH, Naeem N, Khoja AH, Shahzad F, Khattak A, Iftikhar M, Imran K, Al-Anazi A, Din IU, Daood SS. Biomass fly ash as nanofiller to improve the dielectric properties of low-density polyethylene for possible high-voltage applications. Heliyon 10 (2024) e23350. https://doi.org/10.1016/j.heliyon.2023.e23350"
+      },
+      {
+        "id": "ballestar2024",
+        "citation": "Ballestar de las Heras R, Colom X, Cañavate J. Comparative Analysis of the Effects of Incorporating Post-Industrial Recycled LLDPE and Post-Consumer PE in Films: Macrostructural and Microstructural Perspectives in the Packaging Industry. Polymers 16 (2024) 916. https://doi.org/10.3390/polym16070916"
+      },
+      {
+        "id": "salakhov2021",
+        "citation": "Salakhov II, Shaidullin NM, Chalykh AE, Matsko MA, Shapagin AV, Batyrshin AZ, Shandryuk GA, Nifant'ev IE. Low-Temperature Mechanical Properties of High-Density and Low-Density Polyethylene and Their Blends. Polymers 13 (2021) 1821. https://doi.org/10.3390/polym13111821"
+      },
+      {
+        "id": "guo2024",
+        "citation": "Guo Q, He Y, Wu J, Ye H, You T, Xu F. Sodium-Alginate-Doped Lignin Nanoparticles for PBAT Composite Films to Dually Enhance Tensile Strength and Elongation Performance with Functionality. Polymers 16 (2024) 2312. https://doi.org/10.3390/polym16162312"
+      },
+      {
+        "id": "grimaut2023",
+        "citation": "Grimaut DA, da Silva JBA, Lemos PVF, Correia PRC, Santana JS, Pessôa LC, Estevez-Areco S, Famá LM, Goyanes SN, Marcelino HR, de Jesus Assis D, de Souza CO. Effect of Addition of Cross-Linked Starch on the Properties of Degraded PBAT Poly(butylene adipate-co-terephthalate) Films. Polymers 15 (2023) 3106. https://doi.org/10.3390/polym15143106"
+      },
+      {
+        "id": "gutierrez2025",
+        "citation": "Gutiérrez-Silva K, Capezza AJ, Gil-Castell O, Badia-Valiente JD. UV-C and UV-C/H2O-Induced Abiotic Degradation of Films of Commercial PBAT/TPS Blends. Polymers 17 (2025) 1173. https://doi.org/10.3390/polym17091173"
+      },
+      {
+        "id": "mortl2024",
+        "citation": "Mörtl M, Damak M, Gulyás M, Varga ZI, Fekete G, Kurusta T, Rácz Á, Székács A, Aleksza L. Biodegradation Assessment of Bioplastic Carrier Bags Under Industrial-Scale Composting Conditions. Polymers 16 (2024) 3450. https://doi.org/10.3390/polym16243450"
+      },
+      {
+        "id": "liu2024",
+        "citation": "Liu Y, Wang Y, Lee C-H, Kan C-W, Lu X. Influence of Electrospinning Parameters on the Morphology of Electrospun Poly(3-hydroxybutyrate-co-3-hydroxyvalerate) Fibrous Membranes and Their Application as Potential Air Filtration Materials. Polymers 16 (2024) 154. https://doi.org/10.3390/polym16010154"
+      },
+      {
+        "id": "figueroalopez2023",
+        "citation": "Figueroa-Lopez KJ, Prieto C, Pardo-Figuerez M, Cabedo L, Lagaron JM. Development and Characterization of Electrospun Poly(3-hydroxybutyrate-co-3-hydroxyvalerate) Biopapers Containing Cerium Oxide Nanoparticles for Active Food Packaging Applications. Nanomaterials 13 (2023) 823. https://doi.org/10.3390/nano13050823"
+      },
+      {
+        "id": "jin2024",
+        "citation": "Jin A, Pérez G, Martínez de Ilarduya A, del Valle LJ, Puiggalí J. Characterization and Biomedical Applications of Electrospun PHBV Scaffolds Derived from Organic Residues. International Journal of Molecular Sciences 26 (2025) 180. https://doi.org/10.3390/ijms26010180"
+      },
+      {
+        "id": "golubev2025",
+        "citation": "Golubev RA, Nikolaev AA, Semenkova DI, Egorov AR, Nguyen LV, Nazarov RH, Kirichuk AA, Rubanik VV, Shakola TV, Garkushina IS, Liu W, Tskhovrebov AG, Kritchenkov AS. Multifunctional Chitosan/Mn(II) Complexes: Preparation, Catalytic Activity in Imine Synthesis and Aldol Reaction, and Effect on Milk Fermentation/Post-Acidification. Molecules 30 (2025) 4522. https://doi.org/10.3390/molecules30234522"
+      },
+      {
+        "id": "piboonkunsamlit2026",
+        "citation": "Piboonkunsamlit S, Suntara C, Loor JJ, Cherdthong A. Influence of Extraction Conditions on Yield, Physicochemical Characteristics, and Degree of Deacetylation of Chitosan Derived from Black Soldier Fly Cocoons. ACS Omega 11 (2026) 48035-48049. https://doi.org/10.1021/acsomega.6c04152"
+      },
+      {
+        "id": "villanueva2025",
+        "citation": "Villanueva DM, Gonzales AG, Saez CA, Lazarte AM. Removal of As from Tambo River Using Sodium Alginate from Lessonia trabeculata (Aracanto). Plants 14 (2025) 2173. https://doi.org/10.3390/plants14142173"
+      },
+      {
+        "id": "huamani2021",
+        "citation": "Huamani-Palomino RG, Córdova BM, Pichilingue LER, Venâncio T, Valderrama AC. Functionalization of an Alginate-Based Material by Oxidation and Reductive Amination. Polymers 13 (2021) 255. https://doi.org/10.3390/polym13020255"
+      },
+      {
+        "id": "szopa2026",
+        "citation": "Szopa D, Wróbel P, Zwolińska J, Anwar H, Kaniewski M, Witek-Krowiak A. Influence of Deep Eutectic Solvents and Polyphenolic Extracts on the Structure and Functional Properties of Sodium Alginate Films. Polymers 18 (2026) 186. https://doi.org/10.3390/polym18020186"
+      },
+      {
+        "id": "mavronasou2022",
+        "citation": "Mavronasou K, Zamboulis A, Klonos P, Kyritsis A, Bikiaris DN, Papadakis R, Deligkiozi I. Poly(vinyl pyridine) and Its Quaternized Derivatives: Understanding Their Solvation and Solid State Properties. Polymers 14 (2022) 804. https://doi.org/10.3390/polym14040804"
+      },
+      {
+        "id": "yin2022",
+        "citation": "Yin Y, Ying Y, Liu G, Chen H, Fan J, Li Z, Wang C, Guo Z, Zeng G. High Proton-Conductive and Temperature-Tolerant PVC-P4VP Membranes towards Medium-Temperature Water Electrolysis. Membranes 12 (2022) 363. https://doi.org/10.3390/membranes12040363"
+      },
+      {
+        "id": "lei2019",
+        "citation": "Lei T, Li S-J, Jiang F, Ren Z-X, Wang L-L, Yang X-J, Tang L-H, Wang S-X. Adsorption of Cadmium Ions from an Aqueous Solution on a Highly Stable Dopamine-Modified Magnetic Nano-Adsorbent. Nanoscale Research Letters 14 (2019) 352. https://doi.org/10.1186/s11671-019-3154-0"
+      },
+      {
+        "id": "adler2023",
+        "citation": "Adler C, Monavari M, Abraham GA, Boccaccini AR, Ghorbani F. Mussel-inspired polydopamine decorated silane modified-electroconductive gelatin-PEDOT:PSS scaffolds for bone regeneration. RSC Advances 13 (2023) 15960-15974. https://doi.org/10.1039/d3ra01311a"
+      },
+      {
+        "id": "liu2026",
+        "citation": "Liu S, Wang W, Wang D, Lu J, Li Y, Lv M, Sun M, Fan Z. Upcycling Coir Fiber into Polydopamine-Enabled Adsorbents for Efficient Cu(II)/Cd(II) Removal and Effluent Safety. Materials 19 (2026) 935. https://doi.org/10.3390/ma19050935"
+      },
+      {
+        "id": "cheng2021",
+        "citation": "Cheng C, Lu Y, Ma W, Li S, Yan J, Du S. Preparation and characterization of polydopamine/melamine microencapsulated red phosphorus and its flame retardance in epoxy resin. RSC Advances 11 (2021) 20391-20402. https://doi.org/10.1039/d1ra03164c"
+      },
+      {
+        "id": "vuluga2021",
+        "citation": "Vuluga Z, Sanporean C-G, Panaitescu DM, Teodorescu GM, Corobea MC, Nicolae CA, Gabor AR, Raditoiu V. The Effect of SEBS/Halloysite Masterbatch Obtained in Different Extrusion Conditions on the Properties of Hybrid Polypropylene/Glass Fiber Composites for Auto Parts. Polymers 13 (2021) 3560. https://doi.org/10.3390/polym13203560"
+      },
+      {
+        "id": "tang2018",
+        "citation": "Tang S, Xu Y, Su G, Bao J, Zhang A. Photoelectric and flexible poly(styrene-b-ethylene/butylene-b-styrene)-zinc porphyrin-graphene hybrid composite: synthesis, performance, and mechanism. RSC Advances 8 (2018) 35429-35436. https://doi.org/10.1039/c8ra07003b"
       }
     ],
     "schema": {
@@ -309,6 +801,12 @@
         "changes": [
           "Real, Crossref-checked references for 22 of the 24 cards that cited a generic 'IR literature' placeholder (16 hydrogels, 6 elements/allotropes); dextran and grey selenium keep general tables with a note.",
           "Band corrections: PLA alpha-crystal 921 cm-1 added, 955 relabelled amorphous (Kister 1998); PVA 1141 crystallinity band (Peppas 1977); gypsum nu1 1005 and nu2 relabelled; NaHCO3 835 added, 3430 is water; graphite (868, ~1587) and MoS2 (384, 470) IR-active phonons; Si interstitial oxygen 1107; h-BN 1365-1380; six hydrogel ranges widened to the value in their new source."
+        ]
+      },
+      {
+        "version": "4.5",
+        "changes": [
+          "56 new cards (metal oxides/hydroxides, battery oxides, ferrites, polymers), each band read from Crossref-checked sources; evidence in docs/FTIR_DATABASE_ADDITIONS.md. Metal oxides are tagged group=metal_oxide for browsing."
         ]
       }
     ]
@@ -6461,6 +6959,1398 @@
         "verify": true,
         "note": "Sulfonate bands depend on hydration and counter-ion."
       }
+    },
+    {
+      "name": "Polyvinylidene Fluoride, alpha-phase (α-PVDF)",
+      "category": "polymer",
+      "source": "ren2019, zhou2021, kim2019, yasar2024, kaewon2025, morali2023, gebreyesus2016",
+      "peaks": [
+        {
+          "range": [
+            479,
+            488
+          ],
+          "assignment": "α-phase band (CF2 bending)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            528,
+            535
+          ],
+          "assignment": "α-phase band (CF2 bending)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            610,
+            617
+          ],
+          "assignment": "α-phase band (CF2 bending + skeletal bending)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            758,
+            768
+          ],
+          "assignment": "α-phase key marker (CF2 bending + skeletal bending); used as A_α in Beer-Lambert β-fraction formula",
+          "intensity": "medium, sharp"
+        },
+        {
+          "range": [
+            792,
+            799
+          ],
+          "assignment": "α-phase band (CH2 rocking)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            852,
+            858
+          ],
+          "assignment": "α-phase band",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            869,
+            877
+          ],
+          "assignment": "band common to α, β and γ phases (C-C/CF2 skeletal; not phase-diagnostic)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            972,
+            979
+          ],
+          "assignment": "α-phase band (CH out-of-plane deformation per HFP-copolymer source)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1068,
+            1074
+          ],
+          "assignment": "α-phase band",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1145,
+            1151
+          ],
+          "assignment": "α-phase band",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1381,
+            1387
+          ],
+          "assignment": "α-phase band (CH2 wagging region)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Phase-specific card to complement the generic PVDF entry. α-phase (TGTG') is identified by 763/795/976/614/532 cm−1; these bands vanish when β/γ form (kim2019, yasar2024). Strong common bands near 1400, 1180 and 873 cm−1 occur in all phases and are not diagnostic. Assignments for 481/531/614/975 come from the P(VDF-HFP) paper (kaewon2025), whose VDF units give the same α bands. Intensities are NOT stated in the sources (only 'sharp' for 761 cm−1 in yasar2024); 'medium' is a default. Could not access the Cai et al. RSC Adv. 2017 review full text (publisher blocked automated access), so its values are not cited; yasar2024 cites Cai for the γ band at 1233 cm−1."
+      }
+    },
+    {
+      "name": "Polyvinylidene Fluoride, beta-phase (β-PVDF)",
+      "category": "polymer",
+      "source": "ren2019, zhou2021, yasar2024, morali2023, kim2019, orooji2020",
+      "peaks": [
+        {
+          "range": [
+            428,
+            447
+          ],
+          "assignment": "β-phase bands (CF2 deformation region); sources give 444 and 431",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            507,
+            513
+          ],
+          "assignment": "β-phase band (CF2 bending)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            837,
+            843
+          ],
+          "assignment": "β-phase marker (also present in γ phase); A_β in the Beer-Lambert β-fraction formula",
+          "intensity": "medium, sharp"
+        },
+        {
+          "range": [
+            869,
+            877
+          ],
+          "assignment": "band common to α, β and γ phases (not phase-diagnostic)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1162,
+            1179
+          ],
+          "assignment": "β-phase bands reported at 1165 and 1176 (overlaps strong CF2 stretching common to all phases)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1271,
+            1279
+          ],
+          "assignment": "β-phase EXCLUSIVE marker (distinguishes β from γ)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1420,
+            1434
+          ],
+          "assignment": "β-phase band (CH2 bending region); sources disagree (1423 vs 1431)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "β-phase (all-trans) markers: 840 + 1275 cm−1. 840 cm−1 is shared with the γ phase; γ is flagged by 1233-1235 cm−1 ('Peaks at 1233 and 833 cm−1 exclusively represented the γ phase', yasar2024; 1234 cm−1, morali2023; 1233/1235 cm−1, kim2019) and absence of 1275 cm−1. A sample with 840 but no 1275 cm−1 is likely γ-rich, not β. Strong common bands (~1400, ~1180, ~873 cm−1) are not phase diagnostic. Intensities not stated in sources (only 'sharp' for 840 cm−1); 'medium' is a default. Cai et al. 2017 review could not be accessed directly."
+      }
+    },
+    {
+      "name": "Poly(vinylidene fluoride-co-hexafluoropropylene) (PVDF-HFP)",
+      "category": "polymer",
+      "source": "kaewon2025, gebreyesus2016, im2025",
+      "peaks": [
+        {
+          "range": [
+            478,
+            492
+          ],
+          "assignment": "CF2 bending / CF2 wagging; sources disagree (481 vs 490)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            528,
+            534
+          ],
+          "assignment": "CF2 bending (α-phase VDF crystals)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            611,
+            617
+          ],
+          "assignment": "CF2 bending and skeletal bending (α-phase)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            756,
+            765
+          ],
+          "assignment": "in-plane bending/rocking; α-phase marker",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            791,
+            799
+          ],
+          "assignment": "CH2 rocking + CF2 stretching (α-phase)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            832,
+            844
+          ],
+          "assignment": "CH2 rocking + CF2 asymmetric stretching (β/γ-related); sources give 834 and 841",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            868,
+            877
+          ],
+          "assignment": "CH2 rocking / C-C skeletal (amorphous + all crystal phases)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            972,
+            979
+          ],
+          "assignment": "CH out-of-plane deformation (α-phase)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1060,
+            1073
+          ],
+          "assignment": "CF3 out-of-plane deformation (HFP unit) / C-C backbone; assignments differ between sources",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1167,
+            1177
+          ],
+          "assignment": "CF2 antisymmetric stretching (C-F stretch)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1378,
+            1387
+          ],
+          "assignment": "CH2 wagging",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1398,
+            1406
+          ],
+          "assignment": "CH2 scissoring (also described as C-F stretching)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "PVDF-HFP spectrum is dominated by the VDF units and is very similar to PVDF; crystal-phase bands (α: 530/614/760/796/976; β: ~840) depend on processing. The HFP comonomer is mainly signalled by a CF3-related band near 1069 cm−1 (kaewon2025), but that band overlaps a PVDF backbone mode (1063 cm−1 per im2025), so PVDF vs PVDF-HFP discrimination by IR alone is weak. Intensities not stated in sources; 'medium' is a default. Assignments at 1063-1069 and 1402 cm−1 differ between sources."
+      }
+    },
+    {
+      "name": "Polythiophene (PTh, neutral/undoped)",
+      "category": "polymer",
+      "source": "parker2023",
+      "peaks": [
+        {
+          "range": [
+            453,
+            459
+          ],
+          "assignment": "intra-ring torsion",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            581,
+            587
+          ],
+          "assignment": "inter-ring in-plane deformation",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            698,
+            704
+          ],
+          "assignment": "intra-ring in-plane deformation",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            782,
+            790
+          ],
+          "assignment": "out-of-plane C-H bend (2,5-linked thiophene ring; strongest IR band)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            827,
+            833
+          ],
+          "assignment": "intra-ring in-plane deformation",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1041,
+            1047
+          ],
+          "assignment": "in-plane C-H bend",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            1067,
+            1073
+          ],
+          "assignment": "in-plane C-H bend",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            1422,
+            1442
+          ],
+          "assignment": "ring (C=C) stretch; 1425 vw and 1439 w components",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            3044,
+            3078
+          ],
+          "assignment": "aromatic (thiophene) C-H stretch: 3047 sh, 3061 w, 3074 w",
+          "intensity": "weak"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Single high-quality source (ATR-IR + INS + DFT assignment of neutral polythiophene). Band intensities are the paper's own s/m/w labels (vw mapped to 'weak'). Doped (oxidised, e.g. I2 or FeCl3) PTh shows additional broad IRAV/polaron bands and shifted ring modes, so chemically-synthesised PTh that is not fully de-doped will differ. The 1456 cm−1 band listed in the table is Raman-active (vs), not IR, and is excluded."
+      }
+    },
+    {
+      "name": "Poly(3-hexylthiophene) (P3HT)",
+      "category": "polymer",
+      "source": "arrigoni2022, socol2023, baibarac2021",
+      "peaks": [
+        {
+          "range": [
+            719,
+            727
+          ],
+          "assignment": "CH2 rocking (hexyl chain)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            817,
+            828
+          ],
+          "assignment": "thiophene ring C-H out-of-plane bending (2,3,5-trisubstituted ring); CH2 rocking",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1373,
+            1381
+          ],
+          "assignment": "CH3 umbrella (symmetric bending)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1452,
+            1467
+          ],
+          "assignment": "symmetric C=C ring stretch (ECC mode) + CH2 bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1505,
+            1515
+          ],
+          "assignment": "antisymmetric C=C stretch of thiophene ring",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2850,
+            2859
+          ],
+          "assignment": "symmetric CH2 stretch (hexyl)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2920,
+            2931
+          ],
+          "assignment": "antisymmetric CH2 stretch (hexyl)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2951,
+            2959
+          ],
+          "assignment": "antisymmetric CH3 stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            3050,
+            3060
+          ],
+          "assignment": "thiophene =C-H stretch",
+          "intensity": "weak"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Marker bands from arrigoni2022 Table 1 (1510/1455-1465/1377/823). Aliphatic C-H stretches are the strongest features but no source gives explicit intensities except 'very weak' for 3055 cm−1; other intensities are 'medium' defaults. baibarac2021 also lists 810 cm−1 (assigned there to C-S out-of-plane bending) and 1735 cm−1 C=O (oxidation/impurity), not adopted. Regioregular, crystalline P3HT shows the 1510/1455 intensity ratio change with conjugation; doped P3HT adds broad IRAV bands."
+      }
+    },
+    {
+      "name": "Sodium Poly(styrene sulfonate) (PSS-Na)",
+      "category": "polymer",
+      "source": "benbow2018, tzoumani2019, hu2026",
+      "peaks": [
+        {
+          "range": [
+            2925,
+            2936
+          ],
+          "assignment": "alkyl (backbone) C-H stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1597,
+            1605
+          ],
+          "assignment": "aromatic C=C stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1491,
+            1499
+          ],
+          "assignment": "aromatic C=C stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1407,
+            1415
+          ],
+          "assignment": "aromatic C=C stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1200,
+            1212
+          ],
+          "assignment": "S=O antisymmetric stretching overlapping aromatic C=C bending",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1170,
+            1186
+          ],
+          "assignment": "SO3− antisymmetric stretching",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1122,
+            1131
+          ],
+          "assignment": "aromatic in-plane skeletal vibration / C-H (S-O stretch near 1120 per one source)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1032,
+            1044
+          ],
+          "assignment": "SO3− symmetric stretching",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1004,
+            1013
+          ],
+          "assignment": "aromatic in-plane C-H bending (para-substituted ring)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            830,
+            838
+          ],
+          "assignment": "=C-H out-of-plane deformation (para-disubstituted benzene)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            770,
+            778
+          ],
+          "assignment": "=C-H deformation",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            672,
+            680
+          ],
+          "assignment": "aromatic C-H out-of-plane bending",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Values for poly(sodium 4-styrenesulfonate); benbow2018 Table 1 is from the ATR-FTIR reference spectrum of PSS (sodium salt). Sulfonate bands shift a few cm−1 with hydration and counter-ion (1180 -> 1175 cm−1 in multilayers, benbow2018); the free acid (PSS-H) will differ in the sulfonate region and was not sourced. 'strong' for the S=O bands is from hu2026's statement; other intensities are 'medium' defaults. Note the overlap with the existing PEDOT:PSS card in the sulfonate region."
+      }
+    },
+    {
+      "name": "Branched Polyethylenimine (bPEI)",
+      "category": "polymer",
+      "source": "arkas2023, yang2021",
+      "peaks": [
+        {
+          "range": [
+            3340,
+            3360
+          ],
+          "assignment": "N-H asymmetric stretch (primary/secondary amines)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            3270,
+            3295
+          ],
+          "assignment": "N-H symmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2930,
+            2945
+          ],
+          "assignment": "CH2 asymmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2805,
+            2825
+          ],
+          "assignment": "CH2 symmetric stretch (lowered by N lone pair; amine marker)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1580,
+            1590
+          ],
+          "assignment": "N-H bending (NH, NH2 scissoring)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1455,
+            1465
+          ],
+          "assignment": "CH2 scissoring / N-H region (source attributes to -NH)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1100,
+            1110
+          ],
+          "assignment": "C-N asymmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1040,
+            1050
+          ],
+          "assignment": "C-N symmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            755,
+            765
+          ],
+          "assignment": "CH2 rocking (and N-H wagging region)",
+          "intensity": "strong"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Branched/hyperbranched PEI (Mw 25,000) — NOT polyetherimide (Ultem), which is already in the DB. Intensities for most bands are the source's own s/m labels (arkas2023 Table 2); the 1460 cm−1 band intensity is a 'medium' default. bPEI is hygroscopic and absorbs CO2: protonation/carbamate formation shifts CH2 stretches up (2981/2820 in silica hybrids) and adds bands near 1570/1430/1300 cm−1 (carbamate) and 1520/1470 cm−1 (NH3+); water broadens the N-H region. The 1460 cm−1 assignment to -NH by yang2021 is questionable (CH2 scissoring overlaps)."
+      }
+    },
+    {
+      "name": "Polybutadiene Rubber (BR, high cis-1,4)",
+      "category": "polymer",
+      "source": "smith2022, liu2018, sun2026, lyu2026",
+      "peaks": [
+        {
+          "range": [
+            3003,
+            3010
+          ],
+          "assignment": "=C-H stretch (cis-alkene)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1650,
+            1658
+          ],
+          "assignment": "C=C stretch (cis-configured double bond)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            725,
+            742
+          ],
+          "assignment": "cis-CH=CH- C-H out-of-plane wag; cis-1,4 marker (used for microstructure quantification)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            907,
+            914
+          ],
+          "assignment": "1,2-vinyl unit (=CH2 wag); minor in high-cis BR",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            963,
+            970
+          ],
+          "assignment": "trans-1,4 unit (trans-CH=CH- wag); minor in high-cis BR",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Only 5 bands could be sourced confidently (fewer than the 6 targeted); aliphatic CH2 stretch/bend positions were not found in a source read in full. 'strong' for the cis wag is stated by liu2018 and lyu2026; other intensities are 'medium' defaults (911/967 are small in high-cis BR because liu2018 reports very low trans-1,4 and 1,2 contents). Microstructure equations (sun2026): cis% = 17,700·A738/B, 1,2% = 3670·A911/B, trans% = 4740·A967/B. The cis wag position varies 727-740 cm−1 between sources. Distinguish from SBR (existing card) by absence of styrene bands at 699/759 cm−1."
+      }
+    },
+    {
+      "name": "Low-Density Polyethylene (LDPE, branched)",
+      "category": "polymer",
+      "source": "akram2024, ballestar2024, salakhov2021",
+      "peaks": [
+        {
+          "range": [
+            2912,
+            2922
+          ],
+          "assignment": "CH2 asymmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2847,
+            2857
+          ],
+          "assignment": "CH2 symmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1460,
+            1470
+          ],
+          "assignment": "CH2 deformation (scissoring)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1374,
+            1381
+          ],
+          "assignment": "CH3 symmetric (umbrella) deformation of short-chain branches — LDPE vs HDPE discriminator",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1366,
+            1372
+          ],
+          "assignment": "CH2 wagging (amorphous), adjacent to the CH3 band",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            716,
+            733
+          ],
+          "assignment": "CH2 rocking doublet (730 crystalline / 720 component)",
+          "intensity": "medium, doublet"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "The existing generic PE card already covers the main CH2 bands; this card adds the branch-sensitive 1377-1378 cm−1 CH3 umbrella band that akram2024 states 'differentiates LDPE from HDPE' (HDPE shows little or none). The band is also present in LLDPE (comonomer branches) so it indicates branching, not LDPE specifically. 1368/1352 cm−1 HDPE-vs-LDPE amorphous wagging bands were not found in a source read in full. Intensities are not stated in the sources (akram2024 only calls 1377 'significant'/'prominent'); all are 'medium' defaults except the 'doublet' shape for 720/730 implied by the 730/720 ratio. In real spectra the CH2 stretches are the strongest bands and 1377 is weak in LDPE."
+      }
+    },
+    {
+      "name": "Poly(butylene adipate-co-terephthalate) (PBAT)",
+      "category": "polymer",
+      "source": "guo2024, grimaut2023, gutierrez2025, mortl2024",
+      "peaks": [
+        {
+          "range": [
+            2955,
+            2972
+          ],
+          "assignment": "C-H asymmetric stretch (CH2)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2868,
+            2878
+          ],
+          "assignment": "C-H symmetric stretch (CH2)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1706,
+            1716
+          ],
+          "assignment": "C=O stretch of ester groups",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1500,
+            1580
+          ],
+          "assignment": "benzene-ring skeletal vibrations (terephthalate)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1452,
+            1460
+          ],
+          "assignment": "C-H bending (CH2/CH3)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1406,
+            1414
+          ],
+          "assignment": "C-H deformation / ring",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1263,
+            1272
+          ],
+          "assignment": "C-O stretch of ester linkage (terephthalate ester)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1161,
+            1173
+          ],
+          "assignment": "C-O stretch (ester attached to aromatic ring)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1099,
+            1124
+          ],
+          "assignment": "C-O stretch (aliphatic ester linkage); sources give 1103-1104 and 1121",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            870,
+            878
+          ],
+          "assignment": "aromatic C-H out-of-plane (para-substituted ring)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            722,
+            734
+          ],
+          "assignment": "out-of-plane bending of benzene-ring C-H / CH2 rocking; PBAT identifier",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Diagnostic set for PBAT: 1710 (C=O), 1267, 1165, 1103 and 725-731 cm−1 (grimaut2023: bands at 731, 1121 and 1169 cm−1 'can be used as indicative bands to identify PBAT'). Distinguish from PBT/PET (existing cards) by the aliphatic adipate component (1103-1121 cm−1, stronger CH2 bands) and from PBS (no aromatic 725/874/1504 bands). grimaut2023 studied degraded PBAT film; guo2024 neat PBAT film. Intensities are not stated in the sources; 'medium' is a default (in practice 1710 and 1267 cm−1 are the strongest)."
+      }
+    },
+    {
+      "name": "Poly(3-hydroxybutyrate-co-3-hydroxyvalerate) (PHBV)",
+      "category": "polymer",
+      "source": "liu2024, figueroalopez2023, jin2024",
+      "peaks": [
+        {
+          "range": [
+            2970,
+            2990
+          ],
+          "assignment": "CH3 asymmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2928,
+            2937
+          ],
+          "assignment": "CH2 asymmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2870,
+            2878
+          ],
+          "assignment": "C-H symmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1716,
+            1730
+          ],
+          "assignment": "C=O stretch of ester (crystalline ~1720; amorphous component toward 1740)",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            1445,
+            1452
+          ],
+          "assignment": "CH3 asymmetric bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1379,
+            1387
+          ],
+          "assignment": "CH3 symmetric deformation",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1272,
+            1279
+          ],
+          "assignment": "C-O-C stretch / crystalline helix band",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1176,
+            1187
+          ],
+          "assignment": "C-O-C stretch (amorphous)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1050,
+            1057
+          ],
+          "assignment": "C-O stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            974,
+            980
+          ],
+          "assignment": "C-C stretch (crystalline)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            816,
+            824
+          ],
+          "assignment": "C-C skeletal",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "PHBV and PHB (existing card) have practically identical IR spectra; HV content mainly raises the C-H stretch intensity (jin2024: intensities in 3050-2800 cm−1 'gradually increased with higher 3HV content'), so IR alone cannot reliably distinguish PHBV from PHB. 'very strong' for 1720 is from liu2024 ('highest intensity'); 'strong' for 1275 from figueroalopez2023; other intensities are 'medium' defaults. Assignment of 1275 cm−1 differs between sources (C-C vs C-O-C)."
+      }
+    },
+    {
+      "name": "Chitosan (solid powder/film)",
+      "category": "polymer",
+      "source": "golubev2025, piboonkunsamlit2026",
+      "peaks": [
+        {
+          "range": [
+            3270,
+            3360
+          ],
+          "assignment": "O-H and N-H stretching (H-bonded); maxima 3291 and 3352",
+          "intensity": "medium, broad"
+        },
+        {
+          "range": [
+            2850,
+            2920
+          ],
+          "assignment": "C-H stretching (2868, 2914)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1645,
+            1660
+          ],
+          "assignment": "amide I (C=O of residual N-acetyl groups)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1584,
+            1594
+          ],
+          "assignment": "N-H bending of free -NH2 (deacetylated glucosamine)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1540,
+            1560
+          ],
+          "assignment": "amide II (N-H bending + C-N stretching)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1415,
+            1425
+          ],
+          "assignment": "CH2 bending / C-H deformation (DD reference band)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1372,
+            1380
+          ],
+          "assignment": "C-H / O-H deformation (CH3 of acetamide region)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1316,
+            1324
+          ],
+          "assignment": "C-N stretching (amide III) / CH2 wagging; DD band paired with 1420",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1147,
+            1154
+          ],
+          "assignment": "C-O-C asymmetric stretch (glycosidic bridge)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1055,
+            1064
+          ],
+          "assignment": "C-O stretching (ring)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1020,
+            1030
+          ],
+          "assignment": "C-O stretching (ring)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            889,
+            898
+          ],
+          "assignment": "β(1-4) glycosidic C-H wag (saccharide structure)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Solid chitosan; complements the existing 'Chitosan Hydrogel' card. Relative heights of 1650 (amide I) vs 1590 (NH2) and the A1320/A1420 ratio track degree of deacetylation (piboonkunsamlit2026). Protonation (acetic-acid film/salt) shifts N-H bands (1548 cm−1 in acetic acid, golubev2025) and may add acetate COO− bands; water content alters the 3300 region. Intensities are not stated except 'broad' for the OH/NH band; others are 'medium' defaults (in practice the 1020-1060 C-O bands are the strongest)."
+      }
+    },
+    {
+      "name": "Sodium Alginate (solid powder/film)",
+      "category": "polymer",
+      "source": "villanueva2025, huamani2021, szopa2026",
+      "peaks": [
+        {
+          "range": [
+            3000,
+            3600
+          ],
+          "assignment": "O-H stretching (H-bonded hydroxyls), max ~3300",
+          "intensity": "medium, broad"
+        },
+        {
+          "range": [
+            2915,
+            2925
+          ],
+          "assignment": "C-H stretching",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            2845,
+            2855
+          ],
+          "assignment": "C-H symmetric stretching",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            1590,
+            1605
+          ],
+          "assignment": "COO− asymmetric stretching (uronic acid carboxylate)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1402,
+            1418
+          ],
+          "assignment": "COO− symmetric stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1118,
+            1126
+          ],
+          "assignment": "C-O and C-C stretching of pyranose rings",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1079,
+            1087
+          ],
+          "assignment": "C-O / C-C stretching (pyranose); M/G-sensitive region",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1020,
+            1032
+          ],
+          "assignment": "C-O(-C) stretching of pyranose ring / glycosidic linkage",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            944,
+            952
+          ],
+          "assignment": "C-O stretching of uronic acid residues",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            884,
+            892
+          ],
+          "assignment": "C1-H deformation of β-D-mannuronic acid residues",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Solid sodium alginate; complements the existing 'Alginate Hydrogel' card. Ca2+ cross-linking or acidification (alginic acid) shifts the carboxylate bands (alginic acid C=O near 1730 cm−1 is not sourced here). Intensities: 'weak' for C-H stretches and 'broad' for OH are from szopa2026 Table 1; others are 'medium' defaults (in practice ~1600 and ~1027 cm−1 are the strongest)."
+      }
+    },
+    {
+      "name": "Poly(4-vinylpyridine) (P4VP)",
+      "category": "polymer",
+      "source": "mavronasou2022, yin2022",
+      "peaks": [
+        {
+          "range": [
+            1594,
+            1601
+          ],
+          "assignment": "pyridine ring C=N / C=C stretching (free, non-protonated pyridine; disappears on quaternization)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1552,
+            1560
+          ],
+          "assignment": "pyridine ring C=N/C-N stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1492,
+            1500
+          ],
+          "assignment": "pyridine ring C=C stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1448,
+            1456
+          ],
+          "assignment": "pyridine ring vibration (overlaps backbone CH2 bending)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1411,
+            1420
+          ],
+          "assignment": "pyridine ring C=C stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1064,
+            1072
+          ],
+          "assignment": "in-plane C-H bending (pyridine)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            953,
+            961
+          ],
+          "assignment": "out-of-plane C-H bending",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Only 7 bands were sourced; the ~993 cm−1 ring-breathing band and ~820 cm−1 out-of-plane band commonly used for P4VP were not found in a source read in full. Quaternization/protonation (pyridinium) replaces 1598 cm−1 by bands near 1640, 1570 and 1516 cm−1 (mavronasou2022). Distinguish from polystyrene (existing card) by the 1598/1556/1415 cm−1 pyridine pattern and absence of 699/757 cm−1 monosubstituted-benzene bands (not checked in these sources). Intensities not stated; 'medium' defaults."
+      }
+    },
+    {
+      "name": "Polydopamine (PDA)",
+      "category": "polymer",
+      "source": "lei2019, adler2023, liu2026, cheng2021",
+      "peaks": [
+        {
+          "range": [
+            3200,
+            3500
+          ],
+          "assignment": "O-H (catechol) and N-H stretching, H-bonded; ~3430",
+          "intensity": "medium, very broad"
+        },
+        {
+          "range": [
+            1600,
+            1625
+          ],
+          "assignment": "aromatic ring C=C stretching + N-H bending (indole/catechol)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1505,
+            1515
+          ],
+          "assignment": "N-H shearing (scissoring) of amine / aromatic ring deformation",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1340,
+            1390
+          ],
+          "assignment": "C-O-H bending (phenolic); sources give 1345 and 1384",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1278,
+            1290
+          ],
+          "assignment": "phenolic C-O(-H) stretching / C-N bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1115,
+            1125
+          ],
+          "assignment": "C-O stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            868,
+            876
+          ],
+          "assignment": "aromatic ring bending",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "PDA is a heterogeneous, ill-defined material (dihydroxyindole/indolequinone/open-chain catecholamine units) and its IR bands are broad and overlapping; positions vary between preparations. lei2019 measured pure PDA microspheres; the other sources measured PDA coatings on substrates (adler2023 on gelatin-PEDOT:PSS, cheng2021 on red phosphorus, liu2026 on coir fiber), so substrate overlap is possible. Intensities not stated except 'broad' for the OH/NH band ('very broad' chosen because it spans 3200-3500 cm−1); others are 'medium' defaults."
+      }
+    },
+    {
+      "name": "Styrene-Ethylene/Butylene-Styrene Block Copolymer (SEBS)",
+      "category": "polymer",
+      "source": "vuluga2021, tang2018",
+      "peaks": [
+        {
+          "range": [
+            2912,
+            2925
+          ],
+          "assignment": "CH2 asymmetric stretching (ethylene-butylene midblock), overlapping CH3 asymmetric stretch",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            2845,
+            2855
+          ],
+          "assignment": "CH2 symmetric stretching (EB midblock)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1600,
+            1608
+          ],
+          "assignment": "aromatic C=C stretching (styrene end blocks)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1488,
+            1496
+          ],
+          "assignment": "aromatic C=C stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1452,
+            1462
+          ],
+          "assignment": "CH2 bending (EB) overlapping aromatic ring vibration",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1373,
+            1381
+          ],
+          "assignment": "CH3 bending (butylene ethyl branches of EB segment)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            752,
+            760
+          ],
+          "assignment": "C-H out-of-plane bending, monosubstituted benzene",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            694,
+            702
+          ],
+          "assignment": "ring out-of-plane deformation, monosubstituted benzene",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "SEBS = hydrogenated SBS. Distinguish from SBR/BR (existing/new cards) by the absence of unsaturation bands (no 966 trans, 911 vinyl, ~738 cis C=C-H wags) and by the 1376-1378 cm−1 CH3 band of the butylene units; distinguish from PS by strong aliphatic CH2 bands. Styrene content changes the ratio of 698/757 to 2918/2850 bands. Intensities not stated in sources; 'medium' defaults."
+      }
     }
   ],
   "hydrogels": [
@@ -11063,6 +12953,1630 @@
         "confidence": "medium",
         "verify": true,
         "note": "nu1 shifts with antisite defects; low-wavenumber bands below 600 cm-1 not included."
+      }
+    },
+    {
+      "name": "Cobalt(II,III) Oxide (Co3O4, spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "gong2018, zeljkovic2026",
+      "peaks": [
+        {
+          "range": [
+            542,
+            572
+          ],
+          "assignment": "Co–O stretching (ν1; often assigned to Co3+–O in octahedral sites; assignment varies between authors)",
+          "intensity": "strong, sharp"
+        },
+        {
+          "range": [
+            652,
+            668
+          ],
+          "assignment": "Co–O stretching (ν2; often assigned to Co2+–O in tetrahedral sites)",
+          "intensity": "strong, sharp"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Two-band spinel fingerprint. The sources differ by about 10-20 cm-1 (567/662 vs 544/654), so the ranges are widened. Defects and small size shift both bands to lower wavenumber. Authors disagree on which band is tetrahedral and which is octahedral. 'strong' comes from zeljkovic2026, 'sharp' from gong2018."
+      }
+    },
+    {
+      "name": "Nickel Cobaltite (NiCo2O4, spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "hassanpoor2020, patel2025",
+      "peaks": [
+        {
+          "range": [
+            544,
+            572
+          ],
+          "assignment": "Metal–O stretching (assigned to Ni–O / octahedral site)",
+          "intensity": "medium, sharp"
+        },
+        {
+          "range": [
+            637,
+            662
+          ],
+          "assignment": "Metal–O stretching (assigned to Co–O / tetrahedral site)",
+          "intensity": "medium, sharp"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "The bands overlap the Co3O4 doublet, so use XRD/Raman to tell the two apart. The sources differ by about 20 cm-1, so the ranges are widened. Both call the bands 'sharp' but give no strength, so strength is 'medium' by the default rule. Ni–O/Co–O site assignments are as the authors give them."
+      }
+    },
+    {
+      "name": "Manganese(II,III) Oxide (Mn3O4, hausmannite)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "nguyen2025, tonu2024",
+      "peaks": [
+        {
+          "range": [
+            518,
+            528
+          ],
+          "assignment": "Mn–O distortion vibration, octahedral sites",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            620,
+            636
+          ],
+          "assignment": "Mn–O stretching, tetrahedral sites",
+          "intensity": "strong"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Spinel hausmannite. A third Mn–O band near 410-450 cm-1 is often reported, but tonu2024 only measured down to 450 cm-1, so it is left out. Both sources also show a weak Mn–O–H band at ~1050-1090 cm-1 from surface hydroxyls; it is left out. Intensity is from nguyen2025."
+      }
+    },
+    {
+      "name": "Copper(I) Oxide (Cu2O, cuprite)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "ghosh2019, surikanti2019",
+      "peaks": [
+        {
+          "range": [
+            627,
+            638
+          ],
+          "assignment": "Cu(I)–O stretching (IR-active lattice mode)",
+          "intensity": "medium, sharp"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "This is the single mid-IR lattice band of cuprite. Some reports put it at 620-627 cm-1 (e.g. 10.1021/acsomega.6b00447: 620; 10.1002/advs.201801169: 627); those papers were read but not added as references. Both sources call it 'sharp' but give no strength, so strength is 'medium' by the default rule. Extra bands at ~480-600 cm-1 mean CuO from surface oxidation."
+      }
+    },
+    {
+      "name": "Iron(III) Oxyhydroxide (alpha-FeOOH, goethite)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "kuncser2021, kubiak2023",
+      "peaks": [
+        {
+          "range": [
+            3125,
+            3150
+          ],
+          "assignment": "O–H stretching of structural (bulk) hydroxyl",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            885,
+            898
+          ],
+          "assignment": "Fe–O–H in-plane bending (delta OH)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            788,
+            805
+          ],
+          "assignment": "Fe–O–H out-of-plane bending (gamma OH)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            600,
+            640
+          ],
+          "assignment": "Fe–O stretching",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            450,
+            465
+          ],
+          "assignment": "Fe–O lattice stretching",
+          "intensity": "very strong"
+        },
+        {
+          "range": [
+            405,
+            415
+          ],
+          "assignment": "Fe–O lattice stretching",
+          "intensity": "very strong"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "kuncser2021 labels 3140 as a water mode and 890/800/610 as rocking/wagging modes. This card uses the usual goethite assignments (structural OH stretch and the delta/gamma OH bending doublet). The ~890/~795 doublet is the most diagnostic feature for goethite against other FeOOH polymorphs. The 600-640 range is wide because the sources disagree (610 vs 632). The 405-465 cm-1 bands come from kuncser2021 only. Intensities come from the kuncser2021 table."
+      }
+    },
+    {
+      "name": "Iron(III) Oxide (alpha-Fe2O3, hematite)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "pallela2019, khoshnam2021",
+      "peaks": [
+        {
+          "range": [
+            530,
+            545
+          ],
+          "assignment": "Fe–O stretching (lattice mode)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            450,
+            472
+          ],
+          "assignment": "Fe–O stretching (lattice mode)",
+          "intensity": "strong"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Two-band hematite pattern. The sources are a green-synthesis paper and a GO-composite paper. Hematite IR band positions depend strongly on particle shape and size, and the upper band is reported anywhere from about 520 to 560 cm-1. Intensity is from pallela2019, which calls the material 'magnetite' in one sentence even though its XRD and assignments are α-Fe2O3. This specific phase is complementary to the generic Iron Oxide card."
+      }
+    },
+    {
+      "name": "Iron(II,III) Oxide (Fe3O4, magnetite)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "yew2016, morales2018",
+      "peaks": [
+        {
+          "range": [
+            550,
+            585
+          ],
+          "assignment": "Fe–O stretching, tetrahedral-site dominated (ν1)",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            395,
+            428
+          ],
+          "assignment": "Fe–O stretching, octahedral sites (ν2)",
+          "intensity": "medium, broad"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Spectrometers with a 400 cm-1 cutoff often truncate ν2. Shoulders at ~630-700 cm-1 or a split ν1 point to oxidation toward maghemite. 'broad' comes from morales2018. Neither source gives strength: ν1 is set to 'strong' because it is the main band in both papers, and ν2 to 'medium' by the default rule. ν1 is reported at ~540-590 cm-1 across the literature depending on size."
+      }
+    },
+    {
+      "name": "Nickel(II) Hydroxide (beta-Ni(OH)2, brucite-type)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "halder2018, gallenberger2025",
+      "peaks": [
+        {
+          "range": [
+            3636,
+            3650
+          ],
+          "assignment": "O–H stretching of free (non-hydrogen-bonded) lattice hydroxyl, brucite-type",
+          "intensity": "strong, sharp"
+        },
+        {
+          "range": [
+            515,
+            526
+          ],
+          "assignment": "Ni–O–H bending (delta OH) overlapping Ni–O stretching",
+          "intensity": "medium-strong"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "The sharp ~3640-3646 band is the β-phase marker; it is missing or very weak in α-Ni(OH)2. The sources disagree on the strength of the ~520 band ('strong' in halder2018 KBr powder; 'smaller' than the OH band in the gallenberger2025 reflection-absorption film), so 'medium-strong' is a compromise. A Ni–O band near 420-460 cm-1 is also common but was not taken from these sources. Broad ~3430 and ~1630 cm-1 bands (adsorbed water) are left out. gallenberger2025 notes α-phase admixture shows up at 607-634 and 1380-1410 cm-1."
+      }
+    },
+    {
+      "name": "Nickel(II) Hydroxide (alpha-Ni(OH)2, hydrotalcite-like, intercalated)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "zhou2018, zhang2022",
+      "peaks": [
+        {
+          "range": [
+            3435,
+            3455
+          ],
+          "assignment": "O–H stretching of hydrogen-bonded hydroxyl and interlayer water",
+          "intensity": "medium, broad"
+        },
+        {
+          "range": [
+            1625,
+            1638
+          ],
+          "assignment": "H–O–H bending of interlayer water",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1380,
+            1394
+          ],
+          "assignment": "Intercalated anion: ν3 NO3− (nitrate form) or ν3 CO3 2− (carbonate form, from urea)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            632,
+            643
+          ],
+          "assignment": "delta(OH) / Ni–O–H bending",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            475,
+            485
+          ],
+          "assignment": "Ni–OH stretching",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Interlayer-anion bands depend on how the sample was made: nitrate salts give ~1384 cm-1 (NO3−), and urea routes give carbonate (~1390 cm-1) and sometimes an OCN− band at ~2220 cm-1 (zhou2018). The OCN− band is left out because only some preparations show it. Strength is not stated except 'weak' for 635 cm-1 (zhang2022), so the other bands are 'medium' by the default rule. zhou2018 also reports a 3644 cm-1 free-OH band, which may come from β-phase or surface OH. The broad ~3440 band rather than a sharp ~3640 band, plus anion bands near 1380 cm-1, is what separates α from β. zhang2022's measured range starts at 500 cm-1."
+      }
+    },
+    {
+      "name": "Cobalt(II) Hydroxide (beta-Co(OH)2, brucite-type)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "rahimi2018, aghazadeh2022",
+      "peaks": [
+        {
+          "range": [
+            3628,
+            3645
+          ],
+          "assignment": "O–H stretching of free (non-hydrogen-bonded) lattice hydroxyl, brucite-type",
+          "intensity": "strong, sharp"
+        },
+        {
+          "range": [
+            517,
+            527
+          ],
+          "assignment": "Co–O–H bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            487,
+            497
+          ],
+          "assignment": "Co–O stretching",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Both samples are electrodeposited Co(OH)2 films and contain some intercalated nitrate (~1400 cm-1 band in aghazadeh2022), so they are not ideal anion-free β-Co(OH)2. The free-OH band is strong and sharp in rahimi2018 but only a shoulder in aghazadeh2022, where the broad H-bonded band at ~3450 dominates. Strength of the 490/522 bands is not stated, so they are 'medium' by the default rule. The broad ~3420-3450 band (water / H-bonded OH) is left out. A second sharp OH band and a ~1380 cm-1 anion band point to α-Co(OH)2 or hydroxynitrate."
+      }
+    },
+    {
+      "name": "Nickel-Iron Layered Double Hydroxide (NiFe-LDH, carbonate form)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "wang2020, jaskaniec2018",
+      "peaks": [
+        {
+          "range": [
+            3440,
+            3480
+          ],
+          "assignment": "O–H stretching of layer hydroxyls and hydrogen-bonded interlayer water",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            1638,
+            1650
+          ],
+          "assignment": "H–O–H bending of interlayer water",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1345,
+            1365
+          ],
+          "assignment": "ν3 antisymmetric stretching of interlayer CO3 2−",
+          "intensity": "strong, sharp"
+        },
+        {
+          "range": [
+            680,
+            760
+          ],
+          "assignment": "M–O / M–OH lattice vibrations of the brucite-like layers (Ni–OH, M–O)",
+          "intensity": "strong, broad"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Carbonate form, e.g. from urea hydrolysis or exposure to air. Nitrate- or chloride-exchanged LDHs show different anion bands (NO3− ~1384 cm-1). The lattice-band range 680-760 is wide because the sources report 690 cm-1 (M–O, 'strong') and ~750 cm-1 (Ni–OH); 'broad' for that range is a judgement call. wang2020 also notes a 640 cm-1 Fe–OH shoulder (not listed). The 1645 band is 'medium' by the default rule (no strength stated). jaskaniec2018 notes weak 1155/1040 cm-1 bands from TEA residue, which are not intrinsic and are left out. Carbonate ν2/ν4 bands (~830/~670 cm-1) are usually there too but were not taken from these sources."
+      }
+    },
+    {
+      "name": "Manganese(III) Oxide (Mn2O3, bixbyite)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "yusoff2020, taghavifardood2024",
+      "peaks": [
+        {
+          "range": [
+            652,
+            668
+          ],
+          "assignment": "Mn–O / Mn–O–Mn stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            555,
+            576
+          ],
+          "assignment": "Mn–O stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            484,
+            520
+          ],
+          "assignment": "Mn–O / Mn–O–Mn vibration",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "Neither source gives intensities, so all bands are 'medium' by the default rule. The lowest band is reported at 487 vs 517 cm-1, so its range is wide. Other papers read during the search give different pairs (645.9/558.3 cm-1 in 10.1039/d1ra03496k; 582/523 cm-1 in 10.1038/s41598-024-69432-1), so Mn2O3 IR positions are poorly reproducible. The bands also overlap Mn3O4 (~520/~625) and MnO2, so confirm the phase by XRD."
+      }
+    },
+    {
+      "name": "Iron(III) Oxide (gamma-Fe2O3, maghemite)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "lemine2021, abdullah2022",
+      "peaks": [
+        {
+          "range": [
+            628,
+            640
+          ],
+          "assignment": "Fe–O stretching (maghemite marker; most intense of the maghemite lattice bands)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            578,
+            590
+          ],
+          "assignment": "Fe–O stretching",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "Maghemite IR depends on how ordered its vacancies are: vacancy-ordered samples show several resolved bands between 800 and 400 cm-1 (abdullah2022 cites six bands at 800-500 cm-1), while nanoparticles show broad bands near ~630 and ~580 cm-1. The ~630-640 band (often a shoulder on magnetite's ~580 band) is the practical marker of oxidized magnetite. 'strong' for 630 is based on abdullah2022's literature statement, not a measured spectrum, and the 583 band is 'medium' by the default rule. Only one primary measurement (lemine2021) was found, hence low confidence. Weaker bands near ~690-720 cm-1 are often reported but are not included."
+      }
+    },
+    {
+      "name": "Titanium Dioxide, anatase (TiO2)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "napruszewska2024, li2022",
+      "peaks": [
+        {
+          "range": [
+            430,
+            445
+          ],
+          "assignment": "Ti-O lattice vibration (TiO6 skeletal mode), anatase",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            525,
+            545
+          ],
+          "assignment": "Ti-O lattice vibration (Ti-O-Ti), anatase",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            710,
+            730
+          ],
+          "assignment": "Ti-O lattice vibration, shoulder of the skeletal band",
+          "intensity": "weak-medium, broad"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Phase-pure anatase (XRD) nanopowders. Source describes 'intense broad bands with multiple maxima' below 1000 cm-1; the 720 band is a shoulder (intensity label is a judgement). The 720 shoulder also appears for rutile, so the anatase marker is the 438/535 pair without a narrow ~420 band or a dominant ~615 maximum. Nanosize, hydration and KBr/ATR mode shift these broad bands; confirm phase with XRD/Raman. Adsorbed-water bands (~3160-3385, 1620) excluded."
+      }
+    },
+    {
+      "name": "Titanium Dioxide, rutile (TiO2)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "napruszewska2024",
+      "peaks": [
+        {
+          "range": [
+            605,
+            635
+          ],
+          "assignment": "Ti-O lattice vibration (TiO6 skeletal mode), rutile; dominant maximum",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            415,
+            428
+          ],
+          "assignment": "Ti-O lattice vibration, rutile; relatively narrow band",
+          "intensity": "medium, sharp"
+        },
+        {
+          "range": [
+            520,
+            540
+          ],
+          "assignment": "Ti-O lattice vibration, shoulder",
+          "intensity": "weak-medium, broad"
+        },
+        {
+          "range": [
+            710,
+            730
+          ],
+          "assignment": "Ti-O lattice vibration, shoulder",
+          "intensity": "weak-medium, broad"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Single source (phase-pure rutile by XRD, five samples). Other open-access reports give inconsistent rutile FTIR positions, so only this source was used. Rutile markers vs anatase: dominant ~615-630 maximum plus a narrow ~420 band. Sharp/broad labels follow the source's wording ('relatively narrow'). Confirm phase by XRD/Raman."
+      }
+    },
+    {
+      "name": "Indium Oxide, cubic bixbyite (In2O3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "nie2016, khort2023, habib2023",
+      "peaks": [
+        {
+          "range": [
+            595,
+            606
+          ],
+          "assignment": "In-O / In-O-In lattice vibration (cubic In2O3)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            560,
+            570
+          ],
+          "assignment": "In-O / In-O-In stretching (cubic In2O3)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            535,
+            545
+          ],
+          "assignment": "In-O-In stretching (cubic In2O3)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            414,
+            423
+          ],
+          "assignment": "In-O stretching (cubic In2O3)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Positions consistent across three independent sources. No source states intensities; 'medium' is a default, not measured. Assignments (stretch vs bend) differ between papers, so given generically as In-O lattice modes. Weaker features reported by single papers (840, 749 cm-1) omitted. Raman bands (~307, 366, 495, 630) are different and must not be confused."
+      }
+    },
+    {
+      "name": "Gallium Oxide, beta (beta-Ga2O3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "reddy2015",
+      "peaks": [
+        {
+          "range": [
+            652,
+            666
+          ],
+          "assignment": "Ga-O stretching (beta-Ga2O3 lattice)",
+          "intensity": "strong, sharp"
+        },
+        {
+          "range": [
+            435,
+            448
+          ],
+          "assignment": "Ga-O stretching/bending (beta-Ga2O3 lattice)",
+          "intensity": "strong, sharp"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Single source. alpha-Ga2O3 (500 C) instead showed weak Ga-O bands at 687, 577 and 468 cm-1 in the same paper, so phase matters; GaOOH precursor shows Ga-OH bending at 1014 and 941 cm-1."
+      }
+    },
+    {
+      "name": "Yttrium Oxide, cubic (Y2O3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "nawaz2021, vinayagam2025",
+      "peaks": [
+        {
+          "range": [
+            552,
+            570
+          ],
+          "assignment": "Y-O stretching (yttria lattice)",
+          "intensity": "strong, sharp"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Only the main Y-O band is sourced; additional lower-frequency Y-O bands below ~470 cm-1 expected for cubic Y2O3 were not reported by the sources read and are omitted. Biogenic/green samples carry organic residue bands (excluded)."
+      }
+    },
+    {
+      "name": "Lanthanum Oxide (La2O3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "ismail2024, ravi2019",
+      "peaks": [
+        {
+          "range": [
+            635,
+            668
+          ],
+          "assignment": "La-O stretching",
+          "intensity": "medium-strong, broad"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "La2O3 hydrates to La(OH)3 and carbonates to La2O2CO3 in air within hours-days; real spectra usually show a sharp La(OH)3 O-H band near 3600-3610 and carbonate bands (~1360-1500, ~850). Ismail 2024 reports 3609 (O-H) and assigns 852 to C-O bending; Ravi 2019 reports a 'strong' 845 band assigned to La2O3, which is more likely carbonate - excluded. Range widened because sources differ (643 vs 660)."
+      }
+    },
+    {
+      "name": "Niobium Pentoxide (Nb2O5)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "nagaraju2020, wang2021",
+      "peaks": [
+        {
+          "range": [
+            630,
+            670
+          ],
+          "assignment": "Nb-O-Nb stretching (NbO6 octahedra)",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            820,
+            860
+          ],
+          "assignment": "Nb=O / Nb-O-Nb stretching, shoulder",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "Sources disagree on which band is Nb=O vs Nb-O-Nb (assignments swapped between papers). Intensities are judgements ('wide band', 'shoulder'). Polymorph (TT/T/H) and crystallinity strongly change the band shape; another source (Nanomaterials 2022, N-doped Nb2O5) reports 592 and 880 cm-1, so expect +/-40 cm-1 scatter."
+      }
+    },
+    {
+      "name": "Magnesium Hydroxide, brucite (Mg(OH)2)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "wang2022, halbus2019, walling2018",
+      "peaks": [
+        {
+          "range": [
+            3693,
+            3702
+          ],
+          "assignment": "O-H stretching of lattice (structural) hydroxyl, brucite",
+          "intensity": "very strong, sharp"
+        },
+        {
+          "range": [
+            560,
+            580
+          ],
+          "assignment": "Mg-O stretching (reported as strong, wide band)",
+          "intensity": "strong, broad"
+        },
+        {
+          "range": [
+            430,
+            445
+          ],
+          "assignment": "Mg-O stretching",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "The sharp ~3698 O-H band is the diagnostic brucite marker (high confidence). Low-frequency bands are less consistent between sources (437 vs 570 cm-1; depends on KBr vs ATR cutoff and particle size); intensity of 437 band not stated (default 'medium'). Broad ~3400-3450 and ~1640 bands are adsorbed water, ~1400-1450 carbonate - excluded."
+      }
+    },
+    {
+      "name": "Aluminum Oxyhydroxide, boehmite (gamma-AlOOH)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "rutkowska2021, fu2022, sadjadi2022, mikhaylov2020",
+      "peaks": [
+        {
+          "range": [
+            3280,
+            3320
+          ],
+          "assignment": "O-H stretching (antisymmetric), interlayer hydroxyls",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            3080,
+            3102
+          ],
+          "assignment": "O-H stretching (symmetric), interlayer hydroxyls",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            1145,
+            1168
+          ],
+          "assignment": "Al-O-H bending (antisymmetric, in-plane)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1065,
+            1078
+          ],
+          "assignment": "Al-O-H bending (symmetric)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            730,
+            745
+          ],
+          "assignment": "Al-O stretching, octahedral AlO6",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            600,
+            632
+          ],
+          "assignment": "Al-O stretching, octahedral AlO6",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            470,
+            490
+          ],
+          "assignment": "Al-O bending, octahedral AlO6",
+          "intensity": "strong"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Intensities from Rutkowska 2021 Table 2 (reflectance FTIR; 3290 listed as 's, sh' = strong shoulder). The 3290 band is reported 3290-3316 across sources; Sadjadi 2022 gives 3380 for the antisymmetric O-H, which overlaps adsorbed-water O-H and was not used for the range. The 600-632 AlO6 band scatters more than others (605-627). Broad ~3430 (water) and nitrate/organic bands excluded."
+      }
+    },
+    {
+      "name": "Aluminum Hydroxide, gibbsite (gamma-Al(OH)3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "farinha2018, boris2022, conroy2017",
+      "peaks": [
+        {
+          "range": [
+            3615,
+            3625
+          ],
+          "assignment": "O-H stretching (structural hydroxyl)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            3520,
+            3530
+          ],
+          "assignment": "O-H stretching (structural hydroxyl)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            3448,
+            3472
+          ],
+          "assignment": "O-H stretching (structural hydroxyl)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            3370,
+            3400
+          ],
+          "assignment": "O-H stretching (structural hydroxyl)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            1015,
+            1028
+          ],
+          "assignment": "Al-O-H bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            965,
+            975
+          ],
+          "assignment": "Al-O-H bending",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "O-H stretching positions agree well across sources, but the experimental sources measured gibbsite inside multiphase cement/waste samples, and Conroy 2017 quotes literature values (secondary). No intensities given: all 'medium' by default (gibbsite O-H bands are usually narrow, but this was not stated by the sources read). Lower-frequency Al-O bands (~800, 660, 530) reported by Boris 2022 overlap with other phases and were omitted. 1025 may overlap CAH10 per Boris 2022."
+      }
+    },
+    {
+      "name": "Aluminum Oxide, alpha (corundum, alpha-Al2O3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "silvaholguin2021, silvaholguin2022",
+      "peaks": [
+        {
+          "range": [
+            628,
+            640
+          ],
+          "assignment": "Al-O stretching, octahedral AlO6 (corundum)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            552,
+            570
+          ],
+          "assignment": "Al-O stretching, octahedral AlO6 (corundum)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            486,
+            500
+          ],
+          "assignment": "Al-O vibration, octahedral AlO6 (corundum)",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            445,
+            455
+          ],
+          "assignment": "Al-O vibration, AlO6 (corundum)",
+          "intensity": "weak-medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Both sources are from the same research group. Phase-specific: corundum has only octahedral Al, so it lacks the AlO4 bands (~720-900) of transition aluminas. A weak ~780 band mentioned by silvaholguin2021 was not included because only one passing mention. ATR vs KBr can shift these by ~10 cm-1. Distinct from the generic 'Aluminum Oxide (Al2O3)' card."
+      }
+    },
+    {
+      "name": "Aluminum Oxide, gamma (gamma-Al2O3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "wu2022, bekele2024",
+      "peaks": [
+        {
+          "range": [
+            550,
+            585
+          ],
+          "assignment": "Al-O stretching, octahedral AlO6",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            710,
+            725
+          ],
+          "assignment": "Al-O stretching, tetrahedral AlO4",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            850,
+            910
+          ],
+          "assignment": "Al-O stretching, tetrahedral AlO4",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "Transition aluminas give a broad, poorly resolved envelope ~500-950 cm-1; the positions are from peak fitting (wu2022) and from a single nanoparticle spectrum (bekele2024), and the AlO4 band scatters between sources (855 vs 900). No intensities stated ('medium' default). Key difference from alpha-Al2O3 is the presence of AlO4 absorption above ~700 cm-1. Surface O-H (~3460) and adsorbed water excluded."
+      }
+    },
+    {
+      "name": "Strontium Titanate (SrTiO3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "peighambardoust2023, xie2018, wei2020, srilakshmi2018",
+      "peaks": [
+        {
+          "range": [
+            530,
+            560
+          ],
+          "assignment": "Ti-O stretching in TiO6 octahedra (perovskite lattice); low-frequency edge/maximum of a broad band",
+          "intensity": "medium, broad"
+        },
+        {
+          "range": [
+            370,
+            430
+          ],
+          "assignment": "TiO6 bending vibrations",
+          "intensity": "weak-medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "SrTiO3 shows one broad Ti-O absorption spanning ~500-800 cm-1 whose maximum/edge is reported at 534-557 cm-1; strength not quantified by the sources ('medium' default, although it is the dominant lattice band). The bending band needs a spectrometer reaching ~370 cm-1. A sharp ~856-858 band reported by some papers coincides with SrCO3 (surface carbonate) and was excluded, as were adsorbed water and carbonate (~1450) bands."
+      }
+    },
+    {
+      "name": "Gadolinium Oxide, cubic (Gd2O3)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "jain2018, mortezazadeh2020",
+      "peaks": [
+        {
+          "range": [
+            535,
+            548
+          ],
+          "assignment": "Gd-O lattice stretching",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "Only the main Gd-O band is used. jain2018 measured Eu3+-doped Gd2O3. The 1492/1393 bands that mortezazadeh2020 assigns to Gd=O/Gd-O-Gd are very likely surface carbonate (Gd2O3 carbonates in air, like La2O3) and were excluded. Intensity not stated ('medium' default)."
+      }
+    },
+    {
+      "name": "Hafnium Oxide, monoclinic (m-HfO2)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "an2013, araiza2023, xi2024",
+      "peaks": [
+        {
+          "range": [
+            650,
+            672
+          ],
+          "assignment": "Hf-O stretching (Au/Bu modes), monoclinic HfO2",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            745,
+            775
+          ],
+          "assignment": "Hf-O phonon mode, monoclinic HfO2",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            500,
+            512
+          ],
+          "assignment": "Hf-O (Au/Bu modes), monoclinic HfO2",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "Sources are thin films on Si (an2013: phase-separated Hf silicate; araiza2023: sputtered films with amorphous fraction) and ~2 nm nanoparticles whose monoclinic phase was only inferred from the band gap (xi2024). araiza2023 also reports a deconvoluted 736 component and 573/618 components (amorphous/other). Intensities not stated ('medium' default). Treat as indicative; verify phase by XRD."
+      }
+    },
+    {
+      "name": "Lithium Nickel Manganese Oxide (LiNi0.5Mn1.5O4, disordered spinel Fd-3m)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "okudur2018, su2024",
+      "peaks": [
+        {
+          "range": [
+            618,
+            631
+          ],
+          "assignment": "Mn–O stretching (MnO6), main high-frequency band; intensity ratio vs ~585 band tracks Ni/Mn disorder",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            578,
+            604
+          ],
+          "assignment": "Ni–O stretching; weaker than the ~620 band in disordered material",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            552,
+            560
+          ],
+          "assignment": "Mn–O stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            495,
+            512
+          ],
+          "assignment": "Ni–O stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            463,
+            478
+          ],
+          "assignment": "M–O lattice/bending vibration (unassigned in source table)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "high",
+        "verify": false,
+        "note": "Two independent sources agree within ~10 cm−1. Neither states band intensities; 'medium' used by default. Okudur notes pure ordered (P4332) LNMO has the ~591 band more intense than ~627, so a dominant 620-627 band relative to ~590 indicates disorder. Su et al. Mg-doped/undoped series showed identical positions. Do not duplicate with the ordered P4332 card."
+      }
+    },
+    {
+      "name": "Lithium Nickel Manganese Oxide (LiNi0.5Mn1.5O4, ordered spinel P4332)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "okudur2018",
+      "peaks": [
+        {
+          "range": [
+            644,
+            652
+          ],
+          "assignment": "Additional band of Ni/Mn-ordered (P4332) spinel",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            622,
+            630
+          ],
+          "assignment": "Mn–O stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            587,
+            604
+          ],
+          "assignment": "Ni–O stretching; more intense than the ~627 band in fully ordered material",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            553,
+            561
+          ],
+          "assignment": "Mn–O stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            494,
+            512
+          ],
+          "assignment": "Ni–O stretching",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            475,
+            483
+          ],
+          "assignment": "Additional band of ordered spinel",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            463,
+            471
+          ],
+          "assignment": "M–O lattice vibration",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            427,
+            435
+          ],
+          "assignment": "Additional band of ordered spinel",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Single primary table (its P-type column compiles literature refs; the 648/479/431 bands were observed in their partially ordered samples annealed 600-850 °C); Julien & Mauger 2025 corroborate ordered-phase bands near 430, 468, 558, 650 cm−1. Diagnostic for ordering: extra 648, 479, 431 bands and ~591 stronger than ~627. No intensities stated; 'medium' default."
+      }
+    },
+    {
+      "name": "Lithium Titanate (Li4Ti5O12, spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "julien2025",
+      "peaks": [
+        {
+          "range": [
+            648,
+            658
+          ],
+          "assignment": "Asymmetric Ti–O stretching (F1u) of TiO6 octahedra",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            591,
+            601
+          ],
+          "assignment": "Band associated with random Li/Ti occupation of octahedral 16d sites",
+          "intensity": "weak"
+        },
+        {
+          "range": [
+            499,
+            509
+          ],
+          "assignment": "Asymmetric stretching (F1u) of TiO6 units",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            450,
+            460
+          ],
+          "assignment": "Shoulder; Li/Ti octahedral-site disorder related",
+          "intensity": "weak-medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Single source (review by Julien & Mauger presenting FTIR recorded 100-1000 cm−1). The 504 band is called 'strong' in one sentence and listed with 455 as 'shoulders' in the next; labelled strong. 455 shoulder intensity judged weak-medium."
+      }
+    },
+    {
+      "name": "Lithium Manganese Oxide (Li2MnO3, monoclinic layered)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "pulido2022",
+      "peaks": [
+        {
+          "range": [
+            622,
+            632
+          ],
+          "assignment": "Asymmetric stretching of MnO6 octahedra",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            532,
+            542
+          ],
+          "assignment": "Asymmetric stretching of MnO6 octahedra",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            509,
+            519
+          ],
+          "assignment": "MnO6 stretching mixed with LiOn vibrations",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            433,
+            442
+          ],
+          "assignment": "LiOn / O–Mn–O mixed modes",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            420,
+            430
+          ],
+          "assignment": "LiOn / O–Mn–O mixed modes",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            375,
+            385
+          ],
+          "assignment": "LiOn (Li–O) modes; below 400 cm−1, needs far-IR/CsI optics",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            347,
+            357
+          ],
+          "assignment": "LiOn (Li–O) modes; far-IR (<400 cm−1)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            263,
+            297
+          ],
+          "assignment": "Li–O / lattice modes (exp. 268, 282, 292); far-IR (<400 cm−1)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Experimental FTIR (4000-50 cm−1) of synthesized powder with DFPT assignment. Only 514/537/627 are described ('strong absorption bands around 500–700 cm−1'); other experimental frequencies are from Table 2 without intensities ('medium' default). Table 2 also lists an experimental band at 327 cm−1 (far-IR). Overlaps with LiMn2O4/NMC Mn–O bands; confirm by XRD."
+      }
+    },
+    {
+      "name": "Lithium Nickel Manganese Cobalt Oxide (LiNi1/3Mn1/3Co1/3O2, NMC111, layered)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "hashem2019, julien2025",
+      "peaks": [
+        {
+          "range": [
+            588,
+            600
+          ],
+          "assignment": "Asymmetric stretching of MO6 octahedra (M = Ni, Mn, Co)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            521,
+            533
+          ],
+          "assignment": "Asymmetric stretching of MO6 octahedra",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            466,
+            478
+          ],
+          "assignment": "O–M–O asymmetric bending",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            371,
+            383
+          ],
+          "assignment": "O–M–O asymmetric bending; below 400 cm−1 (far-IR/CsI)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            239,
+            251
+          ],
+          "assignment": "Li-cage mode (Li+ vibration in interlayer LiO6 site); far-IR, broadens with Li/Ni cation mixing",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Composition LiNi1/3Mn1/3Co1/3O2 (sol-gel, EDTA); far-IR vacuum FTIR 800-100 cm−1; doped samples (Al, Mg, Zn, Fe, x=0.06) gave the same positions. Intensities not stated ('medium' default). Ni-rich NMCs shift slightly; bands are broad and overlap with LiCoO2."
+      }
+    },
+    {
+      "name": "Lithium Cobalt Oxide (LiCoO2, layered)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "hashemzadeh2025, julien2025",
+      "peaks": [
+        {
+          "range": [
+            595,
+            605
+          ],
+          "assignment": "Asymmetric O–Co–O (Co–O) vibration of CoO6 octahedra",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            550,
+            560
+          ],
+          "assignment": "Symmetric O–Co–O (Co–O) vibration of CoO6 octahedra",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            255,
+            265
+          ],
+          "assignment": "Li-cage mode (asymmetric LiO6 stretching); far-IR (<400 cm−1)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Mid-IR positions from one primary paper (pristine LiCoO2 reference in a supercapacitor study); the 260 cm−1 Li-cage value is quoted by a review from earlier work. Intensities not stated ('medium' default). Raman A1g/Eg bands at ~595/485 cm−1 are not IR bands; do not confuse."
+      }
+    },
+    {
+      "name": "Lithium Manganese Oxide (LiMn2O4, spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "balakrishnan2017",
+      "peaks": [
+        {
+          "range": [
+            612,
+            628
+          ],
+          "assignment": "Asymmetric stretching of MnO6 octahedra",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            506,
+            520
+          ],
+          "assignment": "Asymmetric stretching of MnO6 octahedra",
+          "intensity": "strong"
+        },
+        {
+          "range": [
+            432,
+            442
+          ],
+          "assignment": "LiO4 tetrahedra vibration",
+          "intensity": "weak"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "Single source, spin-coated thin films, values read from abstract only. 'strong' for the two MnO6 bands is a judgement (abstract does not state intensity); 'weak' for 437 is stated. Julien & Mauger 2025 note LiMn2O4 typically shows broad, overlapping bands. Lower bounds widened ~10 cm−1 to allow for typical powder shifts (not confirmed here)."
+      }
+    },
+    {
+      "name": "Zinc Ferrite (ZnFe2O4, spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "zhang2026, alaizeri2023",
+      "peaks": [
+        {
+          "range": [
+            552,
+            563
+          ],
+          "assignment": "ν1: Zn–O stretching of tetrahedral (A-site) Zn2+ (normal spinel)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            398,
+            416
+          ],
+          "assignment": "ν2: Fe–O stretching of octahedral (B-site) Fe3+; near the 400 cm−1 KBr/mid-IR cutoff",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Two sources agree (557-559 / 402-412). ZnFe2O4 bands sit lower than Ni/Co ferrites. Spinel-ferrite band positions shift with particle size, cation inversion and synthesis route; literature scatter is ±15-20 cm−1. Source intensities not stated; 'medium' used by default (the tetrahedral ν1 band is usually the stronger in published spectra, but not stated here)."
+      }
+    },
+    {
+      "name": "Cobalt Ferrite (CoFe2O4, inverse spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "huyen2026, muhamad2023",
+      "peaks": [
+        {
+          "range": [
+            566,
+            589
+          ],
+          "assignment": "ν1: metal–oxygen stretching, tetrahedral (A) site (mainly Fe3+–O in inverse spinel)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            411,
+            420
+          ],
+          "assignment": "ν2: metal–oxygen stretching, octahedral (B) site (Co2+/Fe3+–O)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Two sources agree on the ~415 band; high band 570-585. Note: Muhamad et al. assign 570 to octahedral Co–O and 415 to tetrahedral Fe–O, the reverse of the usual convention (higher band = tetrahedral); the conventional assignment is used here. Other papers report the octahedral band up to ~458 cm−1. Spinel-ferrite band positions shift with particle size, cation inversion and synthesis route; literature scatter is ±15-20 cm−1. Source intensities not stated; 'medium' used by default (the tetrahedral ν1 band is usually the stronger in published spectra, but not stated here)."
+      }
+    },
+    {
+      "name": "Nickel Ferrite (NiFe2O4, inverse spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "alshehri2025, moradibieranvand2024",
+      "peaks": [
+        {
+          "range": [
+            581,
+            606
+          ],
+          "assignment": "ν1: metal–oxygen stretching, tetrahedral (A) site (Fe3+–O in inverse spinel)",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            419,
+            429
+          ],
+          "assignment": "ν2: metal–oxygen stretching, octahedral (B) site (Ni2+/Fe3+–O)",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Both sources give 424 for ν2; ν1 586-601. Alshehri et al. assign the tetrahedral band to Ni–O, which conflicts with the inverse-spinel cation distribution (Ni2+ octahedral); site-generic wording used here. Spinel-ferrite band positions shift with particle size, cation inversion and synthesis route; literature scatter is ±15-20 cm−1. Source intensities not stated; 'medium' used by default (the tetrahedral ν1 band is usually the stronger in published spectra, but not stated here)."
+      }
+    },
+    {
+      "name": "Manganese Ferrite (MnFe2O4, spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "mirani2022, ilosvai2025",
+      "peaks": [
+        {
+          "range": [
+            568,
+            592
+          ],
+          "assignment": "ν1: metal–oxygen stretching, tetrahedral (A) site",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            444,
+            463
+          ],
+          "assignment": "ν2: metal–oxygen stretching, octahedral (B) site",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "medium",
+        "verify": false,
+        "note": "Ilosvai et al. sample is amine-functionalized MnFe2O4 (surface modification should not shift lattice bands much). MnFe2O4 octahedral band sits higher (~450-460) than in Zn/Ni/Co ferrites in these sources. Spinel-ferrite band positions shift with particle size, cation inversion and synthesis route; literature scatter is ±15-20 cm−1. Source intensities not stated; 'medium' used by default (the tetrahedral ν1 band is usually the stronger in published spectra, but not stated here)."
+      }
+    },
+    {
+      "name": "Copper Ferrite (CuFe2O4, spinel)",
+      "category": "inorganic",
+      "group": "metal_oxide",
+      "source": "keykavousamand2021, cherian2025",
+      "peaks": [
+        {
+          "range": [
+            569,
+            596
+          ],
+          "assignment": "ν1: metal–oxygen (Fe3+–O) stretching, tetrahedral (A) site",
+          "intensity": "medium"
+        },
+        {
+          "range": [
+            398,
+            428
+          ],
+          "assignment": "ν2: metal–oxygen (Cu2+–O) stretching, octahedral (B) site; near 400 cm−1 cutoff",
+          "intensity": "medium"
+        }
+      ],
+      "provenance": {
+        "added": "2026-10-11",
+        "method": "bands read from the cited sources; evidence per band in docs/FTIR_DATABASE_ADDITIONS.md",
+        "confidence": "low",
+        "verify": true,
+        "note": "Sources disagree by ~20 cm−1 (hence wide ranges); CuFe2O4 can be tetragonal (Jahn–Teller) or cubic depending on synthesis, which neither card source resolves. Other reports place bands as high as 469/635 cm−1. Use with XRD. Spinel-ferrite band positions shift with particle size, cation inversion and synthesis route; literature scatter is ±15-20 cm−1. Source intensities not stated; 'medium' used by default (the tetrahedral ν1 band is usually the stronger in published spectra, but not stated here)."
       }
     }
   ],

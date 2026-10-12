@@ -28,6 +28,11 @@ From user testing, then five independent reviews (spectroscopy, usability, state
   - The card stays on screen when peaks change.
   - Bands outside your data are not drawn.
   - IR-inactive materials are explained.
+- **More reference cards (database 4.5, 293 materials):**
+  - 56 new cards: 40 metal oxides, hydroxides, battery oxides and spinel ferrites (Co3O4, NiCo2O4, Mn3O4, Mn2O3, Cu2O, hematite, magnetite, maghemite, goethite, α/β-Ni(OH)2, Co(OH)2, NiFe-LDH, anatase, rutile, In2O3, β-Ga2O3, Y2O3, La2O3, Nb2O5, Gd2O3, m-HfO2, SrTiO3, α/γ-Al2O3, boehmite, gibbsite, brucite, LiCoO2, LiMn2O4, NMC111, LiNi0.5Mn1.5O4 (ordered and disordered), Li4Ti5O12, Li2MnO3, and Zn/Co/Ni/Mn/Cu ferrites) and 16 polymers (α- and β-PVDF, PVDF-HFP, polythiophene, P3HT, PSS-Na, branched PEI, polybutadiene, LDPE, PBAT, PHBV, chitosan, sodium alginate, P4VP, polydopamine, SEBS).
+  - Each band was read from Crossref-checked sources; the evidence per band is in docs/FTIR_DATABASE_ADDITIONS.md. Low-confidence cards show a "verify" warning.
+  - The "Check a suspected material" list can be browsed by group: polymers, metal oxides & hydroxides, hydrogels, salts, minerals, organics, elements.
+  - The Excel report has a References sheet, and Library › Reference database shows the selected card's references.
 - **References:**
   - Each card shows its full citations, in the evidence panel, Copy evidence, the PDF and the reference-bands CSV.
   - The 24 cards that cited only "IR literature" now cite checked papers (22). Dextran and grey selenium keep the general tables, with a note.
