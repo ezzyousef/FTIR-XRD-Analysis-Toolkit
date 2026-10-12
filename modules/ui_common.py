@@ -450,9 +450,26 @@ class AnalysisTabBase(QWidget):
         self.main_splitter.setSizes([need, total - need])
 
     # ---- building helpers ----
+    # Cards folded until the user opens them (the column is about three screens tall).
+    COLLAPSED_BY_DEFAULT = ("Calculations", "Files & session", "Tools")
+
     def add_card(self, title, subtitle=""):
         card = Card(title, subtitle)
         self.controls_layout.insertWidget(self.controls_layout.count() - 1, card)
+        # Every card folds; the choice is remembered per page in the app's settings.
+        key = f"{self.KIND}:{title.split('·')[-1].strip()}"
+        states = self.app.cfg.setdefault("collapsed_cards", {}) if hasattr(self.app, "cfg") else {}
+        default = any(title.endswith(name) for name in self.COLLAPSED_BY_DEFAULT)
+
+        def remember(collapsed, key=key):
+            states[key] = bool(collapsed)
+            try:
+                import app_config
+                app_config.save_config(self.app.cfg)
+            except Exception:  # noqa: BLE001 - remembering is a convenience
+                pass
+
+        card.make_collapsible(collapsed=states.get(key, default), on_change=remember)
         return card
 
     def action_button(self, text, fn, primary=False, info=None):
@@ -699,7 +716,18 @@ class AnalysisTabBase(QWidget):
         worker.finished.connect(self._worker_finished)
         self._workers.append(worker)
         self._set_busy(True, busy_text)
+        self.busy.start(busy_text, on_cancel=lambda: self.cancel_background(token))
         worker.start()
+
+    def cancel_background(self, token=None):
+        """Stop waiting for the running job: control comes back at once and its result is
+        discarded when it arrives (the computation cannot be interrupted mid-way)."""
+        if not self._pending or (token is not None and token not in self._pending):
+            return False
+        self._pending = {}
+        self._set_busy(False)
+        self.app.notify("Cancelled — the result will be discarded.", "info")
+        return True
 
     def _worker_succeeded(self, token, result):
         callbacks = self._pending.pop(token, None)

@@ -642,3 +642,27 @@ def test_dialog_validation_keeps_the_dialog_open(qapp, monkeypatch):
     values = ui_common.ask_fields(None, "t", [("crys", "Region:", "")],
                                   validate=lambda v: None if "-" in v["crys"] else ("bad", "crys"))
     assert seen == [True] and values == {"crys": "18-24"}
+
+
+def test_cards_fold_and_remember_it(window, qapp):
+    from labkit.qt.widgets import Card
+    ftir = window.page("ftir")
+    cards = {c._title.text(): c for c in ftir.findChildren(Card)}
+    assert cards["6 · Calculations"].collapsed and cards["Files & session"].collapsed
+    assert not cards["2 · Peak detection"].collapsed
+    cards["2 · Peak detection"].set_collapsed(True)
+    assert window.cfg["collapsed_cards"]["ftir:Peak detection"] is True
+    import app_config
+    assert app_config.load_config()["collapsed_cards"]["ftir:Peak detection"] is True
+
+
+def test_background_job_can_be_cancelled(window, qapp, ftir_csv):
+    ftir = window.page("ftir")
+    ftir.load_paths([ftir_csv])
+    ftir.detect_peaks()
+    ftir.match_database()
+    assert ftir.is_busy and ftir.busy.cancel_button.isVisibleTo(ftir)
+    ftir.busy.cancel_button.click()
+    assert not ftir.is_busy
+    assert pump(qapp, lambda: not ftir._workers, timeout=60)
+    assert not ftir.get_active().matches                 # the late result was discarded

@@ -153,10 +153,59 @@ class Card(QFrame):
         else:
             self._subtitle = None
 
-        self.body = QVBoxLayout()
+        # The body sits in its own widget so a collapsible card can fold it away.
+        self._body_host = QWidget()
+        self.body = QVBoxLayout(self._body_host)
         self.body.setContentsMargins(0, 0, 0, 0)
         self.body.setSpacing(9)
-        outer.addLayout(self.body, 1)
+        outer.addWidget(self._body_host, 1)
+        self._toggle = None
+        self._on_collapse = None
+
+    def make_collapsible(self, collapsed: bool = False, on_change=None) -> None:
+        """Give the card a fold toggle in its header (click, or Space/Enter on it).
+        `on_change(collapsed)` is told each time, so callers can remember the state."""
+        from PySide6.QtWidgets import QToolButton
+        if self._toggle is not None:
+            return
+        self._toggle = QToolButton()
+        self._toggle.setObjectName("CardToggle")
+        self._toggle.setCheckable(True)
+        self._toggle.setAutoRaise(True)
+        self._toggle.setCursor(Qt.PointingHandCursor)
+        self._toggle.setFocusPolicy(Qt.TabFocus)
+        self.header.insertWidget(0, self._toggle)
+        self._on_collapse = on_change
+        self._toggle.setChecked(bool(collapsed))          # before connecting: no change to report
+        self._toggle.toggled.connect(self._apply_collapsed)
+        self._apply_collapsed(bool(collapsed), notify=False)
+
+    def _apply_collapsed(self, collapsed: bool, notify: bool = True) -> None:
+        self._body_host.setVisible(not collapsed)
+        if self._subtitle is not None:
+            self._subtitle.setVisible(not collapsed)
+        if self._toggle is not None:
+            self._toggle.setText("▸" if collapsed else "▾")
+            title = self._title.text()
+            self._toggle.setToolTip(("Show " if collapsed else "Hide ") + title)
+            self._toggle.setAccessibleName(("Expand " if collapsed else "Collapse ") + title)
+        if notify and self._on_collapse is not None:
+            self._on_collapse(collapsed)
+
+    @property
+    def collapsed(self) -> bool:
+        return self._toggle is not None and self._toggle.isChecked()
+
+    def set_collapsed(self, collapsed: bool) -> None:
+        if self._toggle is not None:
+            self._toggle.setChecked(bool(collapsed))
+
+    def mouseReleaseEvent(self, event) -> None:  # noqa: N802 - Qt naming
+        # A click on the title row folds a collapsible card, as on the toggle itself.
+        if self._toggle is not None and event.position().y() <= self._title.geometry().bottom() + 6:
+            self._toggle.toggle()
+            return
+        super().mouseReleaseEvent(event)
 
     def set_title(self, text: str) -> None:
         self._title.setText(text)
@@ -242,13 +291,39 @@ class BusyBar(QWidget):
         self.bar.setFixedHeight(4)
         self.bar.setTextVisible(False)
         layout.addWidget(self.bar)
+        row = QHBoxLayout()
+        row.setContentsMargins(0, 2, 0, 0)
+        self.label = QLabel("")
+        self.label.setObjectName("Hint")
+        self.cancel_button = QPushButton("Cancel")
+        self.cancel_button.setToolTip("Stop waiting for this job")
+        self.cancel_button.setVisible(False)
+        row.addWidget(self.label, 1)
+        row.addWidget(self.cancel_button)
+        layout.addLayout(row)
+        self._cancel = None
+        self.cancel_button.clicked.connect(self._cancel_clicked)
         self.setVisible(False)
 
-    def start(self) -> None:
+    def start(self, text: str = "", on_cancel=None) -> None:
+        """Show the bar; with `on_cancel`, also a Cancel button that calls it."""
+        self._cancel = on_cancel
+        self.label.setText(text)
+        self.label.setVisible(bool(text) or on_cancel is not None)
+        self.cancel_button.setVisible(on_cancel is not None)
+        self.cancel_button.setEnabled(True)
         self.setVisible(True)
 
     def stop(self) -> None:
+        self._cancel = None
+        self.cancel_button.setVisible(False)
         self.setVisible(False)
+
+    def _cancel_clicked(self) -> None:
+        if self._cancel is not None:
+            self.cancel_button.setEnabled(False)
+            self.label.setText("Cancelling…")
+            self._cancel()
 
 
 # ---------------------------------------------------------------------------

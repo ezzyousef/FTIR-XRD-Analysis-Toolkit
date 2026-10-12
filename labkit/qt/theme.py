@@ -181,6 +181,10 @@ QToolButton#Primary {{
 QToolButton#Primary:hover {{ border-color: {c['fg']}; }}
 QToolButton#Primary:disabled {{ background: {c['disabled']}; border-color: {c['disabled']}; }}
 QToolButton:focus {{ border: 2px solid {c['accent']}; border-radius: 6px; }}
+QToolButton#CardToggle {{ border: none; background: transparent; color: {c['muted']};
+    font-size: 13px; padding: 0 4px; }}
+QToolButton#CardToggle:hover {{ color: {c['fg']}; }}
+QToolButton#CardToggle:focus {{ border: 2px solid {c['accent']}; border-radius: 6px; }}
 QToolButton#Primary:focus {{ border: 2px solid {c['fg']}; }}
 QToolButton#Primary::menu-button {{
     border-left: 1px solid rgba(255,255,255,0.35); width: 22px;

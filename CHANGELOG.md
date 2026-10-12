@@ -1,5 +1,10 @@
 # Changelog
 
+## 3.3.1
+
+- **Foldable left column:** every card has a ▾/▸ toggle (or click its title); the app remembers what you folded. Calculations, Tools and Files & session start folded, so the column is far shorter.
+- **Cancel** for background jobs (database matching, mixture screening, peak fitting): a Cancel button under the plot gives control back at once; the job's late result is discarded.
+
 ## 3.3.0
 
 - **Figures in the lab's house style (Figure Studio's):** the "Review" palette and Figure Studio's Light/Dark colours, DejaVu Sans with bold axis titles and tick labels, an open frame, outward ticks, a horizontal grid only and a frameless legend — on screen and in every PNG/SVG/PDF export.
