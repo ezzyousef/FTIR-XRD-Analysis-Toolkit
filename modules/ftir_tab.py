@@ -160,9 +160,8 @@ def evidence_lines(match, entry, verdict=None, pattern_r=None, references=None):
 
 def peak_source(peak):
     """How a peak got into the list, for tables and exports."""
-    if peak.get("manual"):
-        return "manual (shoulder)" if peak.get("shoulder") else "manual"
-    return "detected"
+    source = ("manual (shoulder)" if peak.get("shoulder") else "manual") if peak.get("manual") else "detected"
+    return f"{source} · {peak['assignment']}" if peak.get("assignment") else source
 
 
 class FTIRTab(AnalysisTabBase):
@@ -1787,9 +1786,10 @@ class FTIRTab(AnalysisTabBase):
             return
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
-            w.writerow(["wavenumber_cm-1", "intensity", "prominence"])
+            w.writerow(["wavenumber_cm-1", "intensity", "prominence", "source", "assignment"])
             for p in t.peaks:
-                w.writerow([p["x"], p["y"], p["prominence"]])
+                w.writerow([p["x"], p["y"], p["prominence"], "manual" if p.get("manual") else "detected",
+                            p.get("assignment", "")])
         self.app.notify(f"Saved {len(t.peaks)} peaks", "success")
 
     def export_pdf_report(self, path=None):

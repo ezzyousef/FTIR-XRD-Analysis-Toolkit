@@ -369,6 +369,12 @@ class AnalysisTabBase(QWidget):
         self.traces: list[Trace] = []
         self.active_id = None
         self.color_cycle = ColorCycle()
+        import workbench
+        prefs = workbench.load_preferences()
+        self.DISPLAY_MAX_POINTS = prefs["display_max_points"]
+        if prefs["palette"] == "colour-blind":
+            import itertools
+            self.color_cycle._cycle = itertools.cycle(workbench.colour_blind_palette())
         self.reference_overlay = None
         self._bg_generation = 0
         self._pending: dict[int, tuple] = {}
@@ -522,11 +528,18 @@ class AnalysisTabBase(QWidget):
     def figure_spec(self, title=""):
         return exports.spectrum_figure(self.KIND, self.traces, self.active_id, title=title, **self.export_options())
 
+    DISPLAY_MAX_POINTS = 20000
+
     def redraw(self):
         if not any(t.visible for t in self.traces):
             self.plot.show_message("Load a file to start — or drop files onto this page.", self.theme)
             return
-        self.plot.show_figure(self.figure_spec(), self.theme)
+        spec = self.figure_spec()
+        import workbench
+        for s in spec.series:          # draw at most DISPLAY_MAX_POINTS per curve; data and exports keep every point
+            if len(s.x) > self.DISPLAY_MAX_POINTS:
+                s.x, s.y = workbench.decimate_minmax(s.x, s.y, self.DISPLAY_MAX_POINTS)
+        self.plot.show_figure(spec, self.theme)
         self._draw_extras(self.plot.figure, self.theme)
         self.plot.canvas.draw_idle()
 
@@ -574,7 +587,11 @@ class AnalysisTabBase(QWidget):
         self.redraw()
 
     def _on_plot_motion(self, event):
-        text = "" if event.inaxes is None or event.xdata is None else f"x = {event.xdata:,.2f}    y = {event.ydata:,.4g}"
+        text = ""
+        if event.inaxes is not None and event.xdata is not None and event.ydata is not None:
+            import workbench
+            wl = self.get_wavelength() if hasattr(self, "get_wavelength") else None
+            text = workbench.describe_cursor(self.KIND, event.xdata, event.ydata, self.get_active(), wl)
         if hasattr(self.app, "status_right"):
             self.app.status_right.setText(text)
 
