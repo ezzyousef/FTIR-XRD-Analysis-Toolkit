@@ -11,6 +11,9 @@ hiddenimports = [
     'app_info', 'app_window', 'exports', 'file_readers', 'ftir_analysis', 'ftir_matching', 'xrd_analysis',
     'signal_utils', 'peak_fitting', 'report_export', 'session_io', 'app_config', 'ui_common',
     'trace_model', 'workers', 'formula_sources', 'ftir_tab', 'xrd_tab', 'selftest',
+    'licensing', 'licence_dialog',
+    # labkit.licence imports cryptography lazily (only when a licence is checked)
+    'cryptography.hazmat.primitives.asymmetric.ed25519', 'cryptography.exceptions',
     'scipy.signal', 'scipy.integrate', 'scipy.optimize',
     'matplotlib.backends.backend_qtagg', 'matplotlib.backends.backend_agg',
     'xlsxwriter', 'reportlab.pdfbase._fontdata',

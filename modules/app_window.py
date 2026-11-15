@@ -191,6 +191,7 @@ class MainWindow(AppShell):
         self.page_changed.connect(self._remember_analysis_page)
         self.on_close(self._on_close)
         self.finalize(start_page="ftir")
+        self._build_help_menu()   # after finalize, so Help is the last menu
         self.history.reset("empty session")
         self.set_status("Ready", "")
 
@@ -238,6 +239,15 @@ class MainWindow(AppShell):
                 ("Send to Origin", "Export", lambda: self._with_tab(lambda t: t.export_bar.send_to_origin())),
                 ("Export to Excel", "Export", lambda: self._with_tab(lambda t: t.export_bar.export_excel()))):
             self.add_command(name, group, fn)
+
+    def _build_help_menu(self):
+        self.add_menu_action("&Help", "&Licence…", self.show_licence)
+        self.add_menu_action("&Help", "&About", lambda: self.go_to("about"))
+        self.add_command("Licence", "Help", self.show_licence)
+
+    def show_licence(self):
+        from licence_dialog import LicenceDialog
+        LicenceDialog(self).exec()
 
     def _fill_recent_menu(self):
         self._recent_menu.clear()

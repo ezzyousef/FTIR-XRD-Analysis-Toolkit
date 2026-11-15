@@ -6,6 +6,7 @@ xlsxwriter>=3.1
 openpyxl>=3.1
 pillow>=10
 reportlab>=4.0
+cryptography>=44   # verifies licence signatures (labkit.licence)
 
 # Optional: drive OriginLab directly (Windows with Origin installed). Without them "Send to
 # Origin" writes a LabTalk package that rebuilds the project in Origin.
