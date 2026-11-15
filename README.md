@@ -129,6 +129,37 @@ computed with; the PDF, Excel and peak CSV print those stored values.
 - **Save / load session** (Ctrl+S / Ctrl+L) — `.ftirxrd` project files, compatible with
   earlier versions.
 
+### Tools menu (3.4)
+- **FTIR: global peak fit** (Ctrl+G): all peaks in a range fitted at once on a straight baseline. Centre and
+  width are bounded, shapes can share one width, and a robust option resists spikes. Each value comes with a 1σ error.
+- **Assign selected peak** (Ctrl+Shift+A): label a peak, for example "C=O stretch". The label shows in the
+  Peaks table, the peak CSV and the evidence report. Ctrl+Z undoes it.
+- **FTIR: save processing recipe / batch process with a recipe** (Ctrl+B): the same crop, smoothing,
+  baseline and normalization steps on many files. Writes a CSV summary and a `.provenance.json` with every
+  input's SHA-256. The raw files are not changed.
+- **FTIR: validation laboratory**: measure how often the matcher is right on *your own* measured spectra
+  of known materials. You list them in a manifest (`file,label,split,mode,sample_id`). The report gives
+  accuracy with a 95 % interval, a confusion matrix, precision and recall, confident wrong answers, and
+  sensitivity to the tolerance and to peak shifts. A train/test leak is refused. Also available from the
+  command line: `python tools/validate_ftir_matching.py manifest.csv --out report.md`.
+- **XRD: calibrate with a standard**: zero shift (and optionally sample displacement), using the d-values
+  you enter from the standard's certificate. No values are built in.
+- **XRD: cubic indexing helper**: ratio-method *candidates* to check, not an indexing result.
+- **XRD: cross-check a phase card**: compare the detected peaks with a card CSV (`d` or `two_theta`,
+  `intensity`, optional `hkl`) from your own licensed source. The verdict is at most "consistent with the
+  card", and it warns about preferred orientation.
+- **XRD: pattern warnings**: flags an amorphous halo or a background that holds most of the signal.
+- **XRD: export for refinement (.xye)**: 2θ, counts and √counts with a provenance file, for GSAS-II,
+  FullProf and similar programs. The app runs no refinement.
+- **Sample evidence report** (Ctrl+Shift+R): the active FTIR spectrum and XRD pattern of one sample side by
+  side, with processing, peaks, screening candidates, assumptions and sources, as HTML and JSON. It never
+  combines them into one score.
+- **Colour-blind-safe palette**: recolours the traces with the Okabe–Ito-based palette.
+
+The status bar shows the cursor position, the active trace's value there and, on the XRD page, the d-spacing.
+Curves with more than 20 000 points are thinned for drawing only; peaks and dips are kept. Data and exports
+keep every point.
+
 ### Keyboard
 | Keys | Action |
 |---|---|
@@ -139,6 +170,10 @@ computed with; the PDF, Excel and peak CSV print those stored values.
 | Ctrl+Shift+O / Ctrl+Shift+E | Send to Origin / export to Excel |
 | Ctrl+M | Match the active FTIR spectrum to the database |
 | Ctrl+D | FTIR reference database |
+| Ctrl+G | Global peak fit (FTIR) |
+| Ctrl+Shift+A | Assign the selected peak |
+| Ctrl+B | Batch process with a recipe |
+| Ctrl+Shift+R | Sample evidence report |
 | Ctrl+T | Light / dark theme |
 | Ctrl+K | Command palette |
 | Ctrl+1 … Ctrl+5 | Go to a page |
@@ -147,8 +182,12 @@ computed with; the PDF, Excel and peak CSV print those stored values.
 - FTIR reference peak positions are compiled from published literature (see the in-app
   citations), not certified measurements of a specific sample. Treat matches as a starting
   point, not a certificate of identity.
-- Scherrer crystallite sizes are **apparent** sizes from broadening alone — not corrected for
-  instrumental broadening, and they mix size and strain unless you use Williamson–Hall.
+- Scherrer crystallite sizes are **apparent** sizes from broadening alone. They mix size and strain unless
+  you use Williamson–Hall. Instrument broadening is removed only when you set an instrument profile.
+- **False identifications:** an FTIR "Strong" match or an XRD card that is "consistent" with the peaks is
+  not an identification. Different materials share bands and reflections, and the band tables are
+  literature ranges. Confirm with a measured reference spectrum, another technique or a refinement.
+  `docs/EQUATION_REGRESSION_REPORT.md` lists the numerical checks of every equation.
 - % crystallinity by area under the curve depends on the method and the regions chosen —
   report the regions with the number.
 - Bruker `.raw` parsing is best effort (undocumented format) — cross-check against an ASCII export.
@@ -173,6 +212,13 @@ ftir_xrd_toolkit/
     ftir_analysis.py               peak detection, database matching, calculations
     xrd_analysis.py                Bragg/Scherrer/W-H/crystallinity/SNIP/conversions
     peak_fitting.py                Gaussian/Lorentzian/pseudo-Voigt fitting
+    global_fit.py                  simultaneous constrained/robust fitting, errors, confidence bands
+    recipes.py                     processing recipes and batch runs
+    validation_lab.py              matcher validation on user-supplied measured spectra
+    xrd_tools.py                   calibration, indexing helper, phase-card cross-check, warnings
+    refinement_export.py           .xye export for external refinement programs
+    evidence.py                    sample-level FTIR + XRD evidence record and report
+    workbench.py                   the Tools-menu actions for the above
     signal_utils.py, report_export.py, session_io.py, app_config.py, trace_model.py,
     workers.py, formula_sources.py, app_info.py
   tests/                           pytest suite (analysis, readers, exports, the Qt pages)

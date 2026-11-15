@@ -150,3 +150,11 @@ def test_batch_processes_files_and_records_failures_and_provenance(tmp_path):
     peaks_s1 = sorted(float(row[2]) for row in rows if row[0] == "s1.csv")
     assert peaks_s1 == pytest.approx([1722.0, 2922.0], abs=2.0)
     assert len([x for x in res if not x.get("error")]) == 4
+
+
+def test_saved_fit_without_functions_evaluates_the_same():
+    f = gf.fit_peaks_global(X, two_bands(noise=0.005, seed=2), [1638.0, 1665.0], x_range=(1560, 1740))
+    saved = json.loads(json.dumps(gf.public(f)))                  # what a session stores
+    xs = X[(X >= 1560) & (X <= 1740)]
+    assert np.allclose(gf.evaluate(saved, xs), gf.evaluate(f, xs))
+    assert np.allclose(gf.confidence_band(saved, xs)[2], gf.confidence_band(f, xs)[2])

@@ -180,9 +180,9 @@ def global_fit_active(tab, robust=True, shape="gaussian", x_range=None):
     except Exception as exc:  # noqa: BLE001
         ui_common.show_message(tab, "Global peak fit", str(exc), "error")
         return None
-    public = {k: v for k, v in fit.items() if not k.startswith("_") and k != "cov"}
-    t.metadata["global_fit"] = public
+    t.metadata["global_fit"] = global_fit.public(fit)
     tab.record("global fit")
+    tab.redraw()
     lines = [f"Global {shape} fit, {len(seeds)} peaks, {x_range[0]:g}–{x_range[1]:g} cm⁻¹, loss {fit['loss']}, "
              f"R² {fit['r_squared']:.5f}, RMSE {fit['rmse']:.3g}", "",
              "Centre (cm⁻¹)        FWHM (cm⁻¹)        Height             Area"]
@@ -190,7 +190,8 @@ def global_fit_active(tab, robust=True, shape="gaussian", x_range=None):
         se = p["stderr"]
         lines.append(f"{p['center']:.2f} ± {se['center']:.2f}   {p['fwhm']:.2f} ± {se['fwhm']:.2f}   "
                      f"{p['height']:.4g} ± {se['height']:.2g}   {p['area']:.4g}" + ("   (at a limit)" if p["at_bound"] else ""))
-    lines += ["", "Errors are 1σ from the fit covariance: they assume the peak count and shape are right."]
+    lines += ["", "Errors are 1σ from the fit covariance: they assume the peak count and shape are right.",
+              "The plot shows the fitted curve (dashed) and its 2σ band."]
     return show_report(tab, "Global peak fit", "\n".join(lines), "global_fit.txt")
 
 
@@ -496,6 +497,27 @@ def preferences_dialog(app, values=None):
             apply_palette(tab, palette)
     app.notify("Preferences saved")
     return values
+
+
+def write_trace_provenance(path, trace, method, parameters=None):
+    """'<export>.provenance.json' beside an export: the source file's name, size and SHA-256, the
+    processing applied and the method settings. The folder is not stored. Returns the path or None."""
+    try:
+        from labkit.io import Provenance
+    except ImportError:
+        return None
+    meta = trace.metadata or {}
+    params = {"processing": list(meta.get("processing") or []), "trace": trace.label}
+    for key in ("detection", "match_params", "xrd_params", "calibration"):
+        if meta.get(key):
+            params[key] = meta[key]
+    params.update(parameters or {})
+    prov = Provenance(app_info.APP_NAME, app_info.APP_VERSION, method=method,
+                      parameters=json.loads(json.dumps(params, default=str)))
+    src = meta.get("path")
+    if src and os.path.isfile(src):
+        prov.add_source(src)
+    return str(prov.write_beside(path))
 
 
 def save_json(path, data):

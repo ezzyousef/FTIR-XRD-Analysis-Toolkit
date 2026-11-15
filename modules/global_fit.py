@@ -85,21 +85,7 @@ def fit_peaks_global(x, y, centers, shape="gaussian", x_range=None, max_shift=No
     p0 = np.clip(np.array(p0), np.array(lb) + 1e-12, np.array(ub) - 1e-12)
     stride = 3 if shape == "pseudo_voigt" else 2
 
-    def unpack(p):
-        b0, b1 = p[0], p[1]
-        out = []
-        for i in range(n_pk):
-            q = p[2 + i * stride: 2 + (i + 1) * stride]
-            w = p[2 + n_pk * stride + (0 if shared_fwhm else i)]
-            out.append((q[0], q[1], w, q[2]) if shape == "pseudo_voigt" else (q[0], q[1], w))
-        return b0, b1, out
-
-    def model(p, xx):
-        b0, b1, pk = unpack(p)
-        yy = b0 + b1 * (xx - x_mid)
-        for q in pk:
-            yy = yy + _peak(shape, xx, q)
-        return yy
+    unpack, model = _builders(shape, n_pk, shared_fwhm, x_mid)
 
     res = least_squares(lambda p: model(p, xs) - ys, p0, bounds=(lb, ub), loss=loss,
                         f_scale=float(f_scale) if f_scale else max(3.0 * _noise(ys), 1e-12), max_nfev=20000)
@@ -136,6 +122,39 @@ def fit_peaks_global(x, y, centers, shape="gaussian", x_range=None, max_shift=No
             "_model": model}
 
 
+def _builders(shape, n_pk, shared_fwhm, x_mid):
+    """(unpack, model) for a parameter vector [b0, b1, (h, c[, eta]) * n, w | w_i]."""
+    stride = 3 if shape == "pseudo_voigt" else 2
+
+    def unpack(p):
+        out = []
+        for i in range(n_pk):
+            q = p[2 + i * stride: 2 + (i + 1) * stride]
+            w = p[2 + n_pk * stride + (0 if shared_fwhm else i)]
+            out.append((q[0], q[1], w, q[2]) if shape == "pseudo_voigt" else (q[0], q[1], w))
+        return p[0], p[1], out
+
+    def model(p, xx):
+        b0, b1, pk = unpack(p)
+        yy = b0 + b1 * (xx - x_mid)
+        for q in pk:
+            yy = yy + _peak(shape, xx, q)
+        return yy
+
+    return unpack, model
+
+
+def public(fit):
+    """The fit without its function object: JSON-safe, for sessions; evaluate() still works."""
+    return {k: v for k, v in fit.items() if not k.startswith("_")}
+
+
+def _model_of(fit):
+    if "_model" in fit:
+        return fit["_model"]
+    return _builders(fit["shape"], len(fit["peaks"]), fit.get("shared_fwhm", False), fit["baseline"][2])[1]
+
+
 def _noise(y):
     d = np.diff(np.asarray(y, dtype=float))
     if len(d) < 3:
@@ -144,7 +163,7 @@ def _noise(y):
 
 
 def evaluate(fit, x):
-    return fit["_model"](np.asarray(fit["params"], dtype=float), np.asarray(x, dtype=float))
+    return _model_of(fit)(np.asarray(fit["params"], dtype=float), np.asarray(x, dtype=float))
 
 
 def confidence_band(fit, x, k=1.0):
@@ -153,13 +172,14 @@ def confidence_band(fit, x, k=1.0):
     x = np.asarray(x, dtype=float)
     p = np.asarray(fit["params"], dtype=float)
     cov = np.asarray(fit["cov"], dtype=float)
-    f0 = fit["_model"](p, x)
+    model = _model_of(fit)
+    f0 = model(p, x)
     G = np.empty((len(x), len(p)))
     for j in range(len(p)):
         h = 1e-6 * max(abs(p[j]), 1e-3)
         dp = p.copy()
         dp[j] += h
-        G[:, j] = (fit["_model"](dp, x) - f0) / h
+        G[:, j] = (model(dp, x) - f0) / h
     sigma = np.sqrt(np.clip(np.einsum("ij,jk,ik->i", G, cov, G), 0.0, None))
     return f0, f0 - k * sigma, f0 + k * sigma
 

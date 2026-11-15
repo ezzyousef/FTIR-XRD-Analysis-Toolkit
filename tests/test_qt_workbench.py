@@ -65,6 +65,8 @@ def test_global_fit_and_assignment_with_undo(win):
     assert dlg is not None and "1720" in dlg.text and "±" in dlg.text
     assert t.metadata["global_fit"]["peaks"][0]["center"] == pytest.approx(1720, abs=0.5)
     json.dumps(t.metadata["global_fit"])                       # session-safe (no functions inside)
+    from matplotlib.collections import PolyCollection
+    assert any(isinstance(c, PolyCollection) for ax in ftir.plot.figure.axes for c in ax.collections)
     dlg.close()
     ftir.on_active_trace_changed()
     row = next(i for i, p in enumerate(t.peaks) if abs(p["x"] - 1720) < 2)
@@ -149,3 +151,26 @@ def test_preferences_persist_and_apply(win):
     workbench.preferences_dialog(win, {"display_max_points": 20000, "palette": "colour-blind"})
     assert win.page("xrd").get_active().color in PALETTES["publication"]
     assert win.shortcut_conflicts() == []
+
+
+def test_peak_csv_exports_carry_provenance(win, tmp_path, monkeypatch):
+    import ui_common
+    from labkit.io import read_provenance
+    ftir = win.page("ftir")
+    import ftir_analysis
+    t = ftir.get_active()
+    t.peaks = ftir_analysis.detect_peaks(t.x, t.y, prominence_frac=0.02)
+    out = tmp_path / "peaks.csv"
+    monkeypatch.setattr(ui_common, "get_save_path", lambda *a, **k: str(out))
+    ftir.export_peaks_csv()
+    prov = read_provenance(out)
+    assert prov["method"] == "FTIR peak list" and prov["sources"][0]["file"] == "s.csv"
+    assert "assignment" in out.read_text(encoding="utf-8").splitlines()[0]
+    xrd = win.page("xrd")
+    import xrd_analysis
+    xt = xrd.get_active()
+    xt.peaks = xrd_analysis.detect_xrd_peaks(xt.x, xt.y)
+    out2 = tmp_path / "xpeaks.csv"
+    monkeypatch.setattr(ui_common, "get_save_path", lambda *a, **k: str(out2))
+    xrd.export_peaks_csv()
+    assert read_provenance(out2)["parameters"]["wavelength_A"] == pytest.approx(xrd.get_wavelength())
