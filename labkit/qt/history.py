@@ -10,6 +10,7 @@ For mutable state, `capture()` should return a copy.
 """
 from __future__ import annotations
 
+from contextlib import contextmanager
 from dataclasses import dataclass
 from typing import Any, Callable
 
@@ -47,12 +48,46 @@ class History(QObject):
         """Remember the state *after* an action, so undo returns to before it."""
         if self._restoring:
             return                      # restoring state must not create new history
+        if getattr(self, "_transaction_depth", 0):
+            self._transaction_dirty = True
+            return                      # inside a transaction: one entry is recorded when it ends
         del self._entries[self._index + 1:]
         self._entries.append(_Entry(label, self._capture()))
         if len(self._entries) > self._limit:
             self._entries.pop(0)
         self._index = len(self._entries) - 1
         self.changed.emit()
+
+    @contextmanager
+    def transaction(self, label: str):
+        """Group several actions into one undo step:
+
+            with history.transaction("Import 12 files"):
+                for f in files: load(f)          # each may call history.record(...)
+
+        One entry named `label` is recorded when the block ends, and only if something inside
+        it recorded. If the block raises, the state from before it is restored and nothing is
+        recorded, so a half-finished multi-step action never stays on screen or in the history.
+        Transactions may nest; only the outermost one records.
+        """
+        outermost = getattr(self, "_transaction_depth", 0) == 0
+        if outermost:
+            self._transaction_dirty = False
+            before = self._entries[self._index].state
+        self._transaction_depth = getattr(self, "_transaction_depth", 0) + 1
+        try:
+            yield self
+        except BaseException:
+            self._transaction_depth -= 1
+            if outermost:
+                self._transaction_dirty = False
+                self._apply(before)
+            raise
+        else:
+            self._transaction_depth -= 1
+            if outermost and self._transaction_dirty:
+                self._transaction_dirty = False
+                self.record(label)
 
     def reset(self, label: str = "Start") -> None:
         """Forget everything — e.g. after opening a different session file."""
