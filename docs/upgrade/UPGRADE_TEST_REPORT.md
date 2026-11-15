@@ -14,7 +14,9 @@ Environment: Windows 11, Python 3.14.5, `QT_QPA_PLATFORM=offscreen`, `MPLBACKEND
 | Hostile files against 3.3.1 reader | `tests/test_hostile_inputs.py`, old `file_readers.py` | **37 failed, 4 passed** |
 | Each milestone commit in a clean worktree | `py -3 -m pytest -q -p no:cacheprovider` | A `c01f789`: 247; B `0300f92`: 254; C `5f45a53`: 265; D `7923f4a`: 282; all passed |
 | Milestone E `00fc221` | same | 289 passed |
-| Full suite, final | `py -3 -m pytest -q -p no:cacheprovider` | **291 passed** (about 75 s) |
+| Full suite at 9ad6ace | same | 291 passed |
+| Codex regression tests on 9ad6ace | `tests/test_codex_review.py` | 11 failed, 1 passed (guard) |
+| Full suite, final | `py -3 -m pytest -q -p no:cacheprovider` | **303 passed** (about 80 s) |
 | Packaged-build self-test, from source | `py -3 main.py --selftest` | SELF-TEST PASSED |
 | Version | `py -3 main.py --version` | FTIR & XRD Analysis Toolkit 3.4.0 |
 

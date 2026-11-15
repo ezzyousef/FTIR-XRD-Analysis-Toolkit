@@ -1653,7 +1653,8 @@ class FTIRTab(AnalysisTabBase):
              ("po", "Polynomial order:", "3")],
             lambda t, v: ftir_analysis.derivative_spectrum(t.x, t.y, order=int(v["order"]), window_length=int(float(v["wl"])),
                                                            polyorder=int(float(v["po"]))),
-            lambda t, v: f"Derivative (order {v['order']}) of {t.label} computed")
+            lambda t, v: f"Derivative (order {v['order']}) of {t.label} computed "
+                         f"({ftir_analysis.derivative_method(t.x)})")
 
     def revert_active(self):
         t = self.require_active("Load a spectrum first.")

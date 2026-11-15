@@ -27,12 +27,21 @@ except ImportError:  # pragma: no cover
 
 
 # ------------------------------------------------------------------------------- calibration
+MIN_COS_SPREAD = 0.1         # cos(theta) must vary at least this much for z and s to separate well
+
+
 def calibrate(observed_two_theta, certified_d, wavelength_a, displacement=False):
     """Least-squares correction 2theta_true = 2theta_obs - delta, with
     delta = z (zero shift), or delta = z + s*cos(theta) (zero shift and sample displacement,
     the usual Bragg-Brentano form, s = -2 h cos(theta)/R expressed in degrees).
     certified_d: the standard's d-spacings from its certificate (Angstrom), one per observed peak.
-    Returns {"zero_shift_deg", "displacement_deg", "residuals_deg", "rms_deg", "n", "model"}."""
+    Returns {"zero_shift_deg", "displacement_deg", "residuals_deg", "rms_deg", "n", "model",
+    "warnings", "condition"}.
+
+    With displacement, z and s are only separable through the variation of cos(theta) across the
+    peaks: peaks at a single angle are refused (rank-deficient), and a narrow spread of cos(theta)
+    (< MIN_COS_SPREAD) or no redundancy (as many distinct angles as parameters) gives a warning,
+    because such coefficients extrapolate arbitrarily to other angles."""
     obs = np.asarray(observed_two_theta, dtype=float)
     d = np.asarray(certified_d, dtype=float)
     if obs.shape != d.shape or len(obs) < (2 if displacement else 1):
@@ -41,16 +50,33 @@ def calibrate(observed_two_theta, certified_d, wavelength_a, displacement=False)
     if np.any(~np.isfinite(true_tt)):
         raise ValueError("A certified d-spacing is not reachable at this wavelength.")
     delta = obs - true_tt
+    warnings, condition = [], None
     if displacement:
-        A = np.vstack([np.ones_like(obs), np.cos(np.radians(true_tt / 2.0))]).T
+        cos_t = np.cos(np.radians(true_tt / 2.0))
+        A = np.vstack([np.ones_like(obs), cos_t]).T
+        n_angles = len(np.unique(np.round(true_tt, 6)))
+        if n_angles < 2 or np.linalg.matrix_rank(A) < 2:
+            raise ValueError("Zero shift and sample displacement cannot be separated with peaks at a single angle: "
+                             "use reflections spread over a wide 2θ range, or the zero-shift model.")
+        condition = float(np.linalg.cond(A))
         (z, s), *_ = np.linalg.lstsq(A, delta, rcond=None)
+        spread = float(np.ptp(cos_t))
+        if spread < MIN_COS_SPREAD:
+            warnings.append(f"Poor angular coverage: cos θ varies by only {spread:.3f} across the peaks "
+                            f"(condition number {condition:.0f}). Zero shift and displacement are strongly "
+                            "correlated; add reflections at higher (or lower) 2θ before applying the correction "
+                            "far from these angles.")
+        if n_angles == 2:
+            warnings.append("Only two distinct angles for two parameters: the fit is exact by construction and "
+                            "its residual says nothing about the quality. Use three or more reflections.")
     else:
         z, s = float(np.mean(delta)), 0.0
     model = z + s * np.cos(np.radians(true_tt / 2.0))
     resid = delta - model
     return {"zero_shift_deg": float(z), "displacement_deg": float(s), "residuals_deg": resid.tolist(),
             "rms_deg": float(np.sqrt(np.mean(resid ** 2))), "n": int(len(obs)),
-            "model": "zero shift + displacement" if displacement else "zero shift"}
+            "model": "zero shift + displacement" if displacement else "zero shift",
+            "warnings": warnings, "condition": condition}
 
 
 def apply_calibration(two_theta, cal):

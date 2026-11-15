@@ -256,7 +256,8 @@ def xrd_calibrate(app, certified_d=None, displacement=None):
     tab.record("calibrate")
     text = (f"Model: {cal['model']}\nZero shift: {cal['zero_shift_deg']:+.4f}° 2θ\nDisplacement term: "
             f"{cal['displacement_deg']:+.4f}° (× cos θ)\nRMS residual: {cal['rms_deg']:.4f}° over {cal['n']} peaks\n\n"
-            "Apply it to a sample pattern measured with the same set-up: corrected 2θ = 2θ − (zero + displacement·cos θ).")
+            "Apply it to a sample pattern measured with the same set-up: corrected 2θ = 2θ − (zero + displacement·cos θ)."
+            + ("\n\n" + "\n".join(cal["warnings"]) if cal.get("warnings") else ""))
     return show_report(tab, "Calibration", text, "calibration.txt")
 
 

@@ -673,12 +673,57 @@ def derivative_spectrum(x, y, order=1, window_length=15, polyorder=3):
         raise ValueError("window_length must be greater than polyorder.")
     if len(x) < 2:
         raise ValueError("Need at least 2 points to compute a derivative.")
+    if len(x) <= polyorder + 1:
+        raise ValueError("Too few points for this polynomial order.")
+    if not is_uniform_axis(x):
+        # Uneven spacing (a wavelength axis converted to cm-1, rows dropped for NaN): the same
+        # local polynomial fit, but on the actual x of each window.
+        return _local_poly_derivative(x, y, order, min(window_length, len(x) - (1 - len(x) % 2)), polyorder)
     # Signed step: d/dx on a descending axis (FTIR exports usually run 4000 -> 400 cm-1) must not
-    # flip the sign of the first derivative. Savitzky-Golay assumes even spacing.
+    # flip the sign of the first derivative.
     dx = float((x[-1] - x[0]) / (len(x) - 1))
     if dx == 0:
         raise ValueError("The x axis has no extent; cannot differentiate.")
     return savgol_filter(y, window_length=window_length, polyorder=polyorder, deriv=order, delta=dx)
+
+
+UNIFORM_RTOL = 1e-3          # steps within 0.1 % of their mean count as an even grid
+
+
+def is_uniform_axis(x, rtol=UNIFORM_RTOL):
+    """True when x is strictly monotonic with steps equal to within rtol."""
+    d = np.diff(np.asarray(x, dtype=float))
+    if len(d) == 0 or not (np.all(d > 0) or np.all(d < 0)):
+        return False
+    return bool(np.max(np.abs(d - d.mean())) <= rtol * abs(d.mean()))
+
+
+def derivative_method(x):
+    """How derivative_spectrum differentiates this axis, for the processing log."""
+    if is_uniform_axis(x):
+        return "Savitzky-Golay on an even grid"
+    return "local polynomial fits on the actual x values (the axis is unevenly spaced)"
+
+
+def _local_poly_derivative(x, y, order, window, polyorder):
+    """Savitzky-Golay-equivalent derivative on an uneven axis: for every point, a least-squares
+    polynomial of `polyorder` through the `window` nearest points in index order (the window
+    shifts inward at the ends, like savgol mode='interp'), differentiated at that point's x.
+    Exact for polynomials up to `polyorder`."""
+    from math import factorial
+
+    n = len(x)
+    window = max(polyorder + 1, min(int(window), n))
+    half = window // 2
+    out = np.empty(n)
+    for i in range(n):
+        a = min(max(i - half, 0), n - window)
+        xs = x[a:a + window] - x[i]
+        h = float(np.max(np.abs(xs))) or 1.0
+        V = np.vander(xs / h, polyorder + 1, increasing=True)
+        coef, *_ = np.linalg.lstsq(V, y[a:a + window], rcond=None)
+        out[i] = coef[order] * factorial(order) / h ** order if order <= polyorder else 0.0
+    return out
 
 
 def wavenumber_to_wavelength_um(wavenumber_cm1):

@@ -1,6 +1,8 @@
 # Equation regression report
 
-Every equation and algorithm the app uses for numbers a user reports, checked against values worked out from first principles (the `math` module) or against synthetic signals whose truth is known by construction. The code under test never computes its own expected value.
+The equations and algorithms listed in the tables below, each checked on the specific synthetic cases shown. The expected values are worked out from first principles (the `math` module), or the test signal's truth is known by construction. The code under test never computes its own expected value.
+
+This report does **not** cover every equation, input domain or algorithm in the app. Passing these cases shows that the listed calculations reproduce the expected numbers on these inputs. It does not prove the algorithms correct in general. See "Scope" at the end.
 
 Tests: `tests/test_oracle_equations.py` (36 tests). Run: `py -3 -m pytest -q -p no:cacheprovider tests/test_oracle_equations.py`. Last run 2026-11-15: **36 passed**. Against the 3.3.1 code the same file gave **5 failed, 31 passed**. The five failures were three real defects (fixed below) and one missing conversion (added).
 
@@ -76,6 +78,24 @@ Each fix has a test that failed on 3.3.1 and passes now.
 
 - `baseline_correct` with anchors *inside* the spectrum holds the baseline flat beyond the outermost anchors (np.interp). The app's button always uses the end points, so this path is not reachable from the UI. The behaviour is documented in the test.
 - Synthetic PTFE (four bands) only reaches the Weak tier in the matcher. This is by design: cards with few bands cannot reach Strong.
+
+## Scope: what kind of check each row is
+
+- **Equation checks**: closed-form identities evaluated at stated inputs. Bragg, Q, σ(d), cubic a, Scherrer, broadening rules, A = −log10 T, ν̃ = 10⁴/λ, Beer–Lambert, normalisation, ATR, analytic peak areas, Caglioti.
+- **Recovery checks**: a synthetic signal built from known parameters, then the app must recover them. Peak position, Scherrer from a simulated peak, Williamson–Hall, Kα2 stripping, crystallinity, SNIP, baseline, derivatives, all fits. These hold only for the shapes, noise levels and grids tested.
+- **Consistency checks**: errors and bands against Monte Carlo spread, robust against plain fits. They show agreement, not exactness.
+- **Implementation regressions** from the independent Codex review (`tests/test_codex_review.py`, 12 tests):
+  - derivatives on uneven axes, as after a µm→cm⁻¹ import or dropped NaN rows; the method is stated in the processing log;
+  - JCAMP-DX per-line X checks, XYPOINTS endpoints and multi-digit DUP counts;
+  - record-width checks in the text reader;
+  - the identifiability of zero-shift + displacement calibration.
+
+## Input domains not verified
+
+- Real instrument files of any format; vendor JCAMP-DX variants beyond the spec cases written here.
+- Very noisy or strongly overlapped spectra, non-Gaussian instrument profiles, and asymmetric peaks. Fits assume symmetric profiles.
+- Lattices other than cubic for indexing; textured samples beyond the intensity-ratio warning.
+- Matcher accuracy on measured spectra (see the validation laboratory).
 
 ## What this does not cover
 

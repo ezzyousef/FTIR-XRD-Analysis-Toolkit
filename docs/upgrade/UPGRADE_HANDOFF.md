@@ -5,7 +5,7 @@
 | Local path | `E:\Lab Apps\FTIR_XRD_Toolkit` |
 | Branch | `upgrade/04-ftir`, from `feature/licensing` at `6654389` (pushed to origin, verified 170/170) |
 | Version | 3.3.1 → 3.4.0 (`modules/app_info.py`, `installer/FTIR_XRD_Toolkit.iss`) |
-| Tests | `py -3 -m pytest -q -p no:cacheprovider` with `QT_QPA_PLATFORM=offscreen`: **291 passed** (170 at baseline) |
+| Tests | `py -3 -m pytest -q -p no:cacheprovider` with `QT_QPA_PLATFORM=offscreen`: **303 passed** (170 at baseline; 291 before the Codex fixes) |
 | Installer | Not rebuilt this round |
 | Merge | **Not merged** into `master`; owner decision |
 
@@ -34,6 +34,22 @@
 | 6 | Zoom/ROI, shortcuts | **DONE** | Existing toolbar; new shortcuts Ctrl+G, Ctrl+B, Ctrl+Shift+A, Ctrl+Shift+R, Ctrl+, (no clashes) |
 | 6 | Preferences, custom labels, colour-blind plots | **DONE** | QSettings; Okabe–Ito palette |
 | 6 | Strict parsing, no hidden transmission | **DONE** | Reader hardening; AST and socket tests |
+
+## Codex review (independent, read-only)
+
+The report is `AI_Engineering_Knowledge_Base/reports/codex/04-ftir-upgrade-review.md`, reviewing 6654389..9ad6ace. All 7 findings reproduced. Each has a regression test built from Codex's input (`tests/test_codex_review.py`), written to fail on 9ad6ace, then fixed.
+
+| Severity | Finding | Reproduced | Fix | Test |
+|---|---|---|---|---|
+| High | JCAMP-DX line X values not checked (`9999 A4KK` loaded as 1003) | yes | `file_readers.read_jcampdx`: every line's X × XFACTOR must sit within half a step of its point's abscissa, counting the DIF overlap point | `test_jcamp_corrupt_line_x_is_refused`, `test_jcamp_correct_line_x_with_dif_overlap_and_plain_lines_load` |
+| Medium | XYPOINTS scaled the already-physical FIRSTX/LASTX; only the span was compared | yes | Scaled data endpoints are compared with FIRSTX/LASTX by position (raw-stored endpoints still accepted) | `test_jcamp_xypoints_with_xfactor_and_physical_firstx`, `test_jcamp_xypoints_at_the_wrong_position_is_refused` |
+| Medium | Multi-digit DUP counts (`T0` = 20) decoded as DUP 2 plus a stray 0 | yes (pre-existing) | `_jcamp_decode_asdf_line_ex` reads the whole DUP integer | `test_jcamp_multi_digit_dup_count` |
+| Medium | Row width from the modal row, not the header; short rows passed | yes | Record widths as in supercap's `_clean_table`: a delimited header fixes the width, otherwise all rows must match; any mismatch refused with the line | `test_rows_wider_than_the_header_are_refused`, `test_rows_narrower_than_the_rest_are_refused` (guard: `test_header_and_rows_of_equal_width_still_load`) |
+| Medium | Derivatives assumed even spacing | yes | `ftir_analysis.derivative_spectrum`: uneven axes use local polynomial fits on the actual x (Savitzky–Golay on even grids). `derivative_method()` text goes into the processing log | `test_derivative_on_a_micrometre_converted_axis`, `test_derivative_across_a_gap_from_dropped_rows` |
+| Medium | Displacement calibration accepted single-angle designs | yes | `xrd_tools.calibrate`: rank-deficient designs refused; narrow cos θ spread (< 0.1) and two-angle exact fits give warnings, shown in the dialog | `test_displacement_calibration_rejects_a_single_angle`, `test_displacement_calibration_warns_on_narrow_coverage` |
+| Low | Equation report claimed "every equation and algorithm" | yes | Scope wording and "Scope"/"Input domains not verified" sections | n/a (docs) |
+
+Tests after the fixes: **303 passed** (291 before; 170 at baseline).
 
 ## Rollback
 

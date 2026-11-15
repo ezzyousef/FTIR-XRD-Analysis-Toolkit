@@ -122,15 +122,47 @@ def _is_numeric_line(line, nums):
     return all(w.lower() in ("e", "nan", "inf", "infinity") for w in re.findall(r"[A-Za-z]+", line))
 
 
+def _separator(line):
+    """The field separator of a data line, by the same rules as _numbers."""
+    s = line.strip()
+    decimal_comma = bool(_DECIMAL_COMMA.search(s)) and (";" in s or "\t" in s or (" " in s and not re.search(r",\s", s)))
+    if decimal_comma:
+        return ";" if ";" in s else ("\t" if "\t" in s else " ")
+    for sep in (";", ",", "\t"):
+        if sep in s:
+            return sep
+    return " "
+
+
+def _header_width(header, sep):
+    """Number of fields in a delimited header line (trailing empty fields ignored), or None
+    when the header does not use the data's delimiter."""
+    import csv
+    if sep == " " or sep not in header:
+        return None
+    fields = next(csv.reader([header], delimiter=sep))
+    while fields and not fields[-1].strip():
+        fields.pop()
+    return len(fields)
+
+
 def _try_parse_two_column_text(path):
     """Two-column numeric text. Header lines are skipped even when they happen to contain two
     numbers (e.g. 'Wavelength 1.5406 step 0.02'): the data are the longest block of
     consecutive numeric rows, so stray numeric lines before or after it are ignored, and the
-    user is told. Every row of the block must have the same number of values: a row wider
-    than the others is refused with its line number instead of being read as a data point.
-    Rows with NaN/inf are dropped and reported."""
+    user is told.
+
+    Record widths (as in supercap_suite's _clean_table): when the line just above the block
+    is a delimited header (comma, semicolon or tab, the data's own separator), every data row
+    must have exactly the header's number of fields; otherwise every row must have the same
+    number of values as the block's usual row. A wider or narrower row is refused with its
+    line number before any column is chosen or any NaN dropped. Whitespace-separated headers
+    are not used for the width (a title line cannot be told from column names).
+    Rows with NaN/inf are then dropped and reported."""
     blocks, current = [], []
+    headers = {}                       # block index -> the text line just above it
     meta = {}
+    previous_text = None               # the last non-blank line, if it was a text (non-data) line
     for lineno, line in enumerate(_text_lines(path), start=1):
         line = line.strip()
         if not line:
@@ -139,24 +171,42 @@ def _try_parse_two_column_text(path):
             if current:
                 blocks.append(current)
                 current = []
+            previous_text = None
             continue
         nums = _numbers(line)
         if _is_numeric_line(line, nums):
-            current.append((lineno, nums))
-        elif current:
-            blocks.append(current)
-            current = []
+            if not current and previous_text is not None:
+                headers[len(blocks)] = previous_text
+            current.append((lineno, nums, line))
+            previous_text = None
+        else:
+            if current:
+                blocks.append(current)
+                current = []
+            previous_text = line
     if current:
         blocks.append(current)
-    best = max(blocks, key=len) if blocks else []
+    best_i = max(range(len(blocks)), key=lambda i: len(blocks[i])) if blocks else None
+    best = blocks[best_i] if blocks else []
     if len(best) < 5:
         raise ValueError("Fewer than 5 valid numeric rows found; not a recognized two-column format.")
-    widths = [len(nums) for _, nums in best]
-    usual = max(set(widths), key=widths.count)
-    for lineno, nums in best:
-        if len(nums) > usual:
-            raise ValueError(f"Line {lineno} has {len(nums)} values but the other data rows have {usual}: "
-                             f"the file is ragged at line {lineno}. Fix or remove that row and load it again.")
+    sep = _separator(best[0][2])
+    header = headers.get(best_i)
+    width = _header_width(header, sep) if header else None
+    if width is not None and width >= 2:
+        for lineno, nums, _ in best:
+            if len(nums) != width:
+                raise ValueError(f"Line {lineno} has {len(nums)} values but the header has {width} "
+                                 f"(line {lineno}): the file is ragged. Fix that row and load it again.")
+        usual = width
+    else:
+        widths = [len(nums) for _, nums, _ in best]
+        usual = max(set(widths), key=widths.count)
+        for lineno, nums, _ in best:
+            if len(nums) != usual:
+                raise ValueError(f"Line {lineno} has {len(nums)} values but the other data rows have {usual}: "
+                                 f"the file is ragged at line {lineno}. Fix or remove that row and load it again.")
+    best = [(n, nums) for n, nums, _ in best]
     if usual > 2:
         _add_warning(meta, f"{usual} values per row; the first two columns were used as x and y "
                            "(check for decimal commas in a comma-separated file)")
@@ -495,8 +545,13 @@ def _jcamp_decode_asdf_line_ex(line):
             continue
 
         if ch in _JCAMP_DUP:
-            count = _JCAMP_DUP[ch]
+            # The DUP count is the pseudo-digit plus any plain digits after it: 'T0' = 20.
+            digits = str(_JCAMP_DUP[ch])
             i += 1
+            while i < n and line[i].isdigit():
+                digits += line[i]
+                i += 1
+            count = int(digits)
             # DUP repeats the previous emitted value (or delta step) so that
             # it appears `count` times in total -- 1 fewer than that many
             # additional emissions, since it already appeared once.
@@ -633,10 +688,14 @@ def read_jcampdx(path):
     if xydata_lines:
         first_leading_x = None
         prev_last, prev_dif = None, False
+        line_starts = []            # (line number, raw leading X, index of the point that X belongs to)
         for lineno, line in enumerate(xydata_lines, start=1):
             leading_x, row_values, ended_dif = _jcamp_decode_asdf_line_ex(line)
             if first_leading_x is None:
                 first_leading_x = leading_x
+            # The leading X is the abscissa of the line's first ordinate; with a DIF Y-check that
+            # ordinate is the previous line's last point, so it sits one index back.
+            line_starts.append((lineno, leading_x, len(ys) - (1 if (prev_dif and row_values) else 0)))
             if prev_dif and row_values:
                 # DIF form: the line repeats the previous line's last ordinate as a Y-value check.
                 if abs(row_values[0] - prev_last) > 1e-9 * max(1.0, abs(prev_last)):
@@ -658,9 +717,37 @@ def read_jcampdx(path):
         if xfactor != 1.0 and abs(lead - firstx) > tol and abs(lead - firstx * xfactor) <= tol:
             firstx, lastx = firstx * xfactor, lastx * xfactor      # writer stored raw FIRSTX/LASTX
         xs = list(np.linspace(firstx, lastx, len(ys)))
+        # X-value check: every line's leading X (times XFACTOR) must fall on the abscissa of its
+        # point, within half a step. The axis itself is built from FIRSTX/LASTX, so without this
+        # check a corrupt line coordinate would go unnoticed.
+        if len(ys) > 1:
+            step = (lastx - firstx) / (len(ys) - 1)
+            tol = 0.5 * abs(step) + 1e-9 * max(abs(firstx), abs(lastx), 1.0)
+            for lineno, raw_x, idx in line_starts:
+                expected = firstx + step * idx
+                if abs(raw_x * xfactor - expected) > tol:
+                    raise ValueError(f"JCAMP-DX X-value check failed on data line {lineno}: it starts at "
+                                     f"X = {raw_x * xfactor:g} but its first point should be at {expected:g} "
+                                     "(abscissa from FIRSTX/LASTX/NPOINTS). The file is damaged; re-export it.")
     elif xypoints_pairs:
         xs = [p[0] * xfactor for p in xypoints_pairs]
         ys = [p[1] * yfactor for p in xypoints_pairs]
+        # FIRSTX/LASTX are physical values: compare the scaled data endpoints with them directly
+        # (position, not only span). A writer that stored raw endpoints is accepted too.
+        if firstx is not None and lastx is not None and len(xs) > 1:
+            span = abs(lastx - firstx) or 1.0
+            tol = 0.01 * span
+
+            def close(a, b):
+                return abs(xs[0] - a) <= tol and abs(xs[-1] - b) <= tol
+            if close(firstx, lastx):
+                pass
+            elif xfactor != 1.0 and close(firstx * xfactor, lastx * xfactor):
+                firstx, lastx = firstx * xfactor, lastx * xfactor
+            else:
+                raise ValueError(f"JCAMP-DX data run from {xs[0]:g} to {xs[-1]:g} but the file declares "
+                                 f"##FIRSTX={firstx:g}/##LASTX={lastx:g} -- refusing to return possibly-"
+                                 "corrupted data.")
     else:
         raise ValueError("No ##XYDATA or ##XYPOINTS block found -- not a recognized JCAMP-DX file.")
 
@@ -674,7 +761,7 @@ def read_jcampdx(path):
                           f"##NPOINTS={npoints} -- refusing to return possibly-corrupted data. "
                           f"Try re-exporting as plain two-column ASCII instead.")
     if firstx is not None and lastx is not None and len(x_arr) > 1:
-        expected_span = abs(lastx - firstx) if xydata_lines else abs(lastx * xfactor - firstx * xfactor)
+        expected_span = abs(lastx - firstx)
         actual_span = abs(float(x_arr[-1]) - float(x_arr[0]))
         if expected_span > 0 and abs(actual_span - expected_span) / expected_span > 0.01:
             raise ValueError("JCAMP-DX decode's X range doesn't match the file's declared "

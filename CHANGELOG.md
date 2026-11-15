@@ -38,9 +38,18 @@
 - The status bar shows the cursor value and the d-spacing.
 - Very long curves are thinned for drawing only.
 
+**Fixes from an independent code review (Codex):**
+- JCAMP-DX:
+  - each data line's X value is now checked against its point, so a corrupt line is refused;
+  - XYPOINTS files with an XFACTOR load correctly, and data at the wrong position are refused;
+  - repeat counts of two or more digits decode correctly.
+- Text files: when a header names the columns, every row must have that many values. Rows shorter than the rest are now refused too.
+- Derivatives on unevenly spaced axes, such as a micrometre file converted to cm⁻¹ or a file with dropped rows, use local fits on the real x values. The processing log says which method was used.
+- XRD calibration with sample displacement refuses peaks at a single angle, and warns when the angles cover too narrow a range.
+
 **Under the hood:**
 - Shared labkit 1.2.0.
-- 121 new tests, 291 in total. The GUI test file runs in under a minute instead of 27.
+- 133 new tests, 303 in total. The GUI test file runs in under a minute instead of 27.
 - `docs/EQUATION_REGRESSION_REPORT.md` gives the worked numbers for every equation.
 
 
