@@ -53,37 +53,122 @@ def _numbers(line):
     return nums
 
 
+MAX_FILE_BYTES = 512 * 1024 * 1024   # a spectrum or pattern export is far smaller; refuse before reading
+
+
+def _check_size(path):
+    import os
+    size = os.path.getsize(path)
+    if size == 0:
+        raise ValueError("The file is empty.")
+    if size > MAX_FILE_BYTES:
+        raise ValueError(f"The file is too large ({size / 1e6:.0f} MB; limit {MAX_FILE_BYTES / 1e6:.0f} MB) "
+                         "for a spectrum or diffraction pattern.")
+    return size
+
+
+def _read_text(path):
+    """The file's text. UTF-8 and UTF-16 with a byte-order mark are decoded as such (Windows
+    instrument software often writes UTF-16); otherwise UTF-8, falling back to Latin-1, which
+    keeps every byte. Files with NUL bytes and no UTF-16 mark are refused as binary."""
+    _check_size(path)
+    with open(path, "rb") as f:
+        raw = f.read()
+    if raw.startswith(b"\xef\xbb\xbf"):
+        return raw[3:].decode("utf-8", errors="replace")
+    if raw.startswith((b"\xff\xfe", b"\xfe\xff")):
+        return raw.decode("utf-16", errors="replace")
+    if b"\x00" in raw:
+        raise ValueError("This looks like a binary file, not a text export. Export the data as text "
+                         "(.csv/.txt/.xy) from the instrument software.")
+    try:
+        return raw.decode("utf-8")
+    except UnicodeDecodeError:
+        return raw.decode("latin-1")
+
+
+def _text_lines(path):
+    return _read_text(path).splitlines()
+
+
+def _finite_rows(rows, line_numbers=None):
+    """Drop rows with NaN/inf and say which file lines they were on, so nothing is lost silently.
+    Returns (kept rows, warning text or None)."""
+    keep, dropped = [], []
+    for i, row in enumerate(rows):
+        if all(np.isfinite(v) for v in row):
+            keep.append(row)
+        else:
+            dropped.append(line_numbers[i] if line_numbers else None)
+    if not dropped:
+        return keep, None
+    where = [str(n) for n in dropped if n is not None][:5]
+    msg = f"{len(dropped)} row{'s' if len(dropped) != 1 else ''} with non-finite values (NaN/inf) dropped"
+    if where:
+        msg += " (line " + ", ".join(where) + ("…" if len(dropped) > 5 else "") + ")"
+    return keep, msg
+
+
+def _add_warning(meta, text):
+    """Warnings are shown to the user when the file loads (ui_common.load_file_path)."""
+    if text:
+        meta["warning"] = f"{meta['warning']}; {text}" if meta.get("warning") else text
+
+
+def _is_numeric_line(line, nums):
+    """A data row: at least two numbers and no letters other than exponents or NaN/inf words."""
+    if len(nums) < 2:
+        return False
+    return all(w.lower() in ("e", "nan", "inf", "infinity") for w in re.findall(r"[A-Za-z]+", line))
+
+
 def _try_parse_two_column_text(path):
     """Two-column numeric text. Header lines are skipped even when they happen to contain two
     numbers (e.g. 'Wavelength 1.5406 step 0.02'): the data are the longest block of
-    consecutive numeric rows, so stray numeric lines before or after it are ignored."""
+    consecutive numeric rows, so stray numeric lines before or after it are ignored, and the
+    user is told. Every row of the block must have the same number of values: a row wider
+    than the others is refused with its line number instead of being read as a data point.
+    Rows with NaN/inf are dropped and reported."""
     blocks, current = [], []
     meta = {}
-    with open(path, "r", errors="ignore") as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-            if line.startswith(("#", ";", "'", "*")):
-                if current:
-                    blocks.append(current)
-                    current = []
-                continue
-            nums = _numbers(line)
-            numeric_only = len(nums) >= 2 and not re.search(r"[A-DF-Za-df-z]", line)
-            if numeric_only:
-                current.append((nums[0], nums[1]))
-            elif current:
+    for lineno, line in enumerate(_text_lines(path), start=1):
+        line = line.strip()
+        if not line:
+            continue
+        if line.startswith(("#", ";", "'", "*")):
+            if current:
                 blocks.append(current)
                 current = []
+            continue
+        nums = _numbers(line)
+        if _is_numeric_line(line, nums):
+            current.append((lineno, nums))
+        elif current:
+            blocks.append(current)
+            current = []
     if current:
         blocks.append(current)
     best = max(blocks, key=len) if blocks else []
     if len(best) < 5:
         raise ValueError("Fewer than 5 valid numeric rows found; not a recognized two-column format.")
+    widths = [len(nums) for _, nums in best]
+    usual = max(set(widths), key=widths.count)
+    for lineno, nums in best:
+        if len(nums) > usual:
+            raise ValueError(f"Line {lineno} has {len(nums)} values but the other data rows have {usual}: "
+                             f"the file is ragged at line {lineno}. Fix or remove that row and load it again.")
+    if usual > 2:
+        _add_warning(meta, f"{usual} values per row; the first two columns were used as x and y "
+                           "(check for decimal commas in a comma-separated file)")
     if len(blocks) > 1:
-        meta["note"] = f"{len(blocks)} numeric blocks found; used the longest ({len(best)} rows)."
-    xs, ys = zip(*best)
+        others = sum(len(b) for b in blocks) - len(best)
+        _add_warning(meta, f"{len(blocks)} numeric blocks found; used the longest ({len(best)} rows), "
+                           f"{others} numeric row{'s' if others != 1 else ''} elsewhere ignored")
+    rows, msg = _finite_rows([(nums[0], nums[1]) for _, nums in best], [n for n, _ in best])
+    _add_warning(meta, msg)
+    if len(rows) < 5:
+        raise ValueError("Fewer than 5 finite numeric rows found.")
+    xs, ys = zip(*rows)
     return np.array(xs), np.array(ys), meta
 
 
@@ -110,64 +195,69 @@ def read_uxd(path):
         ranges.append(r)
         return r
 
-    with open(path, "r", errors="ignore") as f:
-        for line in f:
-            s = line.strip()
-            if not s:
-                continue
-            if s.startswith(";"):
-                if "=" in s:
-                    k, v = s[1:].split("=", 1)
-                    meta[k.strip()] = v.strip()
-                continue
-            if s.startswith("_"):
-                key, _, val = s.partition("=")
-                key, val = key.strip().upper(), val.strip()
-                if key in ("_RANGE", "_DRIVE") or (key in ("_2THETA", "_START") and cur is not None
-                                                     and (cur["pairs"] or cur["counts"])):
-                    cur = new_range()
-                if cur is None:
-                    cur = new_range()
-                if key in ("_2THETA", "_START") and val:
-                    try:
-                        cur["start"] = float(val)
-                    except ValueError:
-                        pass
-                elif key == "_STEPSIZE" and val:
-                    try:
-                        cur["step"] = float(val)
-                    except ValueError:
-                        pass
-                elif key == "_COUNTS":
-                    cur["counts_mode"] = True
-                elif key == "_2THETACOUNTS":
-                    cur["counts_mode"] = False
-                if val:
-                    meta.setdefault(key.lstrip("_"), val)
-                continue
-            nums = _numbers(s)
-            if not nums:
-                continue
+    for line in _text_lines(path):
+        s = line.strip()
+        if not s:
+            continue
+        if s.startswith(";"):
+            if "=" in s:
+                k, v = s[1:].split("=", 1)
+                meta[k.strip()] = v.strip()
+            continue
+        if s.startswith("_"):
+            key, _, val = s.partition("=")
+            key, val = key.strip().upper(), val.strip()
+            if key in ("_RANGE", "_DRIVE") or (key in ("_2THETA", "_START") and cur is not None
+                                                 and (cur["pairs"] or cur["counts"])):
+                cur = new_range()
             if cur is None:
                 cur = new_range()
-            if cur["counts_mode"]:
-                cur["counts"].extend(nums)
-            elif len(nums) >= 2:
-                cur["pairs"].append((nums[0], nums[1]))
+            if key in ("_2THETA", "_START") and val:
+                try:
+                    cur["start"] = float(val)
+                except ValueError:
+                    pass
+            elif key == "_STEPSIZE" and val:
+                try:
+                    cur["step"] = float(val)
+                except ValueError:
+                    pass
+            elif key == "_COUNTS":
+                cur["counts_mode"] = True
+            elif key == "_2THETACOUNTS":
+                cur["counts_mode"] = False
+            if val:
+                meta.setdefault(key.lstrip("_"), val)
+            continue
+        nums = _numbers(s)
+        if not nums:
+            continue
+        if cur is None:
+            cur = new_range()
+        if cur["counts_mode"]:
+            cur["counts"].extend(nums)
+        elif len(nums) >= 2:
+            cur["pairs"].append((nums[0], nums[1]))
     usable = []
     for r in ranges:
         if r["counts_mode"] and r["counts"]:
             if r["start"] is None or not r["step"]:
                 raise ValueError("UXD counts-only data without _2THETA/_START and _STEPSIZE: cannot build the 2θ axis.")
             y = np.array(r["counts"], dtype=float)
-            usable.append((r["start"] + r["step"] * np.arange(len(y)), y))
+            # axis first, so dropping a non-finite count keeps its neighbours' angles
+            rows, msg = _finite_rows(list(zip(r["start"] + r["step"] * np.arange(len(y)), y)))
         elif len(r["pairs"]) >= 5:
-            xs, ys = zip(*r["pairs"])
-            usable.append((np.array(xs), np.array(ys)))
+            rows, msg = _finite_rows(r["pairs"])
+        else:
+            continue
+        if rows:
+            xs, ys = zip(*rows)
+            usable.append((np.array(xs), np.array(ys), msg))
     if not usable or len(usable[0][0]) < 5:
         raise ValueError("UXD file did not yield usable data rows.")
     if len(usable) > 1:
         meta["warning"] = f"{len(usable)} ranges in this file; loaded the first."
+    _add_warning(meta, usable[0][2])
     return ReadResult(usable[0][0], usable[0][1], metadata=meta, confidence="high")
 
 
@@ -182,53 +272,58 @@ def read_ras(path):
     meta = {}
     scans, cur = [], None
     fallback, in_data = [], False
-    with open(path, "r", errors="ignore") as f:
-        for line in f:
-            s = line.strip()
-            if not s:
-                continue
-            if s.startswith("*"):
-                tag = s.split()[0].upper()
-                if tag == "*RAS_INT_START":
-                    cur = []
-                elif tag == "*RAS_INT_END":
-                    if cur:
-                        scans.append(cur)
-                    cur = None
-                elif tag == "*RAS_DATA_START":
-                    in_data = True
-                elif tag == "*RAS_DATA_END":
-                    in_data = False
+    for line in _text_lines(path):
+        s = line.strip()
+        if not s:
+            continue
+        if s.startswith("*"):
+            tag = s.split()[0].upper()
+            if tag == "*RAS_INT_START":
+                cur = []
+            elif tag == "*RAS_INT_END":
+                if cur:
+                    scans.append(cur)
+                cur = None
+            elif tag == "*RAS_DATA_START":
+                in_data = True
+            elif tag == "*RAS_DATA_END":
+                in_data = False
+            else:
+                if "=" in s:
+                    k, v = s[1:].split("=", 1)
                 else:
-                    if "=" in s:
-                        k, v = s[1:].split("=", 1)
-                    else:
-                        k, _, v = s[1:].partition(" ")
-                    if k.strip():
-                        meta.setdefault(k.strip(), v.strip().strip('"'))
-                continue
-            nums = _numbers(s)
-            if len(nums) < 2:
-                continue
-            row = (nums[0], nums[1] * (nums[2] if len(nums) >= 3 and nums[2] > 0 else 1.0))
-            if cur is not None:
-                cur.append(row)
-            elif in_data:
-                fallback.append(row)
+                    k, _, v = s[1:].partition(" ")
+                if k.strip():
+                    meta.setdefault(k.strip(), v.strip().strip('"'))
+            continue
+        nums = _numbers(s)
+        if len(nums) < 2:
+            continue
+        row = (nums[0], nums[1] * (nums[2] if len(nums) >= 3 and nums[2] > 0 else 1.0))
+        if cur is not None:
+            cur.append(row)
+        elif in_data:
+            fallback.append(row)
     rows = scans[0] if scans else fallback
     if len(rows) < 5:
         raise ValueError("RAS file did not yield usable data rows (unexpected structure).")
     if len(scans) > 1:
         meta["warning"] = f"{len(scans)} scans in this file; loaded the first."
+    rows, msg = _finite_rows(rows)
+    _add_warning(meta, msg)
+    if len(rows) < 5:
+        raise ValueError("RAS file did not yield 5 finite data rows.")
     xs, ys = zip(*rows)
     return ReadResult(np.array(xs), np.array(ys), metadata=meta, confidence="high")
 
 
 def read_xrdml(path):
     """PANalytical/Malvern .xrdml XML format."""
-    ns_guess = None
-    tree = ET.parse(path)
-    root = tree.getroot()
+    _check_size(path)
+    try:
+        root = ET.parse(path).getroot()
+    except ET.ParseError as exc:          # also expat's entity-amplification ("billion laughs") limit
+        raise ValueError(f"Not a well-formed XML (.xrdml) file: {exc}") from None
     # namespace handling: xrdml uses a default namespace, detect it
     m = re.match(r"\{(.*)\}", root.tag)
     ns = {"n": m.group(1)} if m else {}
@@ -286,6 +381,10 @@ def read_xrdml(path):
     if wl_el is not None and wl_el.text:
         meta["wavelength_kalpha1"] = float(wl_el.text)
 
+    ok = np.isfinite(x) & np.isfinite(y)
+    if not ok.all():
+        _add_warning(meta, f"{int((~ok).sum())} point(s) with non-finite values (NaN/inf) dropped")
+        x, y = x[ok], y[ok]
     return ReadResult(x, y, x_label="2Theta (deg)", y_label="Intensity (counts)",
                        metadata=meta, confidence="high")
 
@@ -299,6 +398,7 @@ def read_bruker_raw(path):
     positions against a known standard if possible, and prefer ASCII
     export from the instrument software when accuracy matters.
     """
+    _check_size(path)
     with open(path, "rb") as f:
         data = f.read()
 
@@ -351,8 +451,14 @@ _JCAMP_SPECIAL = set(_JCAMP_SQZ) | set(_JCAMP_DIF) | set(_JCAMP_DUP)
 
 
 def _jcamp_decode_asdf_line(line):
+    """Decodes one ##XYDATA ASDF line into (leading_x, [y1, y2, ...])."""
+    leading_x, values, _ = _jcamp_decode_asdf_line_ex(line)
+    return leading_x, values
+
+
+def _jcamp_decode_asdf_line_ex(line):
     """
-    Decodes one ##XYDATA ASDF line into (leading_x, [y1, y2, ...]).
+    Decodes one ##XYDATA ASDF line into (leading_x, [y1, y2, ...], ended_in_dif).
     See the JCAMP-DX 5.01 spec (McDonald & Wilks, Appl. Spectrosc. 1988) for
     the SQZ (squeezed leading digit)/DIF (delta from previous)/DUP (repeat
     previous N times) pseudo-digit scheme implemented here.
@@ -448,7 +554,7 @@ def _jcamp_decode_asdf_line(line):
 
         raise ValueError(f"Unrecognized character {ch!r} in JCAMP-DX data line: {line!r}")
 
-    return leading_x, values
+    return leading_x, values, last_was_dif
 
 
 def read_jcampdx(path):
@@ -466,73 +572,92 @@ def read_jcampdx(path):
     firstx = lastx = npoints = None
     xunits = yunits = None
 
-    with open(path, "r", errors="ignore") as f:
-        for raw_line in f:
-            line = raw_line.rstrip("\n\r")
-            stripped = line.strip()
-            if not stripped:
+    def header_number(key, val, cast=float):
+        try:
+            return cast(float(val))
+        except ValueError:
+            raise ValueError(f"JCAMP-DX header ##{key}={val!r} is not a number.") from None
+
+    for raw_line in _text_lines(path):
+        line = raw_line.rstrip("\n\r")
+        stripped = line.strip()
+        if not stripped:
+            continue
+        if stripped.startswith("##"):
+            mode = None
+            body = stripped[2:]
+            if "=" not in body:
                 continue
-            if stripped.startswith("##"):
+            key, val = body.split("=", 1)
+            key_norm = key.strip().upper().replace(" ", "")
+            val = val.strip()
+            if key_norm in ("XYDATA",):
+                mode = "xydata"
+                continue
+            if key_norm in ("XYPOINTS",):
+                mode = "xypoints"
+                continue
+            if key_norm == "XFACTOR":
+                xfactor = header_number("XFACTOR", val)
+            elif key_norm == "YFACTOR":
+                yfactor = header_number("YFACTOR", val)
+            elif key_norm == "FIRSTX":
+                firstx = header_number("FIRSTX", val)
+            elif key_norm == "LASTX":
+                lastx = header_number("LASTX", val)
+            elif key_norm == "NPOINTS":
+                npoints = header_number("NPOINTS", val, int)
+            elif key_norm == "XUNITS":
+                xunits = val
+            elif key_norm == "YUNITS":
+                yunits = val
+            elif key_norm == "END":
                 mode = None
-                body = stripped[2:]
-                if "=" not in body:
-                    continue
-                key, val = body.split("=", 1)
-                key_norm = key.strip().upper().replace(" ", "")
-                val = val.strip()
-                if key_norm in ("XYDATA",):
-                    mode = "xydata"
-                    continue
-                if key_norm in ("XYPOINTS",):
-                    mode = "xypoints"
-                    continue
-                if key_norm == "XFACTOR":
-                    xfactor = float(val)
-                elif key_norm == "YFACTOR":
-                    yfactor = float(val)
-                elif key_norm == "FIRSTX":
-                    firstx = float(val)
-                elif key_norm == "LASTX":
-                    lastx = float(val)
-                elif key_norm == "NPOINTS":
-                    npoints = int(float(val))
-                elif key_norm == "XUNITS":
-                    xunits = val
-                elif key_norm == "YUNITS":
-                    yunits = val
-                elif key_norm == "END":
-                    mode = None
-                else:
-                    meta[key.strip()] = val
-                continue
-            if stripped.startswith("$$"):
-                continue  # comment line
-            if mode == "xydata":
-                xydata_lines.append(stripped)
-            elif mode == "xypoints":
-                for pair in re.split(r"[;\s]+", stripped):
-                    if "," in pair:
-                        a, b = pair.split(",", 1)
-                        try:
-                            xypoints_pairs.append((float(a), float(b)))
-                        except ValueError:
-                            pass
+            else:
+                meta[key.strip()] = val
+            continue
+        if stripped.startswith("$$"):
+            continue  # comment line
+        if mode == "xydata":
+            xydata_lines.append(stripped)
+        elif mode == "xypoints":
+            for pair in re.split(r"[;\s]+", stripped):
+                if "," in pair:
+                    a, b = pair.split(",", 1)
+                    try:
+                        xypoints_pairs.append((float(a), float(b)))
+                    except ValueError:
+                        pass
 
     xs, ys = [], []
     if xydata_lines:
-        for line in xydata_lines:
-            leading_x, row_values = _jcamp_decode_asdf_line(line)
-            for j, raw_y in enumerate(row_values):
-                xs.append(leading_x + j)  # placeholder index; overwritten below using FIRSTX/LASTX spacing
-                ys.append(raw_y * yfactor)
-        # ASDF encodes Y values only; X spacing is uniform and derived from
-        # FIRSTX/LASTX/NPOINTS (the per-line leading X is just a checkpoint,
-        # not literally used point-by-point) -- reconstruct the true X axis.
+        first_leading_x = None
+        prev_last, prev_dif = None, False
+        for lineno, line in enumerate(xydata_lines, start=1):
+            leading_x, row_values, ended_dif = _jcamp_decode_asdf_line_ex(line)
+            if first_leading_x is None:
+                first_leading_x = leading_x
+            if prev_dif and row_values:
+                # DIF form: the line repeats the previous line's last ordinate as a Y-value check.
+                if abs(row_values[0] - prev_last) > 1e-9 * max(1.0, abs(prev_last)):
+                    raise ValueError(f"JCAMP-DX Y-value check failed on data line {lineno} ({line!r}): it should "
+                                     f"start with {prev_last:g}, the previous line's last value. The file is "
+                                     "damaged or not standard; re-export it.")
+                row_values = row_values[1:]
+            if row_values:
+                prev_last, prev_dif = row_values[-1], ended_dif
+            ys.extend(v * yfactor for v in row_values)
+        # ASDF encodes Y values only; X spacing is uniform from FIRSTX to LASTX. FIRSTX/LASTX are
+        # actual values (already multiplied by XFACTOR, JCAMP-DX 4.24), while the X at the start of
+        # each data line is raw. The first line's raw X decides which convention the writer used.
         if firstx is None or lastx is None:
             raise ValueError("JCAMP-DX ##XYDATA block found but ##FIRSTX/##LASTX metadata is missing; "
                               "cannot reconstruct the X axis reliably.")
-        n = len(ys)
-        xs = list(np.linspace(firstx * xfactor, lastx * xfactor, n))
+        lead = first_leading_x * xfactor
+        tol = 1e-3 * max(abs(firstx), abs(lastx), 1e-12)
+        if xfactor != 1.0 and abs(lead - firstx) > tol and abs(lead - firstx * xfactor) <= tol:
+            firstx, lastx = firstx * xfactor, lastx * xfactor      # writer stored raw FIRSTX/LASTX
+        xs = list(np.linspace(firstx, lastx, len(ys)))
     elif xypoints_pairs:
         xs = [p[0] * xfactor for p in xypoints_pairs]
         ys = [p[1] * yfactor for p in xypoints_pairs]
@@ -549,17 +674,30 @@ def read_jcampdx(path):
                           f"##NPOINTS={npoints} -- refusing to return possibly-corrupted data. "
                           f"Try re-exporting as plain two-column ASCII instead.")
     if firstx is not None and lastx is not None and len(x_arr) > 1:
-        expected_span = abs(lastx * xfactor - firstx * xfactor)
+        expected_span = abs(lastx - firstx) if xydata_lines else abs(lastx * xfactor - firstx * xfactor)
         actual_span = abs(float(x_arr[-1]) - float(x_arr[0]))
         if expected_span > 0 and abs(actual_span - expected_span) / expected_span > 0.01:
             raise ValueError("JCAMP-DX decode's X range doesn't match the file's declared "
                               "##FIRSTX/##LASTX -- refusing to return possibly-corrupted data.")
 
+    finite = np.isfinite(x_arr) & np.isfinite(y_arr)
+    if not finite.all():
+        _add_warning(meta, f"{int((~finite).sum())} point(s) with non-finite values (NaN/inf) dropped")
+        x_arr, y_arr = x_arr[finite], y_arr[finite]
+    x_label = xunits or "X"
+    unit = (xunits or "").strip().upper().replace(" ", "")
+    to_wavenumber = {"MICROMETERS": 1e4, "MICRONS": 1e4, "UM": 1e4, "NANOMETERS": 1e7, "NM": 1e7}.get(unit)
+    if to_wavenumber:
+        if np.any(x_arr <= 0):
+            raise ValueError(f"JCAMP-DX wavelength axis ({xunits}) has values <= 0; cannot convert to cm-1.")
+        x_arr = to_wavenumber / x_arr                 # nu (cm-1) = 10^4 / lambda (um) = 10^7 / lambda (nm)
+        x_label = "1/CM"
+        _add_warning(meta, f"x axis converted from {xunits} to wavenumber (cm-1)")
     if xunits:
         meta["xunits"] = xunits
     if yunits:
         meta["yunits"] = yunits
-    return ReadResult(x_arr, y_arr, x_label=xunits or "X", y_label=yunits or "Y", metadata=meta, confidence="high")
+    return ReadResult(x_arr, y_arr, x_label=x_label, y_label=yunits or "Y", metadata=meta, confidence="high")
 
 
 FTIR_READERS = {

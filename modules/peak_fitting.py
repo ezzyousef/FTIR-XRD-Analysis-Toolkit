@@ -29,6 +29,24 @@ def pseudo_voigt(x, height, center, fwhm, eta, offset=0.0):
 
 SHAPES = {"gaussian": gaussian, "lorentzian": lorentzian}
 
+GAUSS_AREA = float(np.sqrt(np.pi / (4.0 * np.log(2.0))))   # area / (height * FWHM) of a Gaussian, 1.0645
+LORENTZ_AREA = float(np.pi / 2.0)                          # area / (height * FWHM) of a Lorentzian
+
+
+def profile_area(height, fwhm, shape="gaussian", eta=0.0):
+    """Area of the whole fitted profile (offset excluded), from its parameters:
+    Gaussian h*FWHM*sqrt(pi/(4 ln 2)), Lorentzian pi*h*FWHM/2, pseudo-Voigt the eta-weighted sum.
+    The profile is integrated to infinity: the long Lorentzian tails outside a fit window
+    belong to the peak (truncating them at +/-3 FWHM loses about 10 % of a Lorentzian)."""
+    if shape == "lorentzian":
+        factor = LORENTZ_AREA
+    elif shape == "pseudo_voigt":
+        e = float(np.clip(eta, 0.0, 1.0))
+        factor = e * LORENTZ_AREA + (1.0 - e) * GAUSS_AREA
+    else:
+        factor = GAUSS_AREA
+    return float(height) * float(fwhm) * factor
+
 
 def fit_peak(x, y, center_guess, window, shape="gaussian"):
     """
@@ -62,9 +80,11 @@ def fit_peak(x, y, center_guess, window, shape="gaussian"):
         bounds = ([0, xs.min(), 1e-6, -np.inf], [np.inf, xs.max(), (xs.max() - xs.min()) * 2, np.inf])
 
     try:
-        popt, _ = curve_fit(func, xs, ys, p0=p0, bounds=bounds, maxfev=10000)
+        popt, pcov = curve_fit(func, xs, ys, p0=p0, bounds=bounds, maxfev=10000)
     except Exception as e:
         raise ValueError(f"Peak fit did not converge: {e}")
+    with np.errstate(invalid="ignore"):
+        perr = np.sqrt(np.diag(pcov)) if pcov is not None and np.all(np.isfinite(pcov)) else np.full(len(popt), np.nan)
 
     y_fit = func(xs, *popt)
     ss_res = np.sum((ys - y_fit) ** 2)
@@ -73,16 +93,21 @@ def fit_peak(x, y, center_guess, window, shape="gaussian"):
 
     if shape == "pseudo_voigt":
         height, center, fwhm, eta, offset = popt
-        area = float(integrate.trapezoid(func(xs, *popt) - offset, xs))
         result = {"shape": shape, "height": float(height), "center": float(center),
                   "fwhm": float(fwhm), "eta": float(eta), "offset": float(offset),
-                  "area": area, "r_squared": float(r_squared)}
+                  "area": profile_area(height, fwhm, shape, eta), "r_squared": float(r_squared)}
+        names = ("height", "center", "fwhm", "eta", "offset")
     else:
         height, center, fwhm, offset = popt
-        area = float(integrate.trapezoid(func(xs, *popt) - offset, xs))
+        shape = shape if shape in SHAPES else "gaussian"
         result = {"shape": shape, "height": float(height), "center": float(center),
                   "fwhm": float(fwhm), "offset": float(offset),
-                  "area": area, "r_squared": float(r_squared)}
+                  "area": profile_area(height, fwhm, shape), "r_squared": float(r_squared)}
+        names = ("height", "center", "fwhm", "offset")
+    # 1-sigma standard errors from the fit covariance (residual-scaled); they describe the fit
+    # to this data with this model, not the accuracy of the model itself.
+    result["stderr"] = {n: float(e) for n, e in zip(names, perr)}
+    result["area_in_window"] = float(integrate.trapezoid(func(xs, *popt) - result["offset"], xs))
     return result
 
 
