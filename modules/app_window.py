@@ -191,6 +191,7 @@ class MainWindow(AppShell):
         self.page_changed.connect(self._remember_analysis_page)
         self.on_close(self._on_close)
         self.finalize(start_page="ftir")
+        self._build_help_menu()   # after finalize, so Help is the last menu
         self.history.reset("empty session")
         self.set_status("Ready", "")
 
@@ -230,6 +231,7 @@ class MainWindow(AppShell):
         self.add_menu_action("&Tools", "&Match FTIR spectrum to database", self._match_ftir, "Ctrl+M")
         self.add_menu_action("&Tools", "FTIR reference &database", lambda: self.go_to("database"), "Ctrl+D")
         self.add_menu_action("&Tools", "Sources && references", lambda: self.go_to("sources"))
+        self._build_workbench_menus()
         for name, group, fn in (
                 ("Open data files", "File", lambda: self._with_tab(lambda t: t.load_file_dialog())),
                 ("Save session", "File", lambda: self._with_tab(lambda t: t.save_session())),
@@ -238,6 +240,53 @@ class MainWindow(AppShell):
                 ("Send to Origin", "Export", lambda: self._with_tab(lambda t: t.export_bar.send_to_origin())),
                 ("Export to Excel", "Export", lambda: self._with_tab(lambda t: t.export_bar.export_excel()))):
             self.add_command(name, group, fn)
+
+    def _build_workbench_menus(self):
+        import workbench as wb
+        t = "&Tools"
+        self.add_menu_separator(t)
+        ftir = lambda fn: (lambda: (self.go_to("ftir"), fn(self.page("ftir"))))
+        xrd = lambda fn: (lambda: (self.go_to("xrd"), fn(self)))
+        entries = [
+            ("FTIR: &global peak fit…", ftir(wb.global_fit_active), "Ctrl+G", "FTIR"),
+            ("&Assign selected peak…", lambda: self._with_tab(wb.assign_selected_peak), "Ctrl+Shift+A", "Peaks"),
+            ("FTIR: save processing &recipe…", lambda: wb.save_recipe_dialog(self), None, "FTIR"),
+            ("FTIR: &batch process with a recipe…", lambda: wb.batch_dialog(self), "Ctrl+B", "FTIR"),
+            ("FTIR: &validation laboratory…", lambda: wb.run_validation_lab(self), None, "FTIR"),
+            (None, None, None, None),
+            ("XRD: &calibrate with a standard…", xrd(wb.xrd_calibrate), None, "XRD"),
+            ("XRD: cubic &indexing helper", xrd(wb.xrd_index_cubic), None, "XRD"),
+            ("XRD: cross-check a &phase card…", xrd(wb.xrd_phase_card), None, "XRD"),
+            ("XRD: pattern &warnings", xrd(wb.xrd_pattern_warnings), None, "XRD"),
+            ("XRD: export for &refinement (.xye)…", xrd(wb.xrd_export_refinement), None, "XRD"),
+            (None, None, None, None),
+            ("Sample &evidence report (FTIR + XRD)…", lambda: wb.evidence_report(self), "Ctrl+Shift+R", "Export"),
+            ("Colour-blind-safe &palette", self.use_colour_blind_palette, None, "View"),
+            ("&Preferences…", lambda: wb.preferences_dialog(self), "Ctrl+,", "View"),
+        ]
+        for label, fn, key, group in entries:
+            if label is None:
+                self.add_menu_separator(t)
+                continue
+            self.add_menu_action(t, label, fn, key)
+            self.add_command(label.replace("&", "").rstrip("…"), group, fn)
+
+    def use_colour_blind_palette(self):
+        import workbench
+        palette = workbench.colour_blind_palette()
+        for key in ANALYSIS_PAGES:
+            if self.is_page_built(key):
+                workbench.apply_palette(self.page(key), palette)
+        self.notify("Traces recoloured with the Okabe–Ito (colour-blind-safe) palette")
+
+    def _build_help_menu(self):
+        self.add_menu_action("&Help", "&Licence…", self.show_licence)
+        self.add_menu_action("&Help", "&About", lambda: self.go_to("about"))
+        self.add_command("Licence", "Help", self.show_licence)
+
+    def show_licence(self):
+        from licence_dialog import LicenceDialog
+        LicenceDialog(self).exec()
 
     def _fill_recent_menu(self):
         self._recent_menu.clear()

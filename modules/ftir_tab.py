@@ -160,9 +160,8 @@ def evidence_lines(match, entry, verdict=None, pattern_r=None, references=None):
 
 def peak_source(peak):
     """How a peak got into the list, for tables and exports."""
-    if peak.get("manual"):
-        return "manual (shoulder)" if peak.get("shoulder") else "manual"
-    return "detected"
+    source = ("manual (shoulder)" if peak.get("shoulder") else "manual") if peak.get("manual") else "detected"
+    return f"{source} · {peak['assignment']}" if peak.get("assignment") else source
 
 
 class FTIRTab(AnalysisTabBase):
@@ -645,6 +644,7 @@ class FTIRTab(AnalysisTabBase):
     # ---------------------------------------------------------------- plotting
     def _plot_active_extras(self, ax, trace, theme):
         fg = self.foreground(theme)
+        self._plot_global_fit(ax, trace, fg)
         if not trace.peaks:
             return
         overlay = self.reference_overlay
@@ -671,6 +671,23 @@ class FTIRTab(AnalysisTabBase):
             va = "top" if self.mode() == "transmittance" else "bottom"
             ax.annotate(f"{p['x']:.0f}", (p["x"], p["y"]), fontsize=7, rotation=90, ha="center", va=va,
                         color=fg, xytext=(0, -3 if va == "top" else 3), textcoords="offset points")
+
+    def _plot_global_fit(self, ax, trace, fg):
+        """The global fit's curve (dashed) and 2-sigma band, inside its fit range."""
+        fit = trace.metadata.get("global_fit")
+        if not fit or "cov" not in fit:
+            return
+        import global_fit
+        lo, hi = fit["x_range"]
+        xs = np.sort(trace.x[(trace.x >= lo) & (trace.x <= hi)])
+        if len(xs) < 2:
+            return
+        try:
+            curve, low, high = global_fit.confidence_band(fit, xs, k=2.0)
+        except (KeyError, ValueError, IndexError):
+            return
+        ax.fill_between(xs, low, high, color=trace.color, alpha=0.18, lw=0, zorder=2)
+        ax.plot(xs, curve, color=fg, lw=1.0, linestyle=(0, (5, 2)), alpha=0.8, zorder=3)
 
     def _draw_reference_overlay(self, ax, theme):
         from matplotlib.lines import Line2D
@@ -1636,7 +1653,8 @@ class FTIRTab(AnalysisTabBase):
              ("po", "Polynomial order:", "3")],
             lambda t, v: ftir_analysis.derivative_spectrum(t.x, t.y, order=int(v["order"]), window_length=int(float(v["wl"])),
                                                            polyorder=int(float(v["po"]))),
-            lambda t, v: f"Derivative (order {v['order']}) of {t.label} computed")
+            lambda t, v: f"Derivative (order {v['order']}) of {t.label} computed "
+                         f"({ftir_analysis.derivative_method(t.x)})")
 
     def revert_active(self):
         t = self.require_active("Load a spectrum first.")
@@ -1787,9 +1805,12 @@ class FTIRTab(AnalysisTabBase):
             return
         with open(path, "w", newline="", encoding="utf-8") as f:
             w = csv.writer(f)
-            w.writerow(["wavenumber_cm-1", "intensity", "prominence"])
+            w.writerow(["wavenumber_cm-1", "intensity", "prominence", "source", "assignment"])
             for p in t.peaks:
-                w.writerow([p["x"], p["y"], p["prominence"]])
+                w.writerow([p["x"], p["y"], p["prominence"], "manual" if p.get("manual") else "detected",
+                            p.get("assignment", "")])
+        import workbench
+        workbench.write_trace_provenance(path, t, "FTIR peak list")
         self.app.notify(f"Saved {len(t.peaks)} peaks", "success")
 
     def export_pdf_report(self, path=None):

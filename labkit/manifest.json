@@ -1,0 +1,553 @@
+{
+ "manifest": 1,
+ "labkit": "1.2.0",
+ "policy": "Semantic versioning. Names listed here are removed only in a major version, after one minor version of DeprecationWarning. See docs/API_POLICY.md.",
+ "features": {
+  "licence": "1.1.0",
+  "compat_manifest": "1.2.0",
+  "import_preview": "1.2.0",
+  "atomic_save": "1.2.0",
+  "provenance": "1.2.0",
+  "virtual_table": "1.2.0",
+  "error_dialog": "1.2.0",
+  "history_transactions": "1.2.0"
+ },
+ "modules": {
+  "labkit.compat": {
+   "qt": false,
+   "symbols": {
+    "HERE": {
+     "since": "1.2.0"
+    },
+    "Incompatible": {
+     "since": "1.2.0"
+    },
+    "MANIFEST_FORMAT": {
+     "since": "1.2.0"
+    },
+    "MANIFEST_PATH": {
+     "since": "1.2.0"
+    },
+    "SKIP_DIRS": {
+     "since": "1.2.0"
+    },
+    "check_api": {
+     "since": "1.2.0"
+    },
+    "check_imports": {
+     "since": "1.2.0"
+    },
+    "deprecated": {
+     "since": "1.2.0"
+    },
+    "features": {
+     "since": "1.2.0"
+    },
+    "has_feature": {
+     "since": "1.2.0"
+    },
+    "imports_of": {
+     "since": "1.2.0"
+    },
+    "main": {
+     "since": "1.2.0"
+    },
+    "manifest": {
+     "since": "1.2.0"
+    },
+    "parse": {
+     "since": "1.2.0"
+    },
+    "public_names": {
+     "since": "1.2.0"
+    },
+    "require": {
+     "since": "1.2.0"
+    },
+    "satisfies": {
+     "since": "1.2.0"
+    },
+    "version": {
+     "since": "1.2.0"
+    }
+   }
+  },
+  "labkit.units": {
+   "qt": false,
+   "symbols": {
+    "UNIT_TOKENS": {
+     "since": "1.1.0"
+    },
+    "split_bracketed_unit": {
+     "since": "1.1.0"
+    },
+    "split_label": {
+     "since": "1.1.0"
+    },
+    "split_snake_unit": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.style": {
+   "qt": false,
+   "symbols": {
+    "DEFAULT_PALETTE": {
+     "since": "1.1.0"
+    },
+    "EXPORT_DPI": {
+     "since": "1.1.0"
+    },
+    "FIGURE_SIZES": {
+     "since": "1.1.0"
+    },
+    "FRAME_COLOUR": {
+     "since": "1.1.0"
+    },
+    "GUIDE_COLOUR": {
+     "since": "1.1.0"
+    },
+    "LABTALK_LINE_WIDTH_UNITS": {
+     "since": "1.1.0"
+    },
+    "LINE_STYLES": {
+     "since": "1.1.0"
+    },
+    "MPL_MARKER": {
+     "since": "1.1.0"
+    },
+    "ORIGIN_LINE_STYLE": {
+     "since": "1.1.0"
+    },
+    "ORIGIN_SYMBOL": {
+     "since": "1.1.0"
+    },
+    "PALETTES": {
+     "since": "1.1.0"
+    },
+    "SYMBOLS": {
+     "since": "1.1.0"
+    },
+    "SeriesStyle": {
+     "since": "1.1.0"
+    },
+    "THEMES": {
+     "since": "1.1.0"
+    },
+    "Theme": {
+     "since": "1.1.0"
+    },
+    "hex_to_rgb": {
+     "since": "1.1.0"
+    },
+    "labtalk_colour": {
+     "since": "1.1.0"
+    },
+    "matplotlib_rc": {
+     "since": "1.1.0"
+    },
+    "palette": {
+     "since": "1.1.0"
+    },
+    "style_for": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.figure": {
+   "qt": false,
+   "symbols": {
+    "CORNERS": {
+     "since": "1.1.0"
+    },
+    "FigureSpec": {
+     "since": "1.1.0"
+    },
+    "LEGEND_INSIDE_MAX": {
+     "since": "1.1.0"
+    },
+    "SeriesSpec": {
+     "since": "1.1.0"
+    },
+    "annotate": {
+     "since": "1.1.0"
+    },
+    "axis_title": {
+     "since": "1.1.0"
+    },
+    "format_number": {
+     "since": "1.1.0"
+    },
+    "free_corners": {
+     "since": "1.1.0"
+    },
+    "render": {
+     "since": "1.1.0"
+    },
+    "resolve_styles": {
+     "since": "1.1.0"
+    },
+    "save": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.excel": {
+   "qt": false,
+   "symbols": {
+    "ExcelAnalysis": {
+     "since": "1.1.0"
+    },
+    "ExcelReport": {
+     "since": "1.1.0"
+    },
+    "ExcelTable": {
+     "since": "1.1.0"
+    },
+    "MAX_CHART_POINTS": {
+     "since": "1.1.0"
+    },
+    "SHEET_NAME_LIMIT": {
+     "since": "1.1.0"
+    },
+    "write_workbook": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.origin": {
+   "qt": false,
+   "symbols": {
+    "MAX_LONG_NAME": {
+     "since": "1.1.0"
+    },
+    "OriginBook": {
+     "since": "1.1.0"
+    },
+    "OriginNotAvailable": {
+     "since": "1.1.0"
+    },
+    "OriginResult": {
+     "since": "1.1.0"
+    },
+    "OriginSession": {
+     "since": "1.1.0"
+    },
+    "SCRIPT_NAME": {
+     "since": "1.1.0"
+    },
+    "error_bar_options": {
+     "since": "1.1.0"
+    },
+    "export_to_origin": {
+     "since": "1.1.0"
+    },
+    "legend_placement_labtalk": {
+     "since": "1.1.0"
+    },
+    "origin_available": {
+     "since": "1.1.0"
+    },
+    "write_labtalk_package": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.licence": {
+   "qt": false,
+   "symbols": {
+    "CLOCK_TOLERANCE": {
+     "since": "1.1.0"
+    },
+    "DATE_FIELDS": {
+     "since": "1.1.0"
+    },
+    "DEVICE_RE": {
+     "since": "1.1.0"
+    },
+    "FORMAT": {
+     "since": "1.1.0"
+    },
+    "KINDS": {
+     "since": "1.1.0"
+    },
+    "LicenceError": {
+     "since": "1.1.0"
+    },
+    "LicenceStore": {
+     "since": "1.1.0"
+    },
+    "MAX_BYTES": {
+     "since": "1.1.0"
+    },
+    "OPTIONAL_STR": {
+     "since": "1.1.0"
+    },
+    "REQUIRED": {
+     "since": "1.1.0"
+    },
+    "Status": {
+     "since": "1.1.0"
+    },
+    "activation_request": {
+     "since": "1.1.0"
+    },
+    "canonical": {
+     "since": "1.1.0"
+    },
+    "check": {
+     "since": "1.1.0"
+    },
+    "device_id": {
+     "since": "1.1.0"
+    },
+    "eligible_for": {
+     "since": "1.1.0"
+    },
+    "parse_activation_request": {
+     "since": "1.1.0"
+    },
+    "verify": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.io": {
+   "qt": false,
+   "symbols": {
+    "ColumnPreview": {
+     "since": "1.2.0"
+    },
+    "MAX_PREVIEW_BYTES": {
+     "since": "1.2.0"
+    },
+    "MISSING": {
+     "since": "1.2.0"
+    },
+    "PreviewError": {
+     "since": "1.2.0"
+    },
+    "Provenance": {
+     "since": "1.2.0"
+    },
+    "SAMPLE_ROWS": {
+     "since": "1.2.0"
+    },
+    "TablePreview": {
+     "since": "1.2.0"
+    },
+    "atomic_save": {
+     "since": "1.2.0"
+    },
+    "preview_table": {
+     "since": "1.2.0"
+    },
+    "read_provenance": {
+     "since": "1.2.0"
+    },
+    "sha256_file": {
+     "since": "1.2.0"
+    }
+   }
+  },
+  "labkit.qt.theme": {
+   "qt": true,
+   "symbols": {
+    "ACCENTS": {
+     "since": "1.1.0"
+    },
+    "FONT_STACK": {
+     "since": "1.1.0"
+    },
+    "MONO_STACK": {
+     "since": "1.1.0"
+    },
+    "THEMES": {
+     "since": "1.1.0"
+    },
+    "arrow_icon": {
+     "since": "1.1.0"
+    },
+    "colours": {
+     "since": "1.1.0"
+    },
+    "stylesheet": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.qt.widgets": {
+   "qt": true,
+   "symbols": {
+    "BusyBar": {
+     "since": "1.1.0"
+    },
+    "Card": {
+     "since": "1.1.0"
+    },
+    "CommandPalette": {
+     "since": "1.1.0"
+    },
+    "DropZone": {
+     "since": "1.1.0"
+    },
+    "EmptyState": {
+     "since": "1.1.0"
+    },
+    "FieldRow": {
+     "since": "1.1.0"
+    },
+    "FormulaLabel": {
+     "since": "1.1.0"
+    },
+    "HLine": {
+     "since": "1.1.0"
+    },
+    "MetricTile": {
+     "since": "1.1.0"
+    },
+    "OptionEditor": {
+     "since": "1.1.0"
+    },
+    "Pill": {
+     "since": "1.1.0"
+    },
+    "PlotCanvas": {
+     "since": "1.1.0"
+    },
+    "ResponsiveRow": {
+     "since": "1.1.0"
+    },
+    "ResultTable": {
+     "since": "1.1.0"
+    },
+    "SectionLabel": {
+     "since": "1.1.0"
+    },
+    "Toast": {
+     "since": "1.1.0"
+    },
+    "ToastHost": {
+     "since": "1.1.0"
+    },
+    "icon_label": {
+     "since": "1.1.0"
+    },
+    "scrollable": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.qt.shell": {
+   "qt": true,
+   "symbols": {
+    "AppInfo": {
+     "since": "1.1.0"
+    },
+    "AppShell": {
+     "since": "1.1.0"
+    },
+    "app_pixmap": {
+     "since": "1.1.0"
+    },
+    "claim_taskbar_identity": {
+     "since": "1.1.0"
+    },
+    "load_icon": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.qt.history": {
+   "qt": true,
+   "symbols": {
+    "HISTORY_LIMIT": {
+     "since": "1.1.0"
+    },
+    "History": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.qt.exporting": {
+   "qt": true,
+   "symbols": {
+    "ExportBar": {
+     "since": "1.1.0"
+    },
+    "last_directory": {
+     "since": "1.1.0"
+    },
+    "remember_directory": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.qt.about": {
+   "qt": true,
+   "symbols": {
+    "AboutPage": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.qt.a11y": {
+   "qt": true,
+   "symbols": {
+    "keyboard_friendly": {
+     "since": "1.1.0"
+    },
+    "label_inputs": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.qt.origin_worker": {
+   "qt": true,
+   "symbols": {
+    "OriginWorker": {
+     "since": "1.1.0"
+    }
+   }
+  },
+  "labkit.qt.tables": {
+   "qt": true,
+   "symbols": {
+    "ColumnTableModel": {
+     "since": "1.2.0"
+    },
+    "DataTable": {
+     "since": "1.2.0"
+    }
+   }
+  },
+  "labkit.qt.errors": {
+   "qt": true,
+   "symbols": {
+    "advice_for": {
+     "since": "1.2.0"
+    },
+    "details_for": {
+     "since": "1.2.0"
+    },
+    "error_box": {
+     "since": "1.2.0"
+    },
+    "redact": {
+     "since": "1.2.0"
+    },
+    "show_error": {
+     "since": "1.2.0"
+    }
+   }
+  }
+ },
+ "frozen_private": {
+  "labkit.origin": [
+   "_book_columns",
+   "_style_data_plot"
+  ]
+ },
+ "deprecated": {},
+ "removed": {}
+}

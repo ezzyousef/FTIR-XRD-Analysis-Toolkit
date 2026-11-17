@@ -985,6 +985,8 @@ class XRDTab(AnalysisTabBase):
                 w.writerow([p["two_theta"], p["intensity"], "yes" if p.get("use", True) and p.get("usable", True) else "no",
                             p.get("width_used_deg", p["fwhm_deg"]), p.get("beta_deg") or "",
                             f"{p['d_A']:.5f}" if p.get("d_A") else "", p.get("size_nm") or "", p.get("note", "")])
+        import workbench
+        workbench.write_trace_provenance(path, t, "XRD peak list", {"wavelength_A": self.get_wavelength()})
         msg = f"Saved {len(t.peaks)} peaks"
         if not p_used:
             msg += " (no d/size yet — run d-spacing + Scherrer to include them)"

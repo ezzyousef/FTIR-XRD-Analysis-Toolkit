@@ -53,6 +53,13 @@ def window(qapp, tmp_path, monkeypatch):
     w.show()
     yield w
     w.close()
+    # Delete the window now: closed-but-alive windows piled up in the session-wide QApplication
+    # and made each later setup slower (50 s -> 190 s per test, 27 min for this file).
+    # Pending work (e.g. a page build queued by go_to) runs first, while the window still exists.
+    from PySide6.QtCore import QCoreApplication, QEvent
+    qapp.processEvents()
+    w.deleteLater()
+    QCoreApplication.sendPostedEvents(None, QEvent.DeferredDelete)
 
 
 def pump(qapp, until=None, timeout=20.0):

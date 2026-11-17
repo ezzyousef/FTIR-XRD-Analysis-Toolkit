@@ -25,3 +25,6 @@ Thumbs.db
 
 # Claude Code project-local settings
 .claude/settings.local.json
+
+# labkit sync backups (sync.py --restore uses them; not part of the app)
+.labkit-backup/

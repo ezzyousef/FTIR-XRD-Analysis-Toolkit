@@ -1,5 +1,58 @@
 # Changelog
 
+## 3.4.0
+
+**Corrections (results change):**
+- **Linear baseline:** the **Baseline correct (linear)** button gave a wrong baseline on spectra stored from high to low wavenumber, which is the usual FTIR export order. Re-run it on such spectra.
+- **First derivative:** its sign was inverted on spectra stored from high to low wavenumber. The second derivative was not affected.
+- **Fitted peak areas** now cover the whole fitted profile. Lorentzian areas were about 10 % low, because only the part inside the fit window was counted; pseudo-Voigt areas were low in proportion to η. The window-only area is still stored as `area_in_window`. Fits also carry 1σ errors.
+
+**Files:**
+- UTF-16 and UTF-8 exports with a byte-order mark now load.
+- Empty and binary files are refused with a clear message.
+- A data row with more values than the others is refused, with its line number. It used to become a stray data point.
+- NaN or inf rows are dropped and reported, instead of silently cutting the file to its longest clean block.
+- A warning appears when extra columns or other numeric blocks are ignored.
+- Files over 512 MB are refused.
+- Broken or entity-bomb .xrdml files give a clear error.
+- JCAMP-DX:
+  - DIF-compressed files with the standard Y-check value now load.
+  - FIRSTX is read correctly when XFACTOR ≠ 1.
+  - Micrometre and nanometre axes are converted to cm⁻¹.
+
+**New (Tools menu; see README):**
+- Global constrained and robust peak fitting with 1σ errors and a 2σ band drawn on the plot (Ctrl+G).
+- Peak-list CSVs get a `.provenance.json` beside them.
+- Peak assignments with undo (Ctrl+Shift+A).
+- Processing recipes and batch runs with a provenance file (Ctrl+B).
+- An FTIR **validation laboratory** for your own measured spectra of known materials: accuracy with a 95 % interval, confusion matrix, precision and recall, false-positive warnings, and tolerance and peak-shift sensitivity.
+- XRD:
+  - calibration from certificate d-values you enter;
+  - Scherrer uncertainty with instrument broadening;
+  - amorphous-halo and preferred-orientation warnings;
+  - cubic indexing candidates;
+  - cross-check against your own licensed phase cards;
+  - `.xye` export for refinement programs.
+- A sample **evidence report** that puts FTIR and XRD side by side (Ctrl+Shift+R).
+- A colour-blind-safe palette and Preferences (Ctrl+,).
+- The status bar shows the cursor value and the d-spacing.
+- Very long curves are thinned for drawing only.
+
+**Fixes from an independent code review (Codex):**
+- JCAMP-DX:
+  - each data line's X value is now checked against its point, so a corrupt line is refused;
+  - XYPOINTS files with an XFACTOR load correctly, and data at the wrong position are refused;
+  - repeat counts of two or more digits decode correctly.
+- Text files: when a header names the columns, every row must have that many values. Rows shorter than the rest are now refused too.
+- Derivatives on unevenly spaced axes, such as a micrometre file converted to cm⁻¹ or a file with dropped rows, use local fits on the real x values. The processing log says which method was used.
+- XRD calibration with sample displacement refuses peaks at a single angle, and warns when the angles cover too narrow a range.
+
+**Under the hood:**
+- Shared labkit 1.2.0.
+- 133 new tests, 303 in total. The GUI test file runs in under a minute instead of 27.
+- `docs/EQUATION_REGRESSION_REPORT.md` gives the worked numbers for every equation.
+
+
 ## 3.3.1
 
 - **Foldable left column:** every card has a ▾/▸ toggle (or click its title); the app remembers what you folded. Calculations, Tools and Files & session start folded, so the column is far shorter.

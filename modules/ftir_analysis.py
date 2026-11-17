@@ -519,9 +519,12 @@ def baseline_correct(x, y, anchor_points=None):
         anchor_x = [x[0], x[-1]]
         anchor_y = [y[0], y[-1]]
     else:
-        anchor_x = sorted(anchor_points)
+        anchor_x = list(anchor_points)
         anchor_y = [y[np.argmin(np.abs(x - ax))] for ax in anchor_x]
-    baseline = np.interp(x, anchor_x, anchor_y)
+    # np.interp needs increasing anchors; FTIR data usually run 4000 -> 400 cm-1, and with the
+    # end points in that order np.interp returned a wrong (non-linear) baseline.
+    order = np.argsort(anchor_x)
+    baseline = np.interp(x, np.asarray(anchor_x, dtype=float)[order], np.asarray(anchor_y, dtype=float)[order])
     return y - baseline, baseline
 
 
@@ -670,5 +673,72 @@ def derivative_spectrum(x, y, order=1, window_length=15, polyorder=3):
         raise ValueError("window_length must be greater than polyorder.")
     if len(x) < 2:
         raise ValueError("Need at least 2 points to compute a derivative.")
-    dx = float(np.mean(np.abs(np.diff(x))))
+    if len(x) <= polyorder + 1:
+        raise ValueError("Too few points for this polynomial order.")
+    if not is_uniform_axis(x):
+        # Uneven spacing (a wavelength axis converted to cm-1, rows dropped for NaN): the same
+        # local polynomial fit, but on the actual x of each window.
+        return _local_poly_derivative(x, y, order, min(window_length, len(x) - (1 - len(x) % 2)), polyorder)
+    # Signed step: d/dx on a descending axis (FTIR exports usually run 4000 -> 400 cm-1) must not
+    # flip the sign of the first derivative.
+    dx = float((x[-1] - x[0]) / (len(x) - 1))
+    if dx == 0:
+        raise ValueError("The x axis has no extent; cannot differentiate.")
     return savgol_filter(y, window_length=window_length, polyorder=polyorder, deriv=order, delta=dx)
+
+
+UNIFORM_RTOL = 1e-3          # steps within 0.1 % of their mean count as an even grid
+
+
+def is_uniform_axis(x, rtol=UNIFORM_RTOL):
+    """True when x is strictly monotonic with steps equal to within rtol."""
+    d = np.diff(np.asarray(x, dtype=float))
+    if len(d) == 0 or not (np.all(d > 0) or np.all(d < 0)):
+        return False
+    return bool(np.max(np.abs(d - d.mean())) <= rtol * abs(d.mean()))
+
+
+def derivative_method(x):
+    """How derivative_spectrum differentiates this axis, for the processing log."""
+    if is_uniform_axis(x):
+        return "Savitzky-Golay on an even grid"
+    return "local polynomial fits on the actual x values (the axis is unevenly spaced)"
+
+
+def _local_poly_derivative(x, y, order, window, polyorder):
+    """Savitzky-Golay-equivalent derivative on an uneven axis: for every point, a least-squares
+    polynomial of `polyorder` through the `window` nearest points in index order (the window
+    shifts inward at the ends, like savgol mode='interp'), differentiated at that point's x.
+    Exact for polynomials up to `polyorder`."""
+    from math import factorial
+
+    n = len(x)
+    window = max(polyorder + 1, min(int(window), n))
+    half = window // 2
+    out = np.empty(n)
+    for i in range(n):
+        a = min(max(i - half, 0), n - window)
+        xs = x[a:a + window] - x[i]
+        h = float(np.max(np.abs(xs))) or 1.0
+        V = np.vander(xs / h, polyorder + 1, increasing=True)
+        coef, *_ = np.linalg.lstsq(V, y[a:a + window], rcond=None)
+        out[i] = coef[order] * factorial(order) / h ** order if order <= polyorder else 0.0
+    return out
+
+
+def wavenumber_to_wavelength_um(wavenumber_cm1):
+    """Wavelength in micrometres from wavenumber in cm-1: lambda = 10^4 / nu."""
+    nu = np.asarray(wavenumber_cm1, dtype=float)
+    if np.any(nu <= 0):
+        raise ValueError("Wavenumber must be > 0 cm-1.")
+    out = 1e4 / nu
+    return float(out) if out.ndim == 0 else out
+
+
+def wavelength_um_to_wavenumber(wavelength_um):
+    """Wavenumber in cm-1 from wavelength in micrometres: nu = 10^4 / lambda."""
+    lam = np.asarray(wavelength_um, dtype=float)
+    if np.any(lam <= 0):
+        raise ValueError("Wavelength must be > 0 um.")
+    out = 1e4 / lam
+    return float(out) if out.ndim == 0 else out
